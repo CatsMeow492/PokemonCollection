@@ -3,31 +3,41 @@ package main
 import (
     "encoding/json"
     "net/http"
+    "os"
     "github.com/gorilla/mux"
+    "log"
+    _ "github.com/joho/godotenv/autoload"
 )
 
-type Card struct {
-    Name    string `json:"name"`
-    Edition string `json:"edition"`
-    Grade   string `json:"grade"`
-    Price   string `json:"price"`
-}
-
 func getCards(w http.ResponseWriter, r *http.Request) {
-    cards := []Card{
-        {"Haunter", "Fossil", "CGC 10 GEM MINT", "$259.99"},
-        {"Mew", "2000 Black Star Promo", "CGC 10 Gem Mint", "$425.00"},
-        {"Articuno", "1999 Fossil - Unlimited", "CGC 9 MINT", "$89.99"},
-        {"Moltres", "1999 Fossil", "PSA 8", "$59.99"},
-        {"Jolteon", "1999 Jungle", "CGC 8.5 NM", "$55.00"},
-        {"Kangaskhan", "Jungle Unlimited", "NM", "$11.99"},
-        {"Clefable", "Jungle", "PSA 8 Near Mint-Mint", "$39.99"},
-        {"Flareon", "1999 Jungle Unlimited", "SGC 8", "$50.00"},
-        {"Mr. Mime", "1999 Jungle", "PSA 7 NM", "$30.00"},
-        {"Vaporeon", "1999 Jungle", "PSA 8", "$50.00"},
-        {"Lily Pad Mew", "Pokémon Evolutions", "PSA 9 MINT", "$34.90"},
-        {"Gengar", "1999 Fossil 1st Edition", "PSA 8", "$245.00"},
+    apiKey := os.Getenv("POKEMON_TCG_API_KEY")
+    url := "https://api.pokemontcg.io/v2/cards?q=name:Haunter|name:Mew|name:Articuno|name:Moltres|name:Jolteon|name:Kangaskhan|name:Clefable|name:Flareon|name:Mr. Mime|name:Vaporeon|name:Lily Pad Mew|name:Gengar"
+
+    req, _ := http.NewRequest("GET", url, nil)
+    req.Header.Set("X-Api-Key", apiKey)
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        log.Fatalf("Error fetching data: %v", err)
     }
+    defer resp.Body.Close()
+
+    var result map[string]interface{}
+    json.NewDecoder(resp.Body).Decode(&result)
+
+    cards := []Card{}
+    for _, cardData := range result["data"].([]interface{}) {
+        card := cardData.(map[string]interface{})
+        cards = append(cards, Card{
+            Name:    card["name"].(string),
+            Edition: card["set"].(map[string]interface{})["name"].(string),
+            Grade:   "N/A", // Grade is not provided by the API
+            Price:   "N/A", // Price is not provided by the API
+            Image:   card["images"].(map[string]interface{})["large"].(string),
+        })
+    }
+
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(cards)
 }
