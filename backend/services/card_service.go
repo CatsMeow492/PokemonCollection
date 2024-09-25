@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "fmt"
     "net/http"
+    "net/url" // Add this import
     "time"
 
     "github.com/patrickmn/go-cache"
@@ -23,8 +24,19 @@ func FetchCard(apiKey, name, setID string) (*models.Card, error) {
         return cachedCard.(*models.Card), nil
     }
 
-    url := fmt.Sprintf("https://api.pokemontcg.io/v2/cards?q=name:%s%%20set.id:%s", name, setID)
-    req, _ := http.NewRequest("GET", url, nil)
+    var apiURL string
+    if name == "Mr. Mime" {
+        // Special case for "Mr. Mime"
+        apiURL = fmt.Sprintf("https://api.pokemontcg.io/v2/cards/%s", setID)
+    } else if name != "" && setID != "" {
+        encodedName := url.QueryEscape(name) // URL-encode the card name
+        encodedSetID := url.QueryEscape(setID) // URL-encode the set ID
+        apiURL = fmt.Sprintf("https://api.pokemontcg.io/v2/cards?q=name:%s%%20set.id:%s", encodedName, encodedSetID)
+    } else {
+        return nil, fmt.Errorf("name and setID must be provided")
+    }
+
+    req, _ := http.NewRequest("GET", apiURL, nil)
     req.Header.Set("X-Api-Key", apiKey)
 
     client := &http.Client{}
@@ -43,14 +55,19 @@ func FetchCard(apiKey, name, setID string) (*models.Card, error) {
         return nil, err
     }
 
-    data, ok := result["data"].([]interface{})
-    if !ok || len(data) == 0 {
-        return nil, fmt.Errorf("no data found for card: %s", name)
-    }
-
-    cardData, ok := data[0].(map[string]interface{})
-    if !ok {
-        return nil, fmt.Errorf("unexpected data format for card: %s", name)
+    var cardData map[string]interface{}
+    if name == "Mr. Mime" {
+        // Special case for "Mr. Mime"
+        cardData = result["data"].(map[string]interface{})
+    } else {
+        data, ok := result["data"].([]interface{})
+        if !ok || len(data) == 0 {
+            return nil, fmt.Errorf("no data found for card: %s", name)
+        }
+        cardData, ok = data[0].(map[string]interface{})
+        if !ok {
+            return nil, fmt.Errorf("unexpected data format for card: %s", name)
+        }
     }
 
     imageURL := cardData["images"].(map[string]interface{})["large"].(string)

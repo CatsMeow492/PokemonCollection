@@ -57,6 +57,7 @@
     },
     {
       "name": "Mr. Mime",
+      "id": "base2-6",
       "edition": "1999 Jungle",
       "grade": "7",
       "price": "$30.00",
@@ -70,7 +71,7 @@
       "set": "base2"
     },
     {
-      "name": "Lily Pad Mew",
+      "name": "Mew",
       "edition": "Pokémon Evolutions",
       "grade": "9",
       "price": "$34.90",

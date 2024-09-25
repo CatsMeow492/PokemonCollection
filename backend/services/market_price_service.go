@@ -10,7 +10,7 @@ import (
 )
 
 func GetMarketPrice(cardName, edition, grade string) (float64, error) {
-    searchQuery := fmt.Sprintf("%s %s %s", cardName, edition, grade)
+    searchQuery := fmt.Sprintf("%s %s Grade %s", cardName, edition, grade)
     url := fmt.Sprintf("https://www.ebay.com/sch/i.html?_nkw=%s", strings.ReplaceAll(searchQuery, " ", "+"))
 
     res, err := http.Get(url)

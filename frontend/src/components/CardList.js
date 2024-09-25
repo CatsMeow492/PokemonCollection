@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Grid, Card, CardMedia, CardContent } from '@mui/material';
 import '../styles/CardList.css';
+import { fetchMarketPrice } from '../utils/apiUtils';
 
 const CardList = () => {
     const [cards, setCards] = useState([]);
+    const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
 
     useEffect(() => {
         fetch('/api/cards')
@@ -11,29 +13,19 @@ const CardList = () => {
             .then(data => setCards(data));
     }, []);
 
-    const fetchMarketPrice = async (cardName, edition, grade) => {
-        const response = await fetch(`/api/market-price?card_name=${encodeURIComponent(cardName)}&edition=${encodeURIComponent(edition)}&grade=${encodeURIComponent(grade)}`);
-        if (response.ok) {
-            const data = await response.json();
-            return data.market_price;
-        } else {
-            return null;
-        }
-    };
-
     useEffect(() => {
         const updateCardsWithMarketPrice = async () => {
             const updatedCards = await Promise.all(cards.map(async (card) => {
                 const marketPrice = await fetchMarketPrice(card.name, card.edition, card.grade);
                 return { ...card, marketPrice };
             }));
-            setCards(updatedCards);
+            setCardsWithMarketPrice(updatedCards);
         };
 
         if (cards.length > 0) {
             updateCardsWithMarketPrice();
         }
-    }, [cards.length]); // Only run when cards are initially loaded
+    }, [cards]);
 
     return (
         <Container>
@@ -41,7 +33,7 @@ const CardList = () => {
                 My Pokémon Card Collection
             </Typography>
             <Grid container spacing={3}>
-                {cards.map((card, index) => (
+                {cardsWithMarketPrice.map((card, index) => (
                     <Grid item xs={12} sm={6} md={4} key={index}>
                         <Card>
                             <CardMedia

@@ -6,7 +6,6 @@ import (
     "log"
     "net/http"
     "os"
-
     "github.com/CatsMeow492/PokemonCollection/models"
     "github.com/CatsMeow492/PokemonCollection/services"
 )
