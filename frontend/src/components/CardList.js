@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Grid, Card, CardMedia, CardContent } from '@mui/material';
 import '../styles/CardList.css';
-import { fetchMarketPrice } from '../utils/apiUtils';
+import { fetchMarketPrice, fetchCards, processFetchedCards } from '../utils/apiUtils';
+import config from '../config';
 
 const CardList = () => {
     const [cards, setCards] = useState([]);
     const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
+    const { verbose } = config;
 
     useEffect(() => {
-        fetch('/api/cards')
-            .then(response => response.json())
-            .then(data => setCards(data));
-    }, []);
+        fetchCards()
+            .then(data => {
+                const { cards } = processFetchedCards(data, verbose);
+                setCards(cards);
+            })
+    }, [verbose]);
 
     useEffect(() => {
         const updateCardsWithMarketPrice = async () => {
@@ -34,8 +38,8 @@ const CardList = () => {
             </Typography>
             <Grid container spacing={3}>
                 {cardsWithMarketPrice.map((card, index) => (
-                    <Grid item xs={12} sm={6} md={4} key={index}>
-                        <Card>
+                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={index}>  
+                        <Card className="card">
                             <CardMedia
                                 component="img"
                                 className="card-image"
