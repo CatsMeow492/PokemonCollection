@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Grid, Card, CardContent, Typography, CardMedia } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Typography, Grid, Card, CardMedia, CardContent } from '@mui/material';
+import '../styles/CardList.css';
 
 const CardList = () => {
     const [cards, setCards] = useState([]);
@@ -9,6 +10,30 @@ const CardList = () => {
             .then(response => response.json())
             .then(data => setCards(data));
     }, []);
+
+    const fetchMarketPrice = async (cardName, edition, grade) => {
+        const response = await fetch(`/api/market-price?card_name=${encodeURIComponent(cardName)}&edition=${encodeURIComponent(edition)}&grade=${encodeURIComponent(grade)}`);
+        if (response.ok) {
+            const data = await response.json();
+            return data.market_price;
+        } else {
+            return null;
+        }
+    };
+
+    useEffect(() => {
+        const updateCardsWithMarketPrice = async () => {
+            const updatedCards = await Promise.all(cards.map(async (card) => {
+                const marketPrice = await fetchMarketPrice(card.name, card.edition, card.grade);
+                return { ...card, marketPrice };
+            }));
+            setCards(updatedCards);
+        };
+
+        if (cards.length > 0) {
+            updateCardsWithMarketPrice();
+        }
+    }, [cards.length]); // Only run when cards are initially loaded
 
     return (
         <Container>
@@ -21,7 +46,7 @@ const CardList = () => {
                         <Card>
                             <CardMedia
                                 component="img"
-                                height="140"
+                                className="card-image"
                                 image={card.image}
                                 alt={card.name}
                             />
@@ -36,8 +61,13 @@ const CardList = () => {
                                     Grade: {card.grade}
                                 </Typography>
                                 <Typography variant="body2" component="p">
-                                    Price: {card.price}
+                                    Cost: {card.price}
                                 </Typography>
+                                {card.marketPrice !== undefined && (
+                                    <Typography variant="body2" component="p">
+                                        Market Price: ${card.marketPrice ? card.marketPrice.toFixed(2) : 'N/A'}
+                                    </Typography>
+                                )}
                             </CardContent>
                         </Card>
                     </Grid>

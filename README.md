@@ -1,0 +1,1 @@
+curl -H "X-Api-Key: 7170968d-1f17-489b-86ad-32db4c8e6ffd" "https://api.pokemontcg.io/v2/cards?q=name:Haunter|name:Mew|name:Articuno|name:Moltres|name:Jolteon|name:Kangaskhan|name:Clefable|name:Flareon|name:Mr. Mime|name:Vaporeon|name:Lily Pad Mew|name:Gengar"

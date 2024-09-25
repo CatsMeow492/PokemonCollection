@@ -2,73 +2,85 @@
     {
       "name": "Haunter",
       "edition": "Fossil",
-      "grade": "CGC 10 GEM MINT",
-      "price": "$259.99"
+      "grade": "10",
+      "price": "$259.99",
+      "set": "base3"
     },
     {
       "name": "Mew",
       "edition": "2000 Black Star Promo",
-      "grade": "CGC 10 Gem Mint",
-      "price": "$425.00"
+      "grade": "10",
+      "price": "$425.00",
+      "set": "basep"
     },
     {
       "name": "Articuno",
       "edition": "1999 Fossil - Unlimited",
-      "grade": "CGC 9 MINT",
-      "price": "$89.99"
+      "grade": "9",
+      "price": "$89.99",
+      "set": "base3"
     },
     {
       "name": "Moltres",
       "edition": "1999 Fossil",
-      "grade": "PSA 8",
-      "price": "$59.99"
+      "grade": "8",
+      "price": "$59.99",
+      "set": "base3"
     },
     {
       "name": "Jolteon",
       "edition": "1999 Jungle",
-      "grade": "CGC 8.5 NM",
-      "price": "$55.00"
+      "grade": "8.5",
+      "price": "$55.00",
+      "set": "base2"
     },
     {
       "name": "Kangaskhan",
       "edition": "Jungle Unlimited",
-      "grade": "NM",
-      "price": "$11.99"
+      "grade": "7",
+      "price": "$11.99",
+      "set": "base2"
     },
     {
       "name": "Clefable",
       "edition": "Jungle",
-      "grade": "PSA 8 Near Mint-Mint",
-      "price": "$39.99"
+      "grade": "8",
+      "price": "$39.99",
+      "set": "base2"
     },
     {
       "name": "Flareon",
       "edition": "1999 Jungle Unlimited",
-      "grade": "SGC 8",
-      "price": "$50.00"
+      "grade": "8",
+      "price": "$50.00",
+      "set": "base2"
     },
     {
       "name": "Mr. Mime",
       "edition": "1999 Jungle",
-      "grade": "PSA 7 NM",
-      "price": "$30.00"
+      "grade": "7",
+      "price": "$30.00",
+      "set": "base2"
     },
     {
       "name": "Vaporeon",
       "edition": "1999 Jungle",
-      "grade": "PSA 8",
-      "price": "$50.00"
+      "grade": "8",
+      "price": "$50.00",
+      "set": "base2"
     },
     {
       "name": "Lily Pad Mew",
       "edition": "Pokémon Evolutions",
-      "grade": "PSA 9 MINT",
-      "price": "$34.90"
+      "grade": "9",
+      "price": "$34.90",
+      "set": "xy12"
     },
     {
       "name": "Gengar",
       "edition": "1999 Fossil 1st Edition",
-      "grade": "PSA 8",
-      "price": "$245.00"
+      "grade": "8",
+      "price": "$245.00",
+      "set": "base3"
     }
   ]
