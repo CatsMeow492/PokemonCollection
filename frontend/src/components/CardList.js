@@ -39,6 +39,7 @@ const CardList = () => {
 
     const handleMouseMove = (e, index) => {
         const cardImageRef = cardImageRefs.current[index].current;
+        const quantityBubble = cardImageRef.parentElement.querySelector('.quantity-bubble');
         const rect = cardImageRef.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -62,12 +63,21 @@ const CardList = () => {
         cardImageRef.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg) scale(1.15)`;
         cardImageRef.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, ${glowIntensity}), rgba(255, 255, 255, 0.2) 40%, transparent 60%)`;
         cardImageRef.style.boxShadow = `0 0 ${30 * glowIntensity}px rgba(255, 255, 255, ${glowIntensity}), 0 0 ${60 * glowIntensity}px rgba(255, 255, 255, ${glowIntensity * 0.8}), 0 0 ${90 * glowIntensity}px rgba(255, 255, 255, ${glowIntensity * 0.6})`; // Fixed missing parenthesis
+
+        if (quantityBubble) {
+            quantityBubble.classList.add('hover');
+        }
     };
 
     const handleMouseLeave = (index) => {
         const cardImageRef = cardImageRefs.current[index].current;
+        const quantityBubble = cardImageRef.parentElement.querySelector('.quantity-bubble');
         cardImageRef.style.transform = 'rotateX(0) rotateY(0) scale(1)';
         cardImageRef.style.background = 'rgba(255, 255, 255, 0.3)';
+
+        if (quantityBubble) {
+            quantityBubble.classList.remove('hover');
+        }
     };
 
     const handleAddCard = async (newCard) => {
