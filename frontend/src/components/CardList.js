@@ -46,13 +46,14 @@ const CardList = () => {
         const angleX = percentY * 35; // Adjust the tilt angle
         const angleY = -percentX * 35; // Adjust the tilt angle
 
-        cardImageRef.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg) scale(1.25)`;
-        cardImageRef.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, 0.5), transparent)`;
+        cardImageRef.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg) scale(1.15)`;
+        cardImageRef.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.2) 40%, transparent 60%)`;
+        cardImageRef.style.boxShadow = `0 0 30px rgba(255, 255, 255, 1), 0 0 60px rgba(255, 255, 255, 0.8), 0 0 90px rgba(255, 255, 255, 0.6)`;
     };
 
     const handleMouseLeave = (index) => {
         const cardImageRef = cardImageRefs.current[index].current;
-        cardImageRef.style.transform = 'rotateX(0) rotateY(0)';
+        cardImageRef.style.transform = 'rotateX(0) rotateY(0) scale(1)';
         cardImageRef.style.background = 'rgba(255, 255, 255, 0.3)';
     };
 
@@ -61,11 +62,11 @@ const CardList = () => {
             <Typography variant="h4" component="h1" gutterBottom>
                 My Pokémon Card Collection
             </Typography>
-            <Grid container spacing={3} className="card-list">
+            <Grid container spacing={3}>
                 {cardsWithMarketPrice.map((card, index) => {
                     cardImageRefs.current[index] = cardImageRefs.current[index] || React.createRef();
                     return (
-                        <Grid item xs={12} sm={6} md={4} lg={2.4} key={index} className="card-container">
+                        <Grid item xs={12} sm={6} md={4} lg={2.4} key={index}>
                             <Card className="card" style={{ overflow: 'visible' }}>
                                 <div className="quantity-bubble">{card.quantity}</div> {/* Quantity Bubble */}
                                 <CardMedia
@@ -76,6 +77,7 @@ const CardList = () => {
                                     ref={cardImageRefs.current[index]}
                                     onMouseMove={(e) => handleMouseMove(e, index)}
                                     onMouseLeave={() => handleMouseLeave(index)}
+                                    style={{ overflow: 'visible' }}
                                 />
                                 <CardContent className="card-content">
                                     <Typography variant="h5" component="h2">
