@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Typography, Grid, Card, CardMedia, CardContent } from '@mui/material';
+import AddCardModal from './AddCardModal';
 import '../styles/CardList.css';
-import { fetchMarketPrice, fetchCards, processFetchedCards } from '../utils/apiUtils';
+import { fetchMarketPrice, fetchCards, processFetchedCards, addCard } from '../utils/apiUtils';
+import { Button } from '@mui/material';
 import config from '../config';
 
 const CardList = () => {
@@ -9,6 +11,7 @@ const CardList = () => {
     const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
     const cardImageRefs = useRef([]);
     const { verbose } = config;
+    const [modalOpen, setModalOpen] = useState(false);
 
     useEffect(() => {
         fetchCards()
@@ -57,11 +60,22 @@ const CardList = () => {
         cardImageRef.style.background = 'rgba(255, 255, 255, 0.3)';
     };
 
+  const handleAddCard = async (newCard) => {
+    try {
+      const addedCard = await addCard(newCard);
+      setCards([...cards, addedCard]);
+    } catch (error) {
+      console.error('Failed to add card:', error);
+    }
+  };
+
     return (
         <Container>
-            <Typography variant="h4" component="h1" gutterBottom>
+            <Typography variant="h4" component="h1" className="title" gutterBottom>
                 My Pokémon Card Collection
             </Typography>
+            <Button variant="contained" color="primary" style={{ marginBottom: '1rem' }} onClick={() => setModalOpen(true)}>Add Card</Button>
+            <AddCardModal open={modalOpen} onClose={() => setModalOpen(false)} onAddCard={handleAddCard} />
             <Grid container spacing={3}>
                 {cardsWithMarketPrice.map((card, index) => {
                     cardImageRefs.current[index] = cardImageRefs.current[index] || React.createRef();

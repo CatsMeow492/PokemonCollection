@@ -3,6 +3,7 @@ import { Container, Typography, Box, Divider, Grid2 } from '@mui/material';
 import { PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { fetchMarketPrice, fetchCards, processFetchedCards } from '../utils/apiUtils'; // Import fetchCards and processFetchedCards
 import config from '../config';
+import '../styles/Reports.css'; // Import the new CSS file
 
 const Reports = () => {
     const [totalCost, setTotalCost] = useState(null);
@@ -88,8 +89,8 @@ const Reports = () => {
 
     return (
         <Container margin-top="15px">
-            <Typography variant="h4" component="h1" gutterBottom>
-                Reports
+            <Typography variant="h4" component="h1" className="title" gutterBottom>
+                Collection Insights
             </Typography>
             <Typography variant="body1" gutterBottom>
                 This is the reports page. Here you can add various reports and analytics about your Pokémon card collection.

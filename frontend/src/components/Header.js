@@ -10,6 +10,9 @@ const Header = () => {
                 <Typography variant="h6" style={{ flexGrow: 1, textAlign: 'left' }}>
                     Pokédex
                 </Typography>
+                <Button color="inherit" component={Link} to="/shop">
+                    Shop
+                </Button>
                 <Button color="inherit" component={Link} to="/">
                     Collection
                 </Button>

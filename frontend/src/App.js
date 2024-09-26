@@ -4,7 +4,7 @@ import './App.css';
 import Header from './components/Header';
 import CardList from './components/CardList';
 import Reports from './components/Reports';
-
+import Shop from './components/Shop';
 function App() {
   return (
     <Router>
@@ -13,6 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<CardList />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/shop" element={<Shop />} />
         </Routes>
       </div>
     </Router>

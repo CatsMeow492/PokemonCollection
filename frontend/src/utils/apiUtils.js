@@ -29,3 +29,19 @@ export const processFetchedCards = (data, verbose) => {
 
     return { totalCostSum, cards: data };
 };
+
+export const addCard = async (card) => {
+    const response = await fetch('/api/cards', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(card),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to add card');
+    }
+
+    return response.json();
+};
