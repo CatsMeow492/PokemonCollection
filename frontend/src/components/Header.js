@@ -4,6 +4,7 @@ import { AppBar, Toolbar, Typography, Button } from '@mui/material';
 import { ClipLoader } from 'react-spinners';
 import useRouteLoading from '../hooks/useRouteLoading';
 import '../styles/Header.css';
+import { ShoppingCart } from '@mui/icons-material';
 
 const Header = () => {
     const loading = useRouteLoading();
@@ -22,6 +23,9 @@ const Header = () => {
                 </Button>
                 <Button color="inherit" component={Link} to="/reports">
                     Reports
+                </Button>
+                <Button color="inherit" component={Link} to="/cart">
+                    <ShoppingCart />
                 </Button>
             </Toolbar>
         </AppBar>

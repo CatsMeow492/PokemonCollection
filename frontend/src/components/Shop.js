@@ -9,7 +9,7 @@ import { ClipLoader } from 'react-spinners';
 const Shop = () => {
   const [products, setProducts] = useState([]);
   const loading = useRouteLoading();
-  
+
   useEffect(() => {
     fetchProducts().then(setProducts);
   }, []);
@@ -39,7 +39,7 @@ const Shop = () => {
                 title={product.name}
               />
               <CardContent>
-                <Typography gutterBottom variant="h5" component="h2">
+                <Typography gutterBottom variant="h5" component="h2" style={{ color: 'black', fontWeight: 'bold' }}>
                   {product.name}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" component="p">

@@ -30,10 +30,10 @@
 .card-image:hover + .quantity-bubble {
     transform: translateX(50px);
     transition: transform 0.4s ease;
+    z-index: 2;
 }
 
 .card:hover .card-image {
-    z-index: 2;
     transform: scale(1.3);
 }
 
