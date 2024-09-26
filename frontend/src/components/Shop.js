@@ -14,7 +14,7 @@ const products = [
 const Shop = () => {
   return (
     <Container>
-      <Typography variant="h4" component="h1" className="title" gutterBottom>
+      <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
       PokéMart
       </Typography>
       <Grid container spacing={3}>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Typography, Grid, Card, CardMedia, CardContent } from '@mui/material';
+import { Container, Typography, Grid, Card, CardMedia, CardContent, IconButton } from '@mui/material';
 import AddCardModal from './AddCardModal';
 import '../styles/CardList.css';
 import { fetchMarketPrice, fetchCards, processFetchedCards, addCard } from '../utils/apiUtils';
 import { Button } from '@mui/material';
+import ArrowCircleUpTwoToneIcon from '@mui/icons-material/ArrowCircleUpTwoTone';
+import ArrowCircleDownTwoToneIcon from '@mui/icons-material/ArrowCircleDownTwoTone';
 import config from '../config';
 
 const CardList = () => {
@@ -79,7 +81,7 @@ const CardList = () => {
 
     return (
         <Container>
-            <Typography variant="h4" component="h1" className="title" gutterBottom>
+            <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
                 My Pokémon Card Collection
             </Typography>
             <Button variant="contained" color="primary" style={{ marginBottom: '1rem' }} onClick={() => setModalOpen(true)}>Add Card</Button>
@@ -120,6 +122,14 @@ const CardList = () => {
                                         </Typography>
                                     )}
                                 </CardContent>
+                                <div className="card-actions">
+                                    <IconButton size="small" color="primary" className="add-button">
+                                        <ArrowCircleUpTwoToneIcon />
+                                    </IconButton>
+                                    <IconButton size="small" color="primary" className="remove-button">
+                                        <ArrowCircleDownTwoToneIcon />
+                                    </IconButton>
+                                </div>
                             </Card>
                         </Grid>
                     );

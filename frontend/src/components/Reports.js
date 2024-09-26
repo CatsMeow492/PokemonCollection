@@ -89,7 +89,7 @@ const Reports = () => {
 
     return (
         <Container margin-top="15px">
-            <Typography variant="h4" component="h1" className="title" gutterBottom>
+            <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
                 Collection Insights
             </Typography>
             <Typography variant="body1" gutterBottom>

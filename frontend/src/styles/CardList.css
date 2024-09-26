@@ -7,6 +7,7 @@
 }
 
 .card {
+    height: 505px;
     position: relative;
     max-width: 250px;
     margin: auto;
@@ -171,11 +172,30 @@
 .title {
   font-family: 'Roboto', sans-serif;
   font-weight: bold;
-  color: #eeeeef;
+  color: aliceblue;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
   border-bottom: 2px solid #3f51b5;
   padding-bottom: 10px;
   margin-bottom: 20px;
+}
+
+.card-actions {
+    position: absolute;
+    bottom: .5%;
+    right: 0;
+    gap: -3px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.card-actions .add-button {
+    color: #4caf50;
+}
+
+.card-actions .remove-button {
+    color: #f44336;
 }
 
 
