@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import React from 'react';
+import { Dialog, DialogContent, DialogActions, Button } from '@mui/material';
 import AddCardForm from './AddCardForm';
 
 const AddCardModal = ({ open, onClose, onAddCard }) => {
   return (
     <Dialog open={open} onClose={onClose} aria-labelledby="form-dialog-title">
-      <DialogTitle id="form-dialog-title">Add New Card</DialogTitle>
       <DialogContent>
         <AddCardForm onAddCard={onAddCard} />
       </DialogContent>

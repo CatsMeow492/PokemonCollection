@@ -49,9 +49,17 @@ const CardList = () => {
         const angleX = percentY * 35; // Adjust the tilt angle
         const angleY = -percentX * 35; // Adjust the tilt angle
 
+            // Calculate distance from cursor to center
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const maxDistance = Math.sqrt(centerX * centerX + centerY * centerY);
+        const glowIntensity = Math.max(0, 1 - distance / maxDistance); // Normalize to [0, 1]
+
+        cardImageRef.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, ${glowIntensity}), rgba(255, 255, 255, 0.2) 40%, transparent 60%)`;
+        cardImageRef.style.background = `radial-gradient(circle at ${x}px ${y - rect.height / 4}px, rgba(255, 255, 255, ${glowIntensity}), rgba(255, 255, 255, 0.2) 40%, transparent 60%)`; // Adjusted for top half sparkle
+
         cardImageRef.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg) scale(1.15)`;
-        cardImageRef.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.2) 40%, transparent 60%)`;
-        cardImageRef.style.boxShadow = `0 0 30px rgba(255, 255, 255, 1), 0 0 60px rgba(255, 255, 255, 0.8), 0 0 90px rgba(255, 255, 255, 0.6)`;
+        cardImageRef.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(255, 255, 255, ${glowIntensity}), rgba(255, 255, 255, 0.2) 40%, transparent 60%)`;
+        cardImageRef.style.boxShadow = `0 0 ${30 * glowIntensity}px rgba(255, 255, 255, ${glowIntensity}), 0 0 ${60 * glowIntensity}px rgba(255, 255, 255, ${glowIntensity * 0.8}), 0 0 ${90 * glowIntensity}px rgba(255, 255, 255, ${glowIntensity * 0.6})`; // Fixed missing parenthesis
     };
 
     const handleMouseLeave = (index) => {
@@ -60,14 +68,14 @@ const CardList = () => {
         cardImageRef.style.background = 'rgba(255, 255, 255, 0.3)';
     };
 
-  const handleAddCard = async (newCard) => {
-    try {
-      const addedCard = await addCard(newCard);
-      setCards([...cards, addedCard]);
-    } catch (error) {
-      console.error('Failed to add card:', error);
-    }
-  };
+    const handleAddCard = async (newCard) => {
+        try {
+          const addedCard = await addCard(newCard);
+          setCards([...cards, addedCard]);
+        } catch (error) {
+          console.error('Failed to add card:', error);
+        }
+    };
 
     return (
         <Container>
@@ -81,7 +89,7 @@ const CardList = () => {
                     cardImageRefs.current[index] = cardImageRefs.current[index] || React.createRef();
                     return (
                         <Grid item xs={12} sm={6} md={4} lg={2.4} key={index}>
-                            <Card className="card" style={{ overflow: 'visible' }}>
+                            <Card className="card" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
                                 <div className="quantity-bubble">{card.quantity}</div> {/* Quantity Bubble */}
                                 <CardMedia
                                     component="img"
