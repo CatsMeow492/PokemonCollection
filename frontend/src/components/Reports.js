@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Divider, Grid2 } from '@mui/material';
-import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { fetchMarketPrice, fetchCards, processFetchedCards } from '../utils/apiUtils'; // Import fetchCards and processFetchedCards
 import config from '../config';
 
