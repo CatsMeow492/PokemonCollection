@@ -45,3 +45,19 @@ export const addCard = async (card) => {
 
     return response.json();
 };
+
+export const fetchProducts = async () => {
+    const response = await fetch('/api/products');
+    if (!response.ok) {
+        throw new Error('Failed to fetch products');
+    }
+    return response.json();
+};
+
+export const fetchProductByID = async (id) => {
+    const response = await fetch(`/api/product/${id}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch product');
+    }
+    return response.json();
+};

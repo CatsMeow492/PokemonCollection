@@ -5,6 +5,7 @@ import Header from './components/Header';
 import CardList from './components/CardList';
 import Reports from './components/Reports';
 import Shop from './components/Shop';
+
 function App() {
   return (
     <Router>

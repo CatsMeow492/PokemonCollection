@@ -6,9 +6,12 @@ import { fetchMarketPrice, fetchCards, processFetchedCards, addCard } from '../u
 import { Button } from '@mui/material';
 import ArrowCircleUpTwoToneIcon from '@mui/icons-material/ArrowCircleUpTwoTone';
 import ArrowCircleDownTwoToneIcon from '@mui/icons-material/ArrowCircleDownTwoTone';
+import useRouteLoading from '../hooks/useRouteLoading';
+import { ClipLoader } from 'react-spinners';
 import config from '../config';
 
 const CardList = () => {
+    const loading = useRouteLoading();
     const [cards, setCards] = useState([]);
     const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
     const cardImageRefs = useRef([]);
@@ -36,6 +39,14 @@ const CardList = () => {
             updateCardsWithMarketPrice();
         }
     }, [cards]);
+
+    if (loading) {
+        return (
+            <div className="spinner-container">
+                <ClipLoader color="#ffffff" loading={loading} size={150} />
+            </div>
+        );
+    }
 
     const handleMouseMove = (e, index) => {
         const cardImageRef = cardImageRefs.current[index].current;

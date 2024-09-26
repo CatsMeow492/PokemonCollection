@@ -1,17 +1,27 @@
 import React from 'react';
 import { Container, Grid, Card, CardMedia, CardContent, Typography, Button } from '@mui/material';
 import '../styles/Shop.css';
-
-// Dummy data
-const products = [
-  { id: 1, name: 'Poké Ball', price: '$10', image: 'path/to/pokeball.jpg' },
-  { id: 2, name: 'Great Ball', price: '$20', image: 'path/to/greatball.jpg' },
-  { id: 3, name: 'Ultra Ball', price: '$30', image: 'path/to/ultraball.jpg' },
-  { id: 4, name: 'Master Ball', price: '$100', image: 'path/to/masterball.jpg' },
-  { id: 5, name: 'Potion', price: '$5', image: 'path/to/potion.jpg' },
-];
+import { fetchProducts, fetchProductByID } from '../utils/apiUtils';
+import { useState, useEffect } from 'react';
+import useRouteLoading from '../hooks/useRouteLoading';
+import { ClipLoader } from 'react-spinners';
 
 const Shop = () => {
+  const [products, setProducts] = useState([]);
+  const loading = useRouteLoading();
+  
+  useEffect(() => {
+    fetchProducts().then(setProducts);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="spinner-container">
+        <ClipLoader color="#ffffff" loading={loading} size={150} />
+      </div>
+    );
+  }
+
   return (
     <Container>
       <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
@@ -31,6 +41,9 @@ const Shop = () => {
               <CardContent>
                 <Typography gutterBottom variant="h5" component="h2">
                   {product.name}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" component="p">
+                  {product.description}
                 </Typography>
                 <Typography variant="body2" color="textSecondary" component="p">
                   {product.price}

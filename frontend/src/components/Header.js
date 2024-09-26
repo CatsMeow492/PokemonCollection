@@ -1,9 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button } from '@mui/material';
+import { ClipLoader } from 'react-spinners';
+import useRouteLoading from '../hooks/useRouteLoading';
 import '../styles/Header.css';
 
 const Header = () => {
+    const loading = useRouteLoading();
+
     return (
         <AppBar position="static" className="header">
             <Toolbar>

@@ -4,6 +4,8 @@ import { PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGri
 import { fetchMarketPrice, fetchCards, processFetchedCards } from '../utils/apiUtils'; // Import fetchCards and processFetchedCards
 import config from '../config';
 import '../styles/Reports.css'; // Import the new CSS file
+import useRouteLoading from '../hooks/useRouteLoading';
+import { ClipLoader } from 'react-spinners';
 
 const Reports = () => {
     const [totalCost, setTotalCost] = useState(null);
@@ -11,13 +13,14 @@ const Reports = () => {
     const [cards, setCards] = useState([]); // Define cards state
     const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]); // Define cardsWithMarketPrice state
     const { verbose } = config;
-
+    const loading = useRouteLoading();
+    
     useEffect(() => {
         fetchCards()
             .then(data => {
                 const { totalCostSum, cards } = processFetchedCards(data, verbose);
                 setTotalCost(totalCostSum);
-                setCards(cards); // Set the fetched cards data
+                setCards(cards);
             })
             .catch(error => {
                 console.error('Error fetching cards:', error);
@@ -36,23 +39,34 @@ const Reports = () => {
         if (cards.length > 0) {
             updateCardsWithMarketPrice();
         }
+    }, [cards]);
 
-        const marketPriceSum = cardsWithMarketPrice.reduce((acc, card) => {
-            const price = typeof card.marketPrice === 'string' 
-                ? parseFloat(card.marketPrice.replace(/[^0-9.-]+/g, "")) 
-                : card.marketPrice;
-            if (verbose) {
-                console.log(`Card market price: ${card.marketPrice}, Parsed market price: ${price}`); // Log each card's market price before parsing
-                if (isNaN(price)) {
-                    console.error(`Failed to parse market price: ${card.marketPrice}`);
+    useEffect(() => {
+        if (cardsWithMarketPrice.length > 0) {
+            const marketPriceSum = cardsWithMarketPrice.reduce((acc, card) => {
+                const price = typeof card.marketPrice === 'string' 
+                    ? parseFloat(card.marketPrice.replace(/[^0-9.-]+/g, "")) 
+                    : card.marketPrice;
+                if (verbose) {
+                    console.log(`Card market price: ${card.marketPrice}, Parsed market price: ${price}`);
+                    if (isNaN(price)) {
+                        console.error(`Failed to parse market price: ${card.marketPrice}`);
+                    }
                 }
-            }
-            return acc + (isNaN(price) ? 0 : price);
-        }, 0);
-        setMarketPrice(marketPriceSum);
-        if (verbose) console.log('Total Market Price Sum:', marketPriceSum); // Log total market price sum
-    }, [verbose, cards, cardsWithMarketPrice]);
+                return acc + (isNaN(price) ? 0 : price);
+            }, 0);
+            setMarketPrice(marketPriceSum);
+            if (verbose) console.log('Total Market Price Sum:', marketPriceSum);
+        }
+    }, [verbose, cardsWithMarketPrice]);
 
+    if (loading) {
+        return (
+            <div className="spinner-container">
+                <ClipLoader color="#ffffff" loading={loading} size={150} />
+            </div>
+        );
+    }
     const totalProfit = marketPrice - totalCost;
 
     // Calculate average card price
