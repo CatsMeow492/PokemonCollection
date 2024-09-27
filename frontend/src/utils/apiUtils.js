@@ -1,3 +1,6 @@
+import config from '../config';
+const verbose = config;
+
 export const fetchMarketPrice = async (cardName, edition, grade) => {
     const response = await fetch(`/api/market-price?card_name=${encodeURIComponent(cardName)}&edition=${encodeURIComponent(edition)}&grade=${encodeURIComponent(grade)}`);
     if (response.ok) {
@@ -63,7 +66,8 @@ export const fetchProductByID = async (id) => {
 };
 
 export const updateCardQuantity = async (cardId, newQuantity) => {
-    const response = await fetch(`/api/cards/${cardId}/quantity`, {
+    if (verbose) console.log(`Updating quantity for card with ID: ${cardId} to ${newQuantity}`);
+    const response = await fetch(`/api/cards/quantity?id=${cardId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Typography, Grid, Card, CardMedia, CardContent, IconButton } from '@mui/material';
 import AddCardModal from './AddCardModal';
 import '../styles/CardList.css';
-import { fetchMarketPrice, fetchCards, processFetchedCards, addCard } from '../utils/apiUtils';
+import { fetchMarketPrice, fetchCards, processFetchedCards, addCard, updateCardQuantity } from '../utils/apiUtils';
 import { Button } from '@mui/material';
 import ArrowCircleUpTwoToneIcon from '@mui/icons-material/ArrowCircleUpTwoTone';
 import ArrowCircleDownTwoToneIcon from '@mui/icons-material/ArrowCircleDownTwoTone';
@@ -100,15 +100,49 @@ const CardList = () => {
         }
     };
 
-    handleIncrementQuantity = async (index) => {
+    const handleIncrementQuantity = async (index) => {
+        if (verbose) {
+            console.log("Incrementing quantity for card at index: ", index);
+            console.log("Card data: ", cardsWithMarketPrice[index]); // Log the entire card data
+            console.log("Card ID: ", cardsWithMarketPrice[index]?.id); // Log the card ID
+            console.log("Current quantity: ", cardsWithMarketPrice[index]?.quantity);
+            console.log("New quantity: ", cardsWithMarketPrice[index]?.quantity + 1);
+        }
         const card = cardsWithMarketPrice[index];
+        if (!card || !card.id) {
+            console.error('Card ID is undefined or card data is missing:', card);
+            return;
+        }
         try {
             const updatedCard = await updateCardQuantity(card.id, card.quantity + 1);
             const updatedCards = [...cardsWithMarketPrice];
-            updatedCards[index] = updatedCard;
+            updatedCards[index] = { ...card, ...updatedCard }; // Merge the updated card data
             setCardsWithMarketPrice(updatedCards);
         } catch (error) {
-            console.error('Failed to increment quantity: ', error)
+            console.error('Failed to increment quantity: ', error);
+        }
+    };
+
+    const handleDecrementQuantity = async (index) => {
+        if (verbose) {
+            console.log("Decrementing quantity for card at index: ", index);
+            console.log("Card data: ", cardsWithMarketPrice[index]); // Log the entire card data
+            console.log("Card ID: ", cardsWithMarketPrice[index]?.id); // Log the card ID
+            console.log("Current quantity: ", cardsWithMarketPrice[index]?.quantity);
+            console.log("New quantity: ", cardsWithMarketPrice[index]?.quantity - 1);
+        }
+        const card = cardsWithMarketPrice[index];
+        if (!card || !card.id) {
+            console.error('Card ID is undefined or card data is missing:', card);
+            return;
+        }
+        try {
+            const updatedCard = await updateCardQuantity(card.id, card.quantity - 1);
+            const updatedCards = [...cardsWithMarketPrice];
+            updatedCards[index] = { ...card, ...updatedCard };
+            setCardsWithMarketPrice(updatedCards);
+        } catch (error) {
+            console.error('Failed to decrement quantity: ', error);
         }
     };
 
@@ -159,7 +193,7 @@ const CardList = () => {
                                     <IconButton size="small" color="primary" className="add-button" onClick={() => handleIncrementQuantity(index)}>
                                         <ArrowCircleUpTwoToneIcon />
                                     </IconButton>
-                                    <IconButton size="small" color="primary" className="remove-button">
+                                    <IconButton size="small" color="primary" className="remove-button" onClick={() => handleDecrementQuantity(index)}>
                                         <ArrowCircleDownTwoToneIcon />
                                     </IconButton>
                                 </div>

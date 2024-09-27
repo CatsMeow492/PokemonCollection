@@ -26,6 +26,8 @@ func main() {
 		products := handlers.GetAllProducts()
 		json.NewEncoder(w).Encode(products)
 	}).Methods("GET")
+	r.HandleFunc("/api/cards/quantity", handlers.UpdateCardQuantity).Methods("PUT") // Ensure the method is specified
+
 	// Serve images from the "images" directory
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
 

@@ -28,15 +28,16 @@ func GetCards(w http.ResponseWriter, r *http.Request) {
 
 	cards := []models.Card{}
 	for _, card := range collection {
-		fetchedCard, err := services.FetchCard(apiKey, card.Name, card.Set)
+		fetchedCard, err := services.FetchCard(apiKey, card.Id)
 		if err != nil {
-			log.Printf("Error fetching card %s: %v", card.Name, err)
+			log.Printf("Error fetching card %s: %v", card.Id, err)
 			continue
 		}
 		// Update fetched card with grade and price from collection.json
 		fetchedCard.Grade = card.Grade
 		fetchedCard.Price = card.Price
 		fetchedCard.Quantity = card.Quantity
+		fetchedCard.Id = card.Id
 		cards = append(cards, *fetchedCard)
 	}
 
@@ -87,4 +88,69 @@ func AddCard(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(newCard)
+}
+
+func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
+	cardID := r.URL.Query().Get("id")
+	if cardID == "" {
+		http.Error(w, "Missing card ID", http.StatusBadRequest)
+		return
+	}
+
+	var requestBody struct {
+		Quantity int `json:"quantity"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Read collection.json
+	file, err := ioutil.ReadFile("collection.json")
+	if err != nil {
+		log.Fatalf("Error reading collection.json: %v", err)
+	}
+
+	var collection []models.Card
+	if err := json.Unmarshal(file, &collection); err != nil {
+		log.Fatalf("Error unmarshalling collection.json: %v", err)
+	}
+
+	var updatedCard *models.Card
+	for i, card := range collection {
+		if card.Id == cardID {
+			collection[i].Quantity = requestBody.Quantity
+			updatedCard = &collection[i]
+			break
+		}
+	}
+
+	if updatedCard == nil {
+		http.Error(w, "Card not found", http.StatusNotFound)
+		return
+	}
+
+	// Check if the image is available in the cache
+	if updatedCard.Image == "" {
+		// Fetch the image using card_service
+		fetchedCard, err := services.FetchCard(os.Getenv("POKEMON_TCG_API_KEY"), updatedCard.Id)
+		if err != nil {
+			log.Printf("Error fetching card %s: %v", updatedCard.Id, err)
+			http.Error(w, "Error fetching card image", http.StatusInternalServerError)
+			return
+		}
+		updatedCard.Image = fetchedCard.Image
+	}
+
+	// Write updated collection back to file
+	updatedFile, err := json.MarshalIndent(collection, "", "  ")
+	if err != nil {
+		log.Fatalf("Error marshalling updated collection: %v", err)
+	}
+	if err := ioutil.WriteFile("collection.json", updatedFile, 0644); err != nil {
+		log.Fatalf("Error writing updated collection to file: %v", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(updatedCard)
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url" // Add this import
 	"time"
 
 	"github.com/CatsMeow492/PokemonCollection/models"
@@ -19,22 +18,16 @@ func init() {
 	imageCache = cache.New(24*time.Hour, 48*time.Hour) // Cache for 1 day, purge expired items every 2 days
 }
 
-func FetchCard(apiKey, name, setID string) (*models.Card, error) {
-	if cachedCard, found := cardCache.Get(name + setID); found {
+func FetchCard(apiKey, cardID string) (*models.Card, error) {
+	if cachedCard, found := cardCache.Get(cardID); found {
 		return cachedCard.(*models.Card), nil
 	}
 
-	var apiURL string
-	if name == "Mr. Mime" {
-		// Special case for "Mr. Mime"
-		apiURL = fmt.Sprintf("https://api.pokemontcg.io/v2/cards/%s", setID)
-	} else if name != "" && setID != "" {
-		encodedName := url.QueryEscape(name)   // URL-encode the card name
-		encodedSetID := url.QueryEscape(setID) // URL-encode the set ID
-		apiURL = fmt.Sprintf("https://api.pokemontcg.io/v2/cards?q=name:%s%%20set.id:%s", encodedName, encodedSetID)
-	} else {
-		return nil, fmt.Errorf("name and setID must be provided")
+	if cardID == "" {
+		return nil, fmt.Errorf("cardID must be provided")
 	}
+
+	apiURL := fmt.Sprintf("https://api.pokemontcg.io/v2/cards/%s", cardID)
 
 	req, _ := http.NewRequest("GET", apiURL, nil)
 	req.Header.Set("X-Api-Key", apiKey)
@@ -55,19 +48,9 @@ func FetchCard(apiKey, name, setID string) (*models.Card, error) {
 		return nil, err
 	}
 
-	var cardData map[string]interface{}
-	if name == "Mr. Mime" {
-		// Special case for "Mr. Mime"
-		cardData = result["data"].(map[string]interface{})
-	} else {
-		data, ok := result["data"].([]interface{})
-		if !ok || len(data) == 0 {
-			return nil, fmt.Errorf("no data found for card: %s", name)
-		}
-		cardData, ok = data[0].(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("unexpected data format for card: %s", name)
-		}
+	cardData, ok := result["data"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("unexpected data format for card: %s", cardID)
 	}
 
 	imageURL := cardData["images"].(map[string]interface{})["large"].(string)
@@ -85,6 +68,6 @@ func FetchCard(apiKey, name, setID string) (*models.Card, error) {
 		Image:   imageURL,
 	}
 
-	cardCache.Set(name+setID, card, cache.DefaultExpiration)
+	cardCache.Set(cardID, card, cache.DefaultExpiration)
 	return card, nil
 }

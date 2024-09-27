@@ -8,4 +8,5 @@ type Card struct {
 	Price    string `json:"price"`
 	Image    string `json:"image"`
 	Quantity int    `json:"quantity"`
+	Id       string `json:"id"`
 }
