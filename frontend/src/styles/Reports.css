@@ -35,31 +35,32 @@
 }
 
 .clefairy-chat {
-  position: absolute;
-  top: 79%;
-  right: 65%;
+  position: fixed;  /* Changed from absolute to fixed */
+  bottom: 0%;  /* Changed from top to bottom */
+  left: 10%;  /* Changed from right to left */
   z-index: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-end;  /* Changed from flex-start to flex-end */
 }
 
 .clefairy-chat .MuiSvgIcon-root {
-  width: 20em;  /* Increased from 10em to 20em */
+  width: 20em;
   height: 5em;
-  transform: scaleX(3.5);  /* Stretches the SVG horizontally */
+  transform: scaleX(3.5);
 }
 
 .chat-bubble {
-  position: relative;
-  top: -60%;
-  right: -70%;
+  position: absolute;
+  bottom: 100%;  /* Changed from top to bottom */
+  left: 50%;  /* Changed from right to left */
+  transform: translateX(-50%);  /* Centers the bubble horizontally */
   z-index: 1;
   width: 200px;
 }
 
 .clefairy-image {
   width: 200px;
-  margin-right: -5%;
+  margin-right: 0;  /* Removed negative margin */
 }
 .snorlax-container {
   position: absolute;

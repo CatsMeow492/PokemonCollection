@@ -104,6 +104,10 @@ const Reports = () => {
         count: cardCounts[name]
     }));
 
+    const onSendMessage = (message) => {
+        if (verbose) console.log(message);
+    };
+
     return (
         <Container margin-top="15px" style={{ overflow: 'hidden' }}>
             <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
@@ -198,7 +202,18 @@ const Reports = () => {
             </Grid2>
             <div className="clefairy-chat">
                 <img src={Clefairy} alt="Clefairy" className="clefairy-image" />
-                <ChatBubble />
+                <ChatBubble 
+                    onSendMessage={onSendMessage} 
+                    collectionData={{ 
+                        totalCost, 
+                        marketPrice, 
+                        totalProfit, 
+                        averageCardPrice, 
+                        top5ExpensiveCards, 
+                        top5ProfitableCards,
+                        cardsWithMarketPrice
+                    }} 
+                />
             </div>
             <div className="snorlax-container">
                 <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
