@@ -4,11 +4,16 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/CatsMeow492/PokemonCollection/handlers"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
 )
+
+const pokemonCacheDuration = 10 * time.Minute // or any duration you prefer
+var pokemonCacheMutex sync.Mutex
 
 func main() {
 	r := mux.NewRouter()
@@ -16,6 +21,7 @@ func main() {
 	r.HandleFunc("/api/market-price", handlers.MarketPriceHandler).Methods("GET")
 	r.HandleFunc("/api/cards", handlers.AddCard).Methods("POST")
 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
+	r.HandleFunc("/api/pokemon-names", handlers.GetPokemonNames).Methods("GET")
 	r.HandleFunc("/api/product/{id}", func(w http.ResponseWriter, r *http.Request) {
 		// Create a new gin context
 		c, _ := gin.CreateTestContext(w)

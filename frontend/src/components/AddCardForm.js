@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Container, TextField, Button, Typography, Select, MenuItem, FormControl, InputLabel, Autocomplete } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Button, Typography, Select, MenuItem, FormControl, InputLabel, Autocomplete, TextField } from '@mui/material';
 import '../styles/AddCardForm.css';
-import { addCard } from '../utils/apiUtils';
+import { addCard, fetchPokemonNames } from '../utils/apiUtils';
+import config from '../config';
 
 const AddCardForm = () => {
   const [name, setName] = useState('');
@@ -11,6 +12,19 @@ const AddCardForm = () => {
   const [image, setImage] = useState('');
   const [priceError, setPriceError] = useState('');
   const [set, setSet] = useState('');
+  const [pokemonNames, setPokemonNames] = useState([]);
+  const { verbose } = config;
+
+  useEffect(() => {
+    fetchPokemonNames()
+      .then(data => {
+        if (verbose) console.log(data);
+        setPokemonNames(data);
+      })
+      .catch(error => {
+        console.error('Error fetching pokemon names:', error);
+      });
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault(); // Prevent default form submission
@@ -46,10 +60,13 @@ const AddCardForm = () => {
         Add New Card
       </Typography>
       <form onSubmit={handleSubmit}>
-        <TextField
-          label="Name"
+        <Autocomplete
+          id="pokemon-name-select"
+          options={pokemonNames}
+          getOptionLabel={(option) => option}
+          renderInput={(params) => <TextField {...params} label="Pokémon Name" />}
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e, newValue) => setName(newValue || '')}
           fullWidth
           margin="normal"
         />
@@ -57,12 +74,14 @@ const AddCardForm = () => {
           id="editions-select"
           options={editions}
           getOptionLabel={(option) => option.label}
-          renderInput={(params) => <TextField {...params} label="Select an option" />}
+          renderInput={(params) => <TextField {...params} label="Edition" />}
           onChange={(e, newValue) => {
-            setEdition(newValue.label);
-            const selectedSet = setAndEditions.find((item) => item.name === newValue.label);
+            setEdition(newValue ? newValue.label : '');
+            const selectedSet = setAndEditions.find((item) => item.name === (newValue ? newValue.label : ''));
             setSet(selectedSet ? selectedSet.id : '');
           }}
+          fullWidth
+          margin="normal"
         />
         <FormControl fullWidth margin="normal" variant="outlined">
           <InputLabel htmlFor="grade-select">Grade</InputLabel>

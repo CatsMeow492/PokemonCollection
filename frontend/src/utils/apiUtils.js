@@ -81,3 +81,11 @@ export const updateCardQuantity = async (cardId, newQuantity) => {
 
     return response.json();
 };
+
+export const fetchPokemonNames = async () => {
+    const response = await fetch('/api/pokemon-names');
+    if (!response.ok) {
+        throw new Error('Failed to fetch pokemon names');
+    }
+    return response.json();
+};
