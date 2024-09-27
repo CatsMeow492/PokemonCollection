@@ -6,6 +6,8 @@ import config from '../config';
 import '../styles/Reports.css'; // Import the new CSS file
 import useRouteLoading from '../hooks/useRouteLoading';
 import { ClipLoader } from 'react-spinners';
+import Clefairy from '../assets/images/clefairy.png';
+import Snorlax from '../assets/images/snorlax.webp';
 
 const Reports = () => {
     const [totalCost, setTotalCost] = useState(null);
@@ -102,7 +104,7 @@ const Reports = () => {
     }));
 
     return (
-        <Container margin-top="15px">
+        <Container margin-top="15px" style={{ overflow: 'hidden' }}>
             <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
                 Collection Insights
             </Typography>
@@ -193,6 +195,8 @@ const Reports = () => {
                     </Box>
                 </Grid2>
             </Grid2>
+            <img src={Clefairy} alt="Clefairy" className="clefairy-image" />
+            <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
         </Container>
     );
 };

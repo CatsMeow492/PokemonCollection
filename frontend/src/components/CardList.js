@@ -100,6 +100,18 @@ const CardList = () => {
         }
     };
 
+    handleIncrementQuantity = async (index) => {
+        const card = cardsWithMarketPrice[index];
+        try {
+            const updatedCard = await updateCardQuantity(card.id, card.quantity + 1);
+            const updatedCards = [...cardsWithMarketPrice];
+            updatedCards[index] = updatedCard;
+            setCardsWithMarketPrice(updatedCards);
+        } catch (error) {
+            console.error('Failed to increment quantity: ', error)
+        }
+    };
+
     return (
         <Container>
             <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
@@ -144,7 +156,7 @@ const CardList = () => {
                                     )}
                                 </CardContent>
                                 <div className="card-actions">
-                                    <IconButton size="small" color="primary" className="add-button">
+                                    <IconButton size="small" color="primary" className="add-button" onClick={() => handleIncrementQuantity(index)}>
                                         <ArrowCircleUpTwoToneIcon />
                                     </IconButton>
                                     <IconButton size="small" color="primary" className="remove-button">

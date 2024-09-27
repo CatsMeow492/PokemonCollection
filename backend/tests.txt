@@ -1,0 +1,2 @@
+curl -X GET "https://api.pokemontcg.io/v2/cards?q=name:Charizard set.name:\"base1\"" \
+-H "X-Api-Key: "

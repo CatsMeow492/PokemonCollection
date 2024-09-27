@@ -6,7 +6,8 @@
     "grade": "10",
     "price": "$259.99",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base3-6"
   },
   {
     "name": "Mew",
@@ -15,7 +16,8 @@
     "grade": "10",
     "price": "$425.00",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "basep-8"
   },
   {
     "name": "Articuno",
@@ -24,7 +26,8 @@
     "grade": "9",
     "price": "$89.99",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base3-2"
   },
   {
     "name": "Moltres",
@@ -33,7 +36,8 @@
     "grade": "8",
     "price": "$59.99",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base3-12"
   },
   {
     "name": "Jolteon",
@@ -42,7 +46,8 @@
     "grade": "8.5",
     "price": "$55.00",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base2-4"
   },
   {
     "name": "Kangaskhan",
@@ -51,7 +56,8 @@
     "grade": "Ungraded",
     "price": "$11.99",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base2-5"
   },
   {
     "name": "Clefable",
@@ -60,7 +66,8 @@
     "grade": "8",
     "price": "$39.99",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base2-1"
   },
   {
     "name": "Flareon",
@@ -69,7 +76,8 @@
     "grade": "8",
     "price": "$50.00",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base2-3"
   },
   {
     "name": "Mr. Mime",
@@ -78,7 +86,8 @@
     "grade": "7",
     "price": "$30.00",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base2-6"
   },
   {
     "name": "Vaporeon",
@@ -87,16 +96,18 @@
     "grade": "8",
     "price": "$50.00",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base2-12"
   },
   {
     "name": "Mew",
-    "edition": "Pokémon Evolutions",
+    "edition": "Pok\u00e9mon Evolutions",
     "set": "xy12",
     "grade": "9",
     "price": "$34.90",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "xy12-53"
   },
   {
     "name": "Gengar",
@@ -105,7 +116,8 @@
     "grade": "8",
     "price": "$245.00",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base3-5"
   },
   {
     "name": "Charizard",
@@ -114,7 +126,8 @@
     "grade": "Ungraded",
     "price": "0",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base1-4"
   },
   {
     "name": "Blastoise",
@@ -123,7 +136,8 @@
     "grade": "Ungraded",
     "price": "0",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base1-2"
   },
   {
     "name": "Venusaur",
@@ -132,7 +146,8 @@
     "grade": "Ungraded",
     "price": "0",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base1-15"
   },
   {
     "name": "Mewtwo",
@@ -141,7 +156,8 @@
     "grade": "Ungraded",
     "price": "0",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base1-10"
   },
   {
     "name": "Gyarados",
@@ -150,7 +166,8 @@
     "grade": "Ungraded",
     "price": "0",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base1-6"
   },
   {
     "name": "Aerodactyl",
@@ -159,7 +176,8 @@
     "grade": "Ungraded",
     "price": "0",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base3-1"
   },
   {
     "name": "Snorlax",
@@ -168,6 +186,17 @@
     "grade": "Ungraded",
     "price": "0",
     "image": "",
-    "quantity": 1
+    "quantity": 1,
+    "id": "base2-11"
+  },
+  {
+    "name": "Ninetales",
+    "edition": "Jungle",
+    "set": "base1",
+    "grade": "Ungraded",
+    "price": "0",
+    "image": "",
+    "quantity": 0,
+    "id": "base1-12"
   }
 ]

@@ -33,3 +33,21 @@
 .MuiDivider-root {
     color: aliceblue;
 }
+
+.clefairy-image {
+  position: absolute;
+  top: 79%;
+  right: 88%;
+  width: 200px;
+  height: 200px;
+  z-index: 1;
+}
+
+.snorlax-image {
+  position: absolute;
+  top: 65%;
+  right: -1%;
+  width: 400px;
+  height: 400px;
+  z-index: 1;
+}

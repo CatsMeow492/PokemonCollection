@@ -61,3 +61,19 @@ export const fetchProductByID = async (id) => {
     }
     return response.json();
 };
+
+export const updateCardQuantity = async (cardId, newQuantity) => {
+    const response = await fetch(`/api/cards/${cardId}/quantity`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quantity: newQuantity }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update card quantity');
+    }
+
+    return response.json();
+};
