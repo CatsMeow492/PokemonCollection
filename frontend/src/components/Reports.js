@@ -8,6 +8,7 @@ import useRouteLoading from '../hooks/useRouteLoading';
 import { ClipLoader } from 'react-spinners';
 import Clefairy from '../assets/images/clefairy.png';
 import Snorlax from '../assets/images/snorlax.webp';
+import ChatBubble from './ChatBubble';
 
 const Reports = () => {
     const [totalCost, setTotalCost] = useState(null);
@@ -195,8 +196,13 @@ const Reports = () => {
                     </Box>
                 </Grid2>
             </Grid2>
-            <img src={Clefairy} alt="Clefairy" className="clefairy-image" />
-            <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
+            <div className="clefairy-chat">
+                <img src={Clefairy} alt="Clefairy" className="clefairy-image" />
+                <ChatBubble />
+            </div>
+            <div className="snorlax-container">
+                <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
+            </div>
         </Container>
     );
 };

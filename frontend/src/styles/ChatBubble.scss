@@ -1,0 +1,206 @@
+/* Chat Bubble Animation Mixin */
+@mixin animation--fadedown($delay) {
+  animation: fadeIn 1s ease-in-out;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-delay: #{$delay}s;
+}
+
+/* Chat Bubble Animation Application */
+.chat-thread {
+  > *,
+  > * > .message  {
+    @for $i from 1 through 10 {
+      &:nth-child(#{$i}) {
+
+        /* Quanti Messages [after user reply] */
+        &.message-reply {
+          + .message {
+            @include animation--fadedown(0);
+          }
+        }
+
+        /* User Messages */
+        &:not(.message-reply) {
+          opacity: 0;
+          @include animation--fadedown($i/1);
+        }
+
+        /* Message Text */
+        p {
+          margin: 0;
+          animation: #{2.01 + $i}s appear 0s forwards;
+        }
+
+        /* Ellipses : Container */
+        .typing-indicator {
+          $ti-color-bg: #e9eeef;
+          will-change: transform;
+          display: flex;
+          animation: 0s disappear #{2 + $i}s forwards;
+
+          /* Ellipses : Individual Dots */
+          span {
+            height: 10px;
+            width: 10px;
+            float: left;
+            margin: 0 1px;
+            background-color: #9E9EA1;
+            display: block;
+            border-radius: 50%;
+            opacity: 0.4;
+            @for $j from 1 through 3 {
+              &:nth-of-type(#{$j}) {
+                animation: 1s blink infinite ($j * .3333s);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.message {
+  $message-color-bg: #ECF0F1;
+  display: flex;
+  margin: 1rem 0;
+  width: 100%;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 75px;
+    border-left: 25px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 25px solid $message-color-bg;
+  }
+
+  /* Messages sitting side-by-side */
+  &+ .message {
+    margin-top: 0;
+  }
+
+  .avatar {
+    width: 75px;
+    height: 75px;
+    background: url('http://lorempixel.com/75/75');
+    margin-right: 20px;
+    border-radius: 50%;
+  }
+
+  .message-content {
+    display: flex;
+    align-items: center;
+    padding: 0.75em 1.5em;
+    background: $message-color-bg;
+    border-radius: 20px;
+  }
+
+  &.message-reply {
+    justify-content: flex-end;
+
+    .avatar {
+      margin: 0 0 0 20px;
+    }
+
+    .message-content {
+      float: right;
+      background-color: #0076FF;
+      color: #fff;
+
+      p:before {
+        content: "";
+        position: absolute;
+        left: auto;
+        right: -20px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-bottom: 20px solid #0076FF;
+      }
+    }
+  }
+}
+
+.chat-actions {
+  text-align: center;
+  align-items: center;
+
+  button {
+    margin-top: 1rem;
+  }
+}
+
+/* ANIMATIONS START */
+@keyframes appear {
+  0% {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  99% {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  100% {
+    opacity: 1;
+    width: auto;
+    height: auto;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes disappear {
+  0% {
+    opacity: 1;
+  }
+
+  99% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* For Pen/Demo Display Purposes */
+.container {
+  display: flex;
+  height: calc(100vh);
+  align-items: center;
+  justify-content: center;
+  
+  .card {
+    width: calc(50vw);
+  }
+}
+
+

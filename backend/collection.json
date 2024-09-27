@@ -195,8 +195,8 @@
     "set": "base1",
     "grade": "Ungraded",
     "price": "0",
-    "image": "",
-    "quantity": 0,
+    "image": "https://images.pokemontcg.io/base1/12_hires.png",
+    "quantity": 1,
     "id": "base1-12"
   }
 ]
