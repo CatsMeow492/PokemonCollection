@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Typography, Grid, Card, CardMedia, CardContent, IconButton } from '@mui/material';
-import AddCardModal from './AddCardModal';
+import AddCardModal from '../modals/AddCardModal';
 import '../styles/CardList.css';
 import { fetchMarketPrice, fetchCards, processFetchedCards, addCard, updateCardQuantity } from '../utils/apiUtils';
 import { Button } from '@mui/material';

@@ -50,7 +50,7 @@ const AddCardForm = () => {
     setSet('');
   };
 
-  const setAndEditions = require('./sets_and_editions.json');
+  const setAndEditions = require('../data/sets_and_editions.json');
   const sets = Array.from(setAndEditions).map((set) => ({ label: set.name, value: set.id }));
   const editions = Array.from(setAndEditions).map((edition) => ({ label: edition.name, value: edition.id }));
 

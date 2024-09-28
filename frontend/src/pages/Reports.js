@@ -8,7 +8,7 @@ import useRouteLoading from '../hooks/useRouteLoading';
 import { ClipLoader } from 'react-spinners';
 import Clefairy from '../assets/images/clefairy.png';
 import Snorlax from '../assets/images/snorlax.webp';
-import ChatBubble from './ChatBubble';
+import ChatBubble from '../components/ChatBubble';
 
 const Reports = () => {
     const [totalCost, setTotalCost] = useState(null);

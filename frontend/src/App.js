@@ -2,9 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
-import CardList from './components/CardList';
-import Reports from './components/Reports';
-import Shop from './components/Shop';
+import CardList from './pages/CardList';
+import Reports from './pages/Reports';
+import Shop from './pages/Shop';
 
 function App() {
   return (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogActions, Button } from '@mui/material';
-import AddCardForm from './AddCardForm';
+import AddCardForm from '../forms/AddCardForm';
 
 const AddCardModal = ({ open, onClose, onAddCard }) => {
   return (
