@@ -126,11 +126,7 @@ export const loginUser = async (username, password) => {
         throw new Error('Failed to login user');
     }
 
-    // Check if the response has a body
-    const responseBody = await response.text();
-    if (responseBody) {
-        return JSON.parse(responseBody);
-    }
-
-    return {};
+    const data = await response.json();
+    console.log('Login response data:', data); // Add logging here
+    return { token: data.token, username: data.username, profile_picture: data.profile_picture };
 };

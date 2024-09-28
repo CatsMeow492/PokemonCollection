@@ -1,14 +1,17 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Avatar } from '@mui/material';
 import { ClipLoader } from 'react-spinners';
 import useRouteLoading from '../hooks/useRouteLoading';
 import '../styles/Header.css';
 import { ShoppingCart } from '@mui/icons-material';
 import AuthContext from '../context/AuthContext';
+
 const Header = () => {
     const loading = useRouteLoading();
-    const { isAuthenticated } = useContext(AuthContext);
+    const { isAuthenticated, username, profilePicture } = useContext(AuthContext);
+
+    const defaultProfilePicture = 'https://i.pinimg.com/originals/45/84/c0/4584c0b11190ed3bd738acf8f1d24fa4.jpg';
 
     return (
         <AppBar position="static" className="header">
@@ -25,21 +28,26 @@ const Header = () => {
                 <Button color="inherit" component={Link} to="/reports">
                     Reports
                 </Button>
-                {/* If the user is authenticated, show the username 
-                if not, show the register button */}
                 {!isAuthenticated && (
                     <Button color="inherit" component={Link} to="/register">
                         Register
                     </Button>
                 )}
                 {isAuthenticated && (
-                    <Button color="inherit" component={Link} to="/cart">
-                        <ShoppingCart />
-                    </Button>
+                    <>
+                        <Button color="inherit" style={{ color: 'white' }}>
+                            <Avatar 
+                                src={profilePicture || defaultProfilePicture} 
+                                alt="Profile" 
+                                style={{ width: '30px', height: '30px', marginRight: '10px' }} 
+                            />
+                            {username}
+                        </Button>
+                        <Button color="inherit" component={Link} to="/cart">
+                            <ShoppingCart />
+                        </Button>
+                    </>
                 )}
-                <Button color="inherit" component={Link} to="/cart">
-                    <ShoppingCart />
-                </Button>
             </Toolbar>
         </AppBar>
     );
