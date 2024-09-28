@@ -29,7 +29,7 @@ const CardList = () => {
     useEffect(() => {
         const updateCardsWithMarketPrice = async () => {
             const updatedCards = await Promise.all(cards.map(async (card) => {
-                const marketPrice = await fetchMarketPrice(card.name, card.edition, card.grade);
+                const marketPrice = await fetchMarketPrice(card.name, card.id, card.edition, card.grade);
                 return { ...card, marketPrice };
             }));
             setCardsWithMarketPrice(updatedCards);

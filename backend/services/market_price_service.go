@@ -5,12 +5,46 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/CatsMeow492/PokemonCollection/data"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetMarketPrice(cardName, edition, grade string) (float64, error) {
-	searchQuery := fmt.Sprintf("%s %s Grade %s", cardName, edition, grade)
+func GetMarketPrice(cardName, cardId, edition, grade string) (float64, error) {
+	// Load existing market data
+	store, err := data.LoadMarketData()
+	if err != nil {
+		return 0, err
+	}
+
+	// Fetch new price
+	price, err := fetchMarketPrice(cardName, cardId, edition, grade)
+	if err != nil {
+		return 0, err
+	}
+
+	// Add new data
+	newData := data.MarketData{
+		CardID:    cardId,
+		Price:     price,
+		FetchedAt: time.Now(),
+	}
+	store.AddMarketData(newData)
+
+	// Save updated market data
+	err = data.SaveMarketData(store)
+	if err != nil {
+		fmt.Printf("Error saving market data: %v\n", err)
+	}
+
+	return price, nil
+}
+
+func fetchMarketPrice(cardName, cardId, edition, grade string) (float64, error) {
+	// Use all parameters in the search query
+	searchQuery := fmt.Sprintf("%s %s %s %s", cardName, cardId, edition, grade)
 	url := fmt.Sprintf("https://www.ebay.com/sch/i.html?_nkw=%s&_ipg=100&_sop=13", strings.ReplaceAll(searchQuery, " ", "+"))
 
 	res, err := http.Get(url)

@@ -1,12 +1,19 @@
 import config from '../config';
 const verbose = config;
 
-export const fetchMarketPrice = async (cardName, edition, grade) => {
-    const response = await fetch(`/api/market-price?card_name=${encodeURIComponent(cardName)}&edition=${encodeURIComponent(edition)}&grade=${encodeURIComponent(grade)}`);
-    if (response.ok) {
+export const fetchMarketPrice = async (cardName, cardId, edition, grade) => {
+    try {
+        const url = `/api/market-price?card_name=${encodeURIComponent(cardName)}&card_id=${encodeURIComponent(cardId)}&edition=${encodeURIComponent(edition)}&grade=${encodeURIComponent(grade)}`;
+        console.log('Fetching market price from:', url);
+        const response = await fetch(url);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to fetch market price: ${response.status} ${response.statusText} - ${errorText}`);
+        }
         const data = await response.json();
         return data.market_price;
-    } else {
+    } catch (error) {
+        console.error('Error fetching market price:', error);
         return null;
     }
 };
