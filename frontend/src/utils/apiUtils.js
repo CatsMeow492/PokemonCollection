@@ -89,3 +89,48 @@ export const fetchPokemonNames = async () => {
     }
     return response.json();
 };
+
+export const registerUser = async (username, password, email) => {
+    if (verbose) console.log(`Registering user: ${username}, ${password}, ${email}`);
+    const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password, email }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to register user');
+    }
+
+    // Check if the response has a body
+    const responseBody = await response.text();
+    if (responseBody) {
+        return JSON.parse(responseBody);
+    }
+
+    return {};
+};
+
+export const loginUser = async (username, password) => {
+    const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to login user');
+    }
+
+    // Check if the response has a body
+    const responseBody = await response.text();
+    if (responseBody) {
+        return JSON.parse(responseBody);
+    }
+
+    return {};
+};

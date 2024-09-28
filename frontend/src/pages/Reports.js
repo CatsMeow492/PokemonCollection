@@ -9,6 +9,7 @@ import { ClipLoader } from 'react-spinners';
 import Clefairy from '../assets/images/clefairy.png';
 import Snorlax from '../assets/images/snorlax.webp';
 import ChatBubble from '../components/ChatBubble';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const Reports = () => {
     const [totalCost, setTotalCost] = useState(null);
@@ -17,7 +18,8 @@ const Reports = () => {
     const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]); // Define cardsWithMarketPrice state
     const { verbose } = config;
     const loading = useRouteLoading();
-    
+    const isMobile = useMediaQuery('(max-width:600px)');
+
     useEffect(() => {
         fetchCards()
             .then(data => {
@@ -109,7 +111,7 @@ const Reports = () => {
     };
 
     return (
-        <Container margin-top="15px" style={{ overflow: 'hidden' }}>
+        <Container className="reports-container" style={{ overflow: 'hidden', paddingBottom: '200px' }}>
             <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
                 Collection Insights
             </Typography>
@@ -190,7 +192,7 @@ const Reports = () => {
                         <Typography variant="h6" component="h2" gutterBottom>
                             Card Quantities
                         </Typography>
-                        <BarChart width={600} height={300} data={barData} margin={{ bottom: 65 }}>
+                        <BarChart width={isMobile ? 300 : 600} height={300} data={barData} margin={{ bottom: 65 }}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" tick={{ fontSize: 9.5 }} angle={-45} textAnchor="end" />
                             <YAxis />
@@ -200,23 +202,25 @@ const Reports = () => {
                     </Box>
                 </Grid2>
             </Grid2>
-            <div className="clefairy-chat">
-                <img src={Clefairy} alt="Clefairy" className="clefairy-image" />
-                <ChatBubble 
-                    onSendMessage={onSendMessage} 
-                    collectionData={{ 
-                        totalCost, 
-                        marketPrice, 
-                        totalProfit, 
-                        averageCardPrice, 
-                        top5ExpensiveCards, 
-                        top5ProfitableCards,
-                        cardsWithMarketPrice
-                    }} 
-                />
-            </div>
-            <div className="snorlax-container">
-                <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
+            <div className="pokemon-characters">
+                <div className="clefairy-chat">
+                    <img src={Clefairy} alt="Clefairy" className="clefairy-image" />
+                    <ChatBubble 
+                        onSendMessage={onSendMessage} 
+                        collectionData={{ 
+                            totalCost, 
+                            marketPrice, 
+                            totalProfit, 
+                            averageCardPrice, 
+                            top5ExpensiveCards, 
+                            top5ProfitableCards,
+                            cardsWithMarketPrice
+                        }} 
+                    />
+                </div>
+                <div className="snorlax-container">
+                    <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
+                </div>
             </div>
         </Container>
     );

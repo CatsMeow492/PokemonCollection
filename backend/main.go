@@ -4,19 +4,44 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
 	"github.com/CatsMeow492/PokemonCollection/handlers"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
+
+var jwtKey []byte
+
+func InitJWTKey(key string) {
+	jwtKey = []byte(key)
+}
 
 const pokemonCacheDuration = 10 * time.Minute // or any duration you prefer
 var pokemonCacheMutex sync.Mutex
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	jwtKey := os.Getenv("JWT_KEY")
+	if jwtKey == "" {
+		log.Fatalf("JWT_KEY environment variable not set")
+	}
+
+	handlers.InitJWTKey(jwtKey)
+
 	r := mux.NewRouter()
+	// Login and Register
+	r.HandleFunc("/api/login", handlers.Login).Methods("POST")
+	r.HandleFunc("/api/register", handlers.Register).Methods("POST")
+
+	// Cards
 	r.HandleFunc("/api/cards", handlers.GetCards).Methods("GET")
 	r.HandleFunc("/api/market-price", handlers.MarketPriceHandler).Methods("GET")
 	r.HandleFunc("/api/cards", handlers.AddCard).Methods("POST")
@@ -36,7 +61,7 @@ func main() {
 
 	// Serve images from the "images" directory
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
-
-	log.Println("Listening on :8000")
-	http.ListenAndServe(":8000", r)
+	log.Println("Server is running on port 8000")
+	log.Println("JWT Key:", jwtKey)
+	log.Fatal(http.ListenAndServe(":8000", r))
 }

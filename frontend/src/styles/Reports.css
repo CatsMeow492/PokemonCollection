@@ -9,11 +9,13 @@
 }
 
 .reports-container {
+  position: relative;
+  min-height: calc(100vh - 50px); /* Adjust based on your header height */
   padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding-bottom: 200px; /* Space for Pokémon characters */
+  background-color: #333844;
   color: aliceblue;
+  overflow-x: hidden;
 }
 
 .MuiGrid2-root {
@@ -34,44 +36,111 @@
     color: aliceblue;
 }
 
-.clefairy-chat {
-  position: fixed;  /* Changed from absolute to fixed */
-  bottom: 0%;  /* Changed from top to bottom */
-  left: 10%;  /* Changed from right to left */
-  z-index: 1;
+.pokemon-characters {
   display: flex;
-  align-items: flex-end;  /* Changed from flex-start to flex-end */
+  justify-content: space-between;
+  height: 100px;
+  position: static;
+  top: 100%;
+}
+
+.clefairy-chat {
+  position: relative;
+  left: 10%;
+  display: flex;
+  align-items: flex-end;
 }
 
 .clefairy-chat .MuiSvgIcon-root {
-  width: 20em;
-  height: 5em;
+  max-width: 400px;
+  max-height: 5em;
   transform: scaleX(3.5);
 }
 
 .chat-bubble {
   position: absolute;
-  bottom: 100%;  /* Changed from top to bottom */
-  left: 50%;  /* Changed from right to left */
-  transform: translateX(-50%);  /* Centers the bubble horizontally */
-  z-index: 1;
+  bottom: 100%;
+  left: calc(100% + 225px); /* Position it 10px to the right of the Clefairy image */
+  transform: translateY(85%); /* Adjust vertical position */
   width: 200px;
+  pointer-events: auto;
+  z-index: 1;
 }
 
 .clefairy-image {
   width: 200px;
-  margin-right: 0;  /* Removed negative margin */
-}
-.snorlax-container {
+  height: auto;
   position: absolute;
-  top: 65%;
-  right: -1%;
-  z-index: 1;
-  overflow-y: hidden;
-  height: 37%;
+  top: 100%;
+  z-index: 2;
+}
+
+.snorlax-container {
+  max-width: 400px;
 }
 
 .snorlax-image {
-  width: 400px;
-  height: 400px;
+  width: 450px;
+  height: auto;
+}
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .MuiTypography-h6 {
+    font-size: 1.1rem;
+  }
+
+  .MuiTypography-body1 {
+    font-size: 0.9rem;
+  }
+
+  .clefairy-chat,
+  .snorlax-container {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .reports-container {
+    padding-bottom: 100px;
+  }
+
+  .pokemon-characters {
+    display: flex;
+    height: 100px;
+  }
+
+  .clefairy-image,
+  .snorlax-image {
+    width: 75px;
+  }
+
+  .chat-bubble {
+    height: auto;
+    width: 150px;
+    left: calc(100% + 5px); /* Adjust for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .reports-container {
+    padding-bottom: 80px;
+  }
+
+  .pokemon-characters {
+    height: 80px;
+  }
+
+  .clefairy-image,
+  .snorlax-image {
+    width: 60px;
+  }
+
+  .chat-bubble {
+    width: 120px;
+    left: calc(100% + 3px); /* Further adjust for even smaller screens */
+  }
 }

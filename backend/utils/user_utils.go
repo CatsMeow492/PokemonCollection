@@ -101,18 +101,16 @@ func GetUserByID(id string) (models.User, error) {
 // Helper functions
 
 func loadUsers() ([]models.User, error) {
-	if _, err := os.Stat(userDataFile); os.IsNotExist(err) {
-		return []models.User{}, nil
-	}
-
-	data, err := ioutil.ReadFile(userDataFile)
+	file, err := ioutil.ReadFile(userDataFile)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return []models.User{}, nil // Return an empty slice if the file does not exist
+		}
 		return nil, err
 	}
 
 	var users []models.User
-	err = json.Unmarshal(data, &users)
-	if err != nil {
+	if err := json.Unmarshal(file, &users); err != nil {
 		return nil, err
 	}
 

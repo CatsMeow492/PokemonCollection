@@ -1,25 +1,35 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import './App.css';
+import './App.css';  // Make sure this import is present
 import Header from './components/Header';
 import CardList from './pages/CardList';
 import Reports from './pages/Reports';
 import Shop from './pages/Shop';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Header />
-        <div className="content">
-          <Routes>
-            <Route path="/" element={<CardList />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/shop" element={<Shop />} />
-          </Routes>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Header />
+          <div className="content">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<CardList />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/shop" element={<Shop />} />
+              </Route>
+            </Routes>
+          </div>
         </div>
-      </div>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }
 
