@@ -7,6 +7,7 @@ import Reports from './pages/Reports';
 import Shop from './pages/Shop';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -24,6 +25,7 @@ function App() {
                 <Route path="/" element={<CardList />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/shop" element={<Shop />} />
+                <Route path="/profile" element={<ProfilePage />} />
               </Route>
             </Routes>
           </div>

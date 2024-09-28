@@ -1,11 +1,12 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Avatar } from '@mui/material';
-import { ClipLoader } from 'react-spinners';
 import useRouteLoading from '../hooks/useRouteLoading';
 import '../styles/Header.css';
 import { ShoppingCart } from '@mui/icons-material';
 import AuthContext from '../context/AuthContext';
+import { ClipLoader } from 'react-spinners';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
 const Header = () => {
     const loading = useRouteLoading();
@@ -20,13 +21,13 @@ const Header = () => {
                     Pokédex
                 </Typography>
                 <Button color="inherit" component={Link} to="/shop">
-                    Shop
+                    {loading && isAuthenticated ? <ClipLoader size={20} color="#ffffff" /> : 'Shop'}
                 </Button>
                 <Button color="inherit" component={Link} to="/">
-                    Collection
+                    {loading && isAuthenticated ? <ClipLoader size={20} color="#ffffff" /> : 'Collection'}
                 </Button>
                 <Button color="inherit" component={Link} to="/reports">
-                    Reports
+                    {loading && isAuthenticated ? <ClipLoader size={20} color="#ffffff" /> : 'Reports'}
                 </Button>
                 {!isAuthenticated && (
                     <Button color="inherit" component={Link} to="/register">
@@ -35,7 +36,7 @@ const Header = () => {
                 )}
                 {isAuthenticated && (
                     <>
-                        <Button color="inherit" style={{ color: 'white' }}>
+                        <Button color="inherit" style={{ color: 'white' }} component={Link} to="/profile">
                             <Avatar 
                                 src={profilePicture || defaultProfilePicture} 
                                 alt="Profile" 
@@ -44,7 +45,7 @@ const Header = () => {
                             {username}
                         </Button>
                         <Button color="inherit" component={Link} to="/cart">
-                            <ShoppingCart />
+                            {loading ? <ClipLoader size={20} color="#ffffff" /> : <ShoppingCart />}
                         </Button>
                     </>
                 )}

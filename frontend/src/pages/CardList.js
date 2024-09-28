@@ -11,28 +11,38 @@ import { ClipLoader } from 'react-spinners';
 import config from '../config';
 
 const CardList = () => {
-    const loading = useRouteLoading();
+    const routeLoading = useRouteLoading();
     const [cards, setCards] = useState([]);
     const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
     const cardImageRefs = useRef([]);
     const { verbose } = config;
     const [modalOpen, setModalOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setLoading(true);
         fetchCards()
             .then(data => {
                 const { cards } = processFetchedCards(data, verbose);
                 setCards(cards);
             })
+            .catch(error => {
+                console.error('Error fetching cards:', error);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }, [verbose]);
 
     useEffect(() => {
         const updateCardsWithMarketPrice = async () => {
+            setLoading(true);
             const updatedCards = await Promise.all(cards.map(async (card) => {
                 const marketPrice = await fetchMarketPrice(card.name, card.id, card.edition, card.grade);
                 return { ...card, marketPrice };
             }));
             setCardsWithMarketPrice(updatedCards);
+            setLoading(false);
         };
 
         if (cards.length > 0) {
@@ -40,10 +50,10 @@ const CardList = () => {
         }
     }, [cards]);
 
-    if (loading) {
+    if (loading || routeLoading) {
         return (
             <div className="spinner-container">
-                <ClipLoader color="#ffffff" loading={loading} size={150} />
+                <ClipLoader color="#ffffff" loading={true} size={150} />
             </div>
         );
     }

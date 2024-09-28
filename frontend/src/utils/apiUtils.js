@@ -137,3 +137,20 @@ export const loginUser = async (username, password) => {
     console.log('Login response data:', data); // Add logging here
     return { token: data.token, username: data.username, profile_picture: data.profile_picture };
 };
+
+export const updateUserProfile = async (newUsername, newProfilePicture) => {
+    const response = await fetch('/api/update-profile', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ username: newUsername, profilePicture: newProfilePicture }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to update user profile');
+    }
+
+    return response.json();
+};

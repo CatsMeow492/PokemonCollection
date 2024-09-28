@@ -1,0 +1,39 @@
+.profile-container {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.MuiPaper-root {
+  color: white;
+}
+
+.MuiTypography-root {
+  color: white;
+}
+
+.MuiTextField-root {
+  margin-bottom: 16px;
+}
+
+.MuiInputBase-root {
+  color: white;
+}
+
+.MuiInputLabel-root {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.23);
+}
+
+.MuiButton-contained {
+  background-color: #4caf50;
+  color: white;
+  &:hover {
+    background-color: #45a049;
+  }
+}
