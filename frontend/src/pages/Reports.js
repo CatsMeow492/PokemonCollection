@@ -24,9 +24,13 @@ const Reports = () => {
                     const marketPrice = await fetchMarketPrice(card.name, card.id, card.edition, card.grade);
                     return { ...card, marketPrice: parseFloat(marketPrice) || 0 };
                 }));
-
+                if (verbose) console.log(cardsWithMarketPrice);
                 const totalMarketPrice = cardsWithMarketPrice.reduce((sum, card) => sum + card.marketPrice, 0);
                 const totalProfit = totalMarketPrice - totalCostSum;
+                const sets = cardsWithMarketPrice.map(card => card.edition);
+                const uniqueSets = [...new Set(sets)];
+                const gradeTenCount = cardsWithMarketPrice.filter(card => card.grade == 10).length;
+                cardsWithMarketPrice = cardsWithMarketPrice.map(card => ({ ...card, price: card.cost ? parseFloat(card.cost.replace('$', '')) : 0 }));
 
                 setReportData({
                     totalCost: totalCostSum,
@@ -35,7 +39,10 @@ const Reports = () => {
                     top5ExpensiveCards: cardsWithMarketPrice.sort((a, b) => b.marketPrice - a.marketPrice).slice(0, 5),
                     totalMarketPrice: totalMarketPrice,
                     totalProfit: totalProfit,
-                    cardsWithMarketPrice: cardsWithMarketPrice
+                    cardsWithMarketPrice: cardsWithMarketPrice,
+                    sets: uniqueSets,
+                    gradeTenCount: gradeTenCount,
+                    cardsProfit: cardsWithMarketPrice.map(card => ({ ...card, profit: card.marketPrice - card.price }))
                 });
             } catch (err) {
                 console.error('Error fetching report data:', err);
@@ -68,7 +75,7 @@ const Reports = () => {
         return null;
     }
 
-    const { totalCost, cardsCount, averageCardPrice, top5ExpensiveCards, totalMarketPrice, totalProfit } = reportData;
+    const { totalCost, cardsCount, averageCardPrice, top5ExpensiveCards, totalMarketPrice, totalProfit, sets, gradeTenCount, cardsProfit } = reportData;
 
     return (
         <div className="main-container">
@@ -113,6 +120,8 @@ const Reports = () => {
                                 <Divider className="card-divider" />
                                 <Typography>Average Card Price: ${averageCardPrice.toFixed(2)}</Typography>
                                 <Typography>Total Market Price: ${totalMarketPrice.toFixed(2)}</Typography>
+                                <Typography>Number of Sets: {sets.length}</Typography>
+                                <Typography>Number of Grade Tens: {gradeTenCount}</Typography>
                             </CardContent>
                         </Card>
                     </Grid>
@@ -124,6 +133,19 @@ const Reports = () => {
                                 {top5ExpensiveCards.map((card, index) => (
                                     <Typography key={index} className="top-card-item">
                                         {card.name} - ${card.marketPrice.toFixed(2)}
+                                    </Typography>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Card className="detail-card">
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom>Most Profitable Cards</Typography>
+                                <Divider className="card-divider" />
+                                {top5ExpensiveCards.map((card, index) => (
+                                    <Typography key={index} className="top-card-item">
+                                        {card.name} - ${cardsProfit.marketPrice.toFixed(2)}
                                     </Typography>
                                 ))}
                             </CardContent>

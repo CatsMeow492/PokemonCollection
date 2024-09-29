@@ -1,10 +1,11 @@
 .profile-container {
-  min-height: calc(100vh - 40px);
+  min-height: inherit;
+  min-width: 100%;
+  margin-top: -64px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding-top: 64px; /* Change this line */
 }
 
 .MuiPaper-root {
