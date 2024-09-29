@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Grid, CircularProgress, Card, CardContent, Divider } from '@mui/material';
 import { fetchCards, processFetchedCards, fetchMarketPrice } from '../utils/apiUtils';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import config from '../config';
 import '../styles/Reports.css';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
+import Clefairy from '../assets/images/clefairy.png';
+import Snorlax from '../assets/images/snorlax.webp';
 
 const Reports = () => {
     const [reportData, setReportData] = useState(null);
@@ -20,7 +23,7 @@ const Reports = () => {
                 const cardsData = await fetchCards();
                 const { totalCostSum, cards } = processFetchedCards(cardsData, verbose);
 
-                const cardsWithMarketPrice = await Promise.all(cards.map(async (card) => {
+                let cardsWithMarketPrice = await Promise.all(cards.map(async (card) => {
                     const marketPrice = await fetchMarketPrice(card.name, card.id, card.edition, card.grade);
                     return { ...card, marketPrice: parseFloat(marketPrice) || 0 };
                 }));
@@ -30,7 +33,16 @@ const Reports = () => {
                 const sets = cardsWithMarketPrice.map(card => card.edition);
                 const uniqueSets = [...new Set(sets)];
                 const gradeTenCount = cardsWithMarketPrice.filter(card => card.grade == 10).length;
-                cardsWithMarketPrice = cardsWithMarketPrice.map(card => ({ ...card, price: card.cost ? parseFloat(card.cost.replace('$', '')) : 0 }));
+                
+                // Ensure card.price is treated as a number
+                const cardsWithMarketPriceAndPrice = cardsWithMarketPrice
+                    .filter(card => card.price != null)
+                    .map(card => ({
+                        ...card,
+                        price: parseFloat(card.price) || 0 // Ensure price is a number
+                    }));
+                const cardsProfit = cardsWithMarketPriceAndPrice.map(card => ({ ...card, profit: card.marketPrice - card.price }));
+                if (verbose) console.log('Cards Profit:', cardsProfit);
 
                 setReportData({
                     totalCost: totalCostSum,
@@ -42,7 +54,7 @@ const Reports = () => {
                     cardsWithMarketPrice: cardsWithMarketPrice,
                     sets: uniqueSets,
                     gradeTenCount: gradeTenCount,
-                    cardsProfit: cardsWithMarketPrice.map(card => ({ ...card, profit: card.marketPrice - card.price }))
+                    cardsProfit: cardsProfit
                 });
             } catch (err) {
                 console.error('Error fetching report data:', err);
@@ -76,6 +88,14 @@ const Reports = () => {
     }
 
     const { totalCost, cardsCount, averageCardPrice, top5ExpensiveCards, totalMarketPrice, totalProfit, sets, gradeTenCount, cardsProfit } = reportData;
+
+    // Prepare data for the pie chart
+    const pieChartData = [
+        { name: 'Investment', value: totalCost },
+        { name: 'Profit', value: totalProfit > 0 ? totalProfit : 0 },
+    ];
+
+    const COLORS = ['#0088FE', '#00C49F'];
 
     return (
         <div className="main-container">
@@ -128,7 +148,7 @@ const Reports = () => {
                     <Grid item xs={12} md={6}>
                         <Card className="detail-card">
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>Top 5 Most Valuable Cards</Typography>
+                                <Typography variant="h6" gutterBottom>5 Most Valuable Cards</Typography>
                                 <Divider className="card-divider" />
                                 {top5ExpensiveCards.map((card, index) => (
                                     <Typography key={index} className="top-card-item">
@@ -140,19 +160,57 @@ const Reports = () => {
                     </Grid>
                     <Grid item xs={12} md={6}>
                         <Card className="detail-card">
-                            <CardContent>
+                            <CardContent className="scrollable-container">
                                 <Typography variant="h6" gutterBottom>Most Profitable Cards</Typography>
                                 <Divider className="card-divider" />
-                                {top5ExpensiveCards.map((card, index) => (
-                                    <Typography key={index} className="top-card-item">
-                                        {card.name} - ${cardsProfit.marketPrice.toFixed(2)}
-                                    </Typography>
-                                ))}
+                                {cardsProfit
+                                    .filter(card => card.profit > 0)
+                                    .sort((a, b) => b.profit - a.profit)
+                                    .map((card, index) => (
+                                        <Typography key={index} className="top-card-item">
+                                            {card.name} - ${card.profit.toFixed(2)}
+                                        </Typography>
+                                    ))}
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Card className="detail-card">
+                            <CardContent>
+                                <Typography variant="h6" gutterBottom>Profit and Investment</Typography>
+                                <Divider className="card-divider" />
+                                <Box height={300}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={pieChartData}
+                                                cx="50%"
+                                                cy="50%"
+                                                labelLine={false}
+                                                outerRadius={80}
+                                                fill="#8884d8"
+                                                dataKey="value"
+                                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                            >
+                                                {pieChartData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </Box>
+                                <Typography>Total Investment: ${totalCost.toFixed(2)}</Typography>
+                                <Typography>Total Profit: ${totalProfit.toFixed(2)}</Typography>
                             </CardContent>
                         </Card>
                     </Grid>
                 </Grid>
             </Container>
+            <div className="pokemon-characters">
+                <img src={Clefairy} alt="Clefairy" className="clefairy-image" />
+                <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
+            </div>
         </div>
     );
 };

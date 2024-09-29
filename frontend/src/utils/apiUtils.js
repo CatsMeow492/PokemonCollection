@@ -30,7 +30,8 @@ export const processFetchedCards = (data, verbose) => {
     if (verbose) console.log('Fetched data:', data); // Log fetched data
 
     const totalCostSum = data.reduce((acc, card) => {
-        const price = parseFloat(card.price.replace(/[^0-9.-]+/g, ""));
+        // Ensure card.price is treated as a number
+        const price = parseFloat(card.price) || 0;
         if (verbose) console.log(`Card price: ${card.price}, Parsed price: ${price}`); // Log each card's price
         return acc + (isNaN(price) ? 0 : price);
     }, 0);

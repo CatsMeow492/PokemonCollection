@@ -64,7 +64,7 @@ func FetchCard(apiKey, cardID string) (*models.Card, error) {
 		Name:    cardData["name"].(string),
 		Edition: cardData["set"].(map[string]interface{})["name"].(string),
 		Grade:   "N/A", // Grade is not provided by the API
-		Price:   "N/A", // Price is not provided by the API
+		Price:   0.00,  // Price is not provided by the API
 		Image:   imageURL,
 	}
 

@@ -137,3 +137,74 @@
 .reports-container * {
   color: #ffffff !important;
 }
+
+/* Add these styles to your existing CSS */
+
+.reports-container .recharts-pie-label-text {
+    fill: #ffffff !important;
+}
+
+.reports-container .recharts-legend-item-text {
+    color: #ffffff !important;
+}
+
+.reports-container .recharts-tooltip-label,
+.reports-container .recharts-tooltip-item {
+    color: #333333 !important;
+}
+
+.scrollable-container {
+  overflow-y: auto;
+  max-height: 450px;
+}
+
+.pokemon-characters {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.clefairy-image {
+    width: 150px;
+    height: auto;
+    margin-left: 20px;
+}
+
+.snorlax-image {
+    width: 450px;
+    height: auto;
+    margin-right: 20px;
+    transform: translateY(80px)translateX(55px); /* This moves Snorlax 150px lower */
+}
+
+@media (max-width: 1200px) {
+    .snorlax-image {
+        width: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .clefairy-image {
+        width: 100px;
+    }
+    .snorlax-image {
+        width: 200px;
+        transform: translateY(100px); /* Adjust for smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .clefairy-image {
+        width: 75px;
+    }
+    .snorlax-image {
+        width: 150px;
+        transform: translateY(75px); /* Adjust for very small screens */
+    }
+}
