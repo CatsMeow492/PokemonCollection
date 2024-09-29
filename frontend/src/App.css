@@ -6,4 +6,5 @@
   background-color: #333844;
   min-height: 100vh;
   padding-top: 64px; /* Add this line */
+  overflow-y: hidden;
 }

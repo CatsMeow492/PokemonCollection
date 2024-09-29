@@ -1,146 +1,139 @@
-.MuiContainer-root {
-  overflow: visible;
-}
-
-.title {
-  font-family: 'Roboto', sans-serif;
-  font-weight: bold;
-  color: #3f51b5;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-  border-bottom: 2px solid #3f51b5;
+.main-container {
+  min-height: calc(100vh - 64px);
+  background-color: #333844;
+  color: #ffffff !important;
+  padding: 20px 0;
 }
 
 .reports-container {
+  max-width: 1200px;
+}
+
+.reports-container .title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: bold;
+  color: #ffffff !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.reports-container .summary-card,
+.reports-container .detail-card {
+  height: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.reports-container .summary-card:hover,
+.reports-container .detail-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.reports-container .summary-card {
+  background: linear-gradient(135deg, #3a7bd5, #00d2ff);
   position: relative;
-  min-height: calc(100vh - 50px); /* Adjust based on your header height */
-  padding-top: 64px;
-  background-color: #333844;
-  color: aliceblue;
 }
 
-.MuiGrid2-root {
-  color: aliceblue;
-}
-
-.MuiTypography-root {
-    color: aliceblue;
-    font-family: 'Roboto', sans-serif;
-    font-weight: bold;
-}
-
-.MuiBox-root {
-    color: aliceblue;
-}
-
-.MuiDivider-root {
-    color: aliceblue;
-}
-
-.pokemon-characters {
-  display: flex;
-  justify-content: space-between;
-  height: 100px;
-  position: static;
-  top: 100%;
-}
-
-.clefairy-chat {
-  position: relative;
-  left: 10%;
-  display: flex;
-  align-items: flex-end;
-}
-
-.clefairy-chat .MuiSvgIcon-root {
-  max-width: 400px;
-  max-height: 5em;
-  transform: scaleX(3.5);
-}
-
-.chat-bubble {
+.reports-container .summary-card::before {
+  content: '';
   position: absolute;
-  bottom: 100%;
-  left: calc(100% + 225px); /* Position it 10px to the right of the Clefairy image */
-  transform: translateY(70%); /* Adjust vertical position */
-  width: 200px;
-  pointer-events: auto;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
   z-index: 1;
 }
 
-.clefairy-image {
-  width: 200px;
-  height: auto;
-  position: absolute;
-  top: 100%;
+.reports-container .detail-card {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.reports-container .summary-card .MuiTypography-root,
+.reports-container .detail-card .MuiTypography-root,
+.reports-container .summary-card .MuiCardContent-root,
+.reports-container .detail-card .MuiCardContent-root {
+  color: #ffffff !important;
+  position: relative;
   z-index: 2;
 }
 
-.snorlax-container {
-  max-width: 400px;
+.reports-container .card-icon {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 48px;
+  opacity: 0.3;
+  color: #ffffff !important;
+  z-index: 1;
 }
 
-.snorlax-image {
-  width: 450px;
-  height: auto;
+.reports-container .card-divider {
+  margin: 10px 0;
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.reports-container .profit-positive {
+  color: #4caf50 !important;
+}
+
+.reports-container .profit-negative {
+  color: #f44336 !important;
+}
+
+.reports-container .top-card-item {
+  margin: 5px 0;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff !important;
+}
+
+.reports-container .top-card-item:last-child {
+  border-bottom: none;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 64px);
+  color: #ffffff !important;
 }
 
 @media (max-width: 600px) {
-  .title {
-    font-size: 1.5rem;
+  .main-container {
+    padding: 10px 0;
   }
 
-  .MuiTypography-h6 {
-    font-size: 1.1rem;
+  .reports-container {
+    padding: 0 10px;
   }
 
-  .MuiTypography-body1 {
-    font-size: 0.9rem;
-  }
-
-  .clefairy-chat,
-  .snorlax-container {
-    display: none;
+  .reports-container .title {
+    font-size: 1.8rem;
   }
 }
 
-@media (max-width: 768px) {
-  .reports-container {
-    padding-bottom: 100px;
-  }
-
-  .pokemon-characters {
-    display: flex;
-    height: 100px;
-  }
-
-  .clefairy-image,
-  .snorlax-image {
-    width: 75px;
-  }
-
-  .chat-bubble {
-    height: auto;
-    width: 150px;
-    left: calc(100% + 5px); /* Adjust for smaller screens */
-  }
+/* Override MUI default styles */
+.reports-container .MuiCard-root {
+  background-color: transparent !important;
 }
 
-@media (max-width: 480px) {
-  .reports-container {
-    padding-bottom: 80px;
-  }
+.reports-container .MuiTypography-root {
+  color: #ffffff !important;
+}
 
-  .pokemon-characters {
-    height: 80px;
-  }
+.reports-container .MuiCardContent-root {
+  color: #ffffff !important;
+}
 
-  .clefairy-image,
-  .snorlax-image {
-    width: 60px;
-  }
-
-  .chat-bubble {
-    width: 120px;
-    left: calc(100% + 3px); /* Further adjust for even smaller screens */
-  }
+/* Ensure all text within reports-container is white */
+.reports-container * {
+  color: #ffffff !important;
 }
