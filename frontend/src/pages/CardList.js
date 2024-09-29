@@ -157,7 +157,7 @@ const CardList = () => {
     };
 
     return (
-        <Container>
+        <Container className="card-list-container">
             <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
                 My Pokémon Card Collection
             </Typography>

@@ -4,6 +4,7 @@
   align-items: center;
   min-height: calc(100vh - 64px); /* Adjust based on your header height */
   background: transparent;
+  padding-top: 64px; /* Add this line */
 }
 
 .login-paper {

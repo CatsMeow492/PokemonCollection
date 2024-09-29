@@ -111,14 +111,14 @@ const Reports = () => {
     };
 
     return (
-        <Container className="reports-container" style={{ overflow: 'hidden', paddingBottom: '200px' }}>
-            <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
+        <Container className="reports-container" style={{ paddingBottom: '200px' }}>
+            <Typography variant="h4" component="h1" className="reports-title" gutterBottom>
                 Collection Insights
             </Typography>
-            <Typography variant="body1" gutterBottom>
+            <Typography variant="body1" className="reports-text" gutterBottom>
                 This is the reports page. Here you can add various reports and analytics about your Pokémon card collection.
             </Typography>
-            <Divider />
+            <Divider className="reports-divider" />
             <Grid2 container spacing={2} justifyContent="center">
                 <Grid2 item xs={12} md={6}>
                     <Box my={2}>

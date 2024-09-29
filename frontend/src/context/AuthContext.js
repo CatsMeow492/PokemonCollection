@@ -1,26 +1,23 @@
 import React, { createContext, useState, useEffect } from 'react';
 import config from '../config';
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-	const verbose = config;
+	const { verbose } = config;
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [username, setUsername] = useState('');
 	const [profilePicture, setProfilePicture] = useState('');
 
 	useEffect(() => {
-		// Check if the user is authenticated (e.g., by checking a token in localStorage)
-		if (verbose) {
-			console.log('Checking if the user is authenticated');
-		}
+		// Check if user is authenticated (e.g., by checking for a token in localStorage)
 		const token = localStorage.getItem('token');
 		const storedUsername = localStorage.getItem('username');
-		const storedProfilePicture = localStorage.getItem('profile_picture');
+		const storedProfilePicture = localStorage.getItem('profilePicture');
 		if (token && storedUsername) {
 			setIsAuthenticated(true);
 			setUsername(storedUsername);
-			setProfilePicture(storedProfilePicture);
+			setProfilePicture(storedProfilePicture || '');
 			if (verbose) {
 				console.log('User is authenticated');
 			}
@@ -28,20 +25,22 @@ export const AuthProvider = ({ children }) => {
 	}, []);
 
 	const login = (token, username, profilePicture) => {
+		console.log('Login function called with:', token, username, profilePicture);
 		localStorage.setItem('token', token);
 		localStorage.setItem('username', username);
-		localStorage.setItem('profile_picture', profilePicture);
+		localStorage.setItem('profilePicture', profilePicture || '');
 		setIsAuthenticated(true);
 		setUsername(username);
-		setProfilePicture(profilePicture);
+		setProfilePicture(profilePicture || '');
 		if (verbose) {
-			console.log('User is authenticated', username);
+			console.log('User is authenticated', username, profilePicture);
 		}
 	};
 
 	const logout = () => {
 		localStorage.removeItem('token');
 		localStorage.removeItem('username');
+		localStorage.removeItem('profilePicture');
 		setIsAuthenticated(false);
 		setUsername('');
 		setProfilePicture('');
@@ -50,8 +49,15 @@ export const AuthProvider = ({ children }) => {
 		}
 	};
 
+	const updateProfile = (newUsername, newProfilePicture) => {
+		setUsername(newUsername);
+		setProfilePicture(newProfilePicture);
+		localStorage.setItem('username', newUsername);
+		localStorage.setItem('profilePicture', newProfilePicture);
+	};
+
 	return (
-		<AuthContext.Provider value={{ isAuthenticated, username, profilePicture, login, logout }}>
+		<AuthContext.Provider value={{ isAuthenticated, username, profilePicture, login, logout, updateProfile }}>
 			{children}
 		</AuthContext.Provider>
 	);

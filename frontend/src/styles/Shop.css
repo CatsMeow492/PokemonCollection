@@ -2,6 +2,7 @@
   max-width: 345px;
   margin: auto;
   transition: transform 0.2s;
+  padding-top: 64px; /* Add this line */
 }
 
 .shop-card:hover {

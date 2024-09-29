@@ -1,9 +1,10 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Container, Paper, Typography, Avatar, Button, Grid, TextField, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import AuthContext from '../context/AuthContext';
 import { updateUserProfile } from '../utils/apiUtils';
 import '../styles/ProfilePage.css';
+import config from '../config';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -19,10 +20,18 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 const defaultProfilePicture = 'https://i.pinimg.com/originals/45/84/c0/4584c0b11190ed3bd738acf8f1d24fa4.jpg';
 
 const ProfilePage = () => {
+  const { verbose } = config;
   const { username, profilePicture, updateProfile } = useContext(AuthContext);
   const [editing, setEditing] = useState(false);
   const [newUsername, setNewUsername] = useState(username);
   const [newProfilePicture, setNewProfilePicture] = useState(profilePicture);
+
+  useEffect(() => {
+    setNewUsername(username);
+    setNewProfilePicture(profilePicture);
+  }, [username, profilePicture]);
+
+  if (verbose) console.log('username:', username, 'profilePicture:', profilePicture);
 
   const handleEdit = () => {
     setEditing(true);
@@ -71,7 +80,7 @@ const ProfilePage = () => {
                 onChange={(e) => setNewProfilePicture(e.target.value)}
               />
             ) : (
-              <Typography variant="body1">Profile Picture URL: {profilePicture}</Typography>
+              <Typography variant="body1">Profile Picture URL: {profilePicture || 'Not set'}</Typography>
             )}
           </Grid>
         </Grid>
