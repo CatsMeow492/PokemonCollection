@@ -29,17 +29,19 @@ const ChatBubble = ({ onSendMessage, collectionData }) => {
         // Prepare the prompt with collection data
         const collectionSummary = `
           Total Cost: $${collectionData.totalCost.toFixed(2)}
-          Market Price: $${collectionData.marketPrice.toFixed(2)}
+          Market Price: $${collectionData.totalMarketPrice.toFixed(2)}
           Total Profit: $${collectionData.totalProfit.toFixed(2)}
           Average Card Price: $${collectionData.averageCardPrice.toFixed(2)}
           Top 5 Expensive Cards: ${collectionData.top5ExpensiveCards.map(card => `${card.name} - $${card.marketPrice.toFixed(2)}`).join(', ')}
-          Top 5 Profitable Cards: ${collectionData.top5ProfitableCards.map(card => `${card.name} - $${card.marketPrice.toFixed(2)}`).join(', ')}
+          Top 5 Profitable Cards: ${collectionData.cardsProfit.map(card => `${card.name} - $${card.profit.toFixed(2)}`).join(', ')}
         `;
 
         const prompt = `
           User Message: ${userInput}
           Collection Summary: ${collectionSummary}
         `;
+
+        console.log('Prompt sent to OpenAI:', prompt); // Add this line for debugging
 
         // Query OpenAI
         const aiResponse = await queryOpenAI(prompt);

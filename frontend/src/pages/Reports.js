@@ -21,6 +21,7 @@ const Reports = () => {
         if (verbose) {
             console.log('Message received in Reports component:', message);
         }
+        // You can add any additional logic here to process the message
     };
 
     useEffect(() => {
