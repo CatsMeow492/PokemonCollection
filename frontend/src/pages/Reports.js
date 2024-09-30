@@ -9,6 +9,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import Clefairy from '../assets/images/clefairy.png';
 import Snorlax from '../assets/images/snorlax.webp';
+import ChatBubble from '../components/ChatBubble';
 
 const Reports = () => {
     const [reportData, setReportData] = useState(null);
@@ -209,6 +210,7 @@ const Reports = () => {
             </Container>
             <div className="pokemon-characters">
                 <img src={Clefairy} alt="Clefairy" className="clefairy-image" />
+                <ChatBubble className="chat-bubble" />
                 <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
             </div>
         </div>

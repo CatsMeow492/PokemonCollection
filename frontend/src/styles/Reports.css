@@ -208,3 +208,7 @@
         transform: translateY(75px); /* Adjust for very small screens */
     }
 }
+
+.chat-bubble {
+    transform: translateX(-200px)translateY(50px);
+}
