@@ -5,6 +5,7 @@
   width: 300px;
   border-radius: 10px;
   overflow: hidden;
+  z-index: 20; /* Ensure it is above other elements */
 }
 
 .chat-messages {
@@ -116,4 +117,3 @@
     cursor: not-allowed;
   }
 }
-

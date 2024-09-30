@@ -17,6 +17,12 @@ const Reports = () => {
     const [error, setError] = useState(null);
     const { verbose } = config;
 
+    const handleSendMessage = (message) => {
+        if (verbose) {
+            console.log('Message received in Reports component:', message);
+        }
+    };
+
     useEffect(() => {
         const fetchReportData = async () => {
             try {
@@ -35,12 +41,11 @@ const Reports = () => {
                 const uniqueSets = [...new Set(sets)];
                 const gradeTenCount = cardsWithMarketPrice.filter(card => card.grade == 10).length;
                 
-                // Ensure card.price is treated as a number
                 const cardsWithMarketPriceAndPrice = cardsWithMarketPrice
                     .filter(card => card.price != null)
                     .map(card => ({
                         ...card,
-                        price: parseFloat(card.price) || 0 // Ensure price is a number
+                        price: parseFloat(card.price) || 0
                     }));
                 const cardsProfit = cardsWithMarketPriceAndPrice.map(card => ({ ...card, profit: card.marketPrice - card.price }));
                 if (verbose) console.log('Cards Profit:', cardsProfit);
@@ -90,7 +95,6 @@ const Reports = () => {
 
     const { totalCost, cardsCount, averageCardPrice, top5ExpensiveCards, totalMarketPrice, totalProfit, sets, gradeTenCount, cardsProfit } = reportData;
 
-    // Prepare data for the pie chart
     const pieChartData = [
         { name: 'Investment', value: totalCost },
         { name: 'Profit', value: totalProfit > 0 ? totalProfit : 0 },
@@ -210,8 +214,13 @@ const Reports = () => {
             </Container>
             <div className="pokemon-characters">
                 <img src={Clefairy} alt="Clefairy" className="clefairy-image" />
-                <ChatBubble className="chat-bubble" />
-                <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
+                <ChatBubble onSendMessage={handleSendMessage} collectionData={reportData} />
+                <div className="snorlax-container">
+                    <img src={Snorlax} alt="Snorlax" className="snorlax-image" />
+                    <div className="bubble"></div>
+                    <div className="bubble"></div>
+                    <div className="bubble"></div>
+                </div>
             </div>
         </div>
     );

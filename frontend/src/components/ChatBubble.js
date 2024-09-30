@@ -5,10 +5,7 @@ import { queryOpenAI } from '../utils/openAiUtils';
 
 const ChatBubble = ({ onSendMessage, collectionData }) => {
   const [userInput, setUserInput] = useState('');
-  const [messages, setMessages] = useState([
-    { type: 'ai', content: 'Welcome back!' },
-    { type: 'ai', content: 'What can I help you with today?' }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
@@ -16,7 +13,7 @@ const ChatBubble = ({ onSendMessage, collectionData }) => {
     e.preventDefault();
     if (userInput.trim()) {
       // Add user message to the chat
-      setMessages(prevMessages => [...prevMessages, { type: 'user', content: userInput }]);
+      setIsLoading(true);
       
       // Call the onSendMessage prop (if needed for parent component)
       onSendMessage(userInput);
@@ -64,8 +61,25 @@ const ChatBubble = ({ onSendMessage, collectionData }) => {
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMessages(prevMessages => [...prevMessages, { type: 'ai', content: 'Welcome Back!' }]);
+    }, 1000);
+
+    const timer2 = setTimeout(() => {
+      setMessages(prevMessages => [...prevMessages, { type: 'ai', content: 'What can I help you with today?' }]);
+    }, 2000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timer2);
+    };
+  }, []);
 
   const renderMessageContent = (message) => {
     if (message.content === 'loading') {
