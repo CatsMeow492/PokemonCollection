@@ -7,14 +7,17 @@ import {
   Button, 
   Box,
   InputAdornment,
-  IconButton
+  IconButton,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import AuthContext from '../context/AuthContext';
 import config from '../config';
-import { loginUser } from '../utils/apiUtils';
-import "../styles/Login.css";
+import { loginUser, registerUser } from '../utils/apiUtils';
+import "../styles/Auth.css";
 
 const darkTheme = createTheme({
   palette: {
@@ -22,22 +25,42 @@ const darkTheme = createTheme({
   },
 });
 
-const Login = () => {
+const Auth = () => {
+  const [tab, setTab] = useState(0);
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [profilePicture, setProfilePicture] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useContext(AuthContext);
   const verbose = config;
+  const navigate = useNavigate(); // Initialize navigate
+
+  const handleTabChange = (event, newValue) => {
+    setTab(newValue);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const { token, username: loggedInUsername } = await loginUser(username, password);
-      if (verbose) console.log(`Login successful: ${token}, ${loggedInUsername}`);
-      login(token, loggedInUsername, profilePicture);
-    } catch (error) {
-      console.error('Login failed:', error);
+    if (tab === 0) {
+      // Sign In
+      try {
+        const { token, username: loggedInUsername } = await loginUser(username, password);
+        if (verbose) console.log(`Login successful: ${token}, ${loggedInUsername}`);
+        login(token, loggedInUsername, profilePicture);
+        navigate('/'); // Redirect to /collection after login
+      } catch (error) {
+        console.error('Login failed:', error);
+      }
+    } else {
+      // Register
+      try {
+        if (verbose) console.log(`Registering user: ${username}, ${password}, ${email}`);
+        await registerUser(username, password, email);
+        console.log('Registration successful');
+      } catch (error) {
+        console.error('Registration failed:', error);
+      }
     }
   };
 
@@ -47,10 +70,14 @@ const Login = () => {
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <Container component="main" maxWidth="xs" className="login-container">
-        <Paper elevation={3} className="login-paper">
-          <Typography component="h1" variant="h5" className="login-title">
-            Sign in
+      <Container component="main" maxWidth="xs" className="auth-container">
+        <Paper elevation={3} className="auth-paper">
+          <Tabs value={tab} onChange={handleTabChange} centered>
+            <Tab label="Sign In" />
+            <Tab label="Register" />
+          </Tabs>
+          <Typography component="h1" variant="h5" className="auth-title">
+            {tab === 0 ? 'Sign In' : 'Register'}
           </Typography>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
             <TextField
@@ -65,6 +92,19 @@ const Login = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
+            {tab === 1 && (
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="email"
+                label="Email"
+                name="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            )}
             <TextField
               margin="normal"
               required
@@ -95,9 +135,9 @@ const Login = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              className="login-button"
+              className="auth-button"
             >
-              Sign In
+              {tab === 0 ? 'Sign In' : 'Register'}
             </Button>
           </Box>
         </Paper>
@@ -106,4 +146,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Auth;

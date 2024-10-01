@@ -51,8 +51,23 @@ const Header = () => {
                     {loading && isAuthenticated ? <ClipLoader size={20} color="#ffffff" /> : 'Reports'}
                 </Button>
                 {!isAuthenticated && (
-                    <Button color="inherit" component={Link} to="/register">
-                        Register
+                    <Button 
+                        color="primary" 
+                        variant="contained" 
+                        component={Link} 
+                        to="/auth"
+                        sx={{ 
+                            backgroundColor: '#1976d2', 
+                            color: '#fff', 
+                            '&:hover': {
+                                backgroundColor: '#115293',
+                            },
+                            borderRadius: '20px',
+                            padding: '6px 16px',
+                            textTransform: 'none',
+                        }}
+                    >
+                        Get Started
                     </Button>
                 )}
                 {isAuthenticated && (
