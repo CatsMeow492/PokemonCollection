@@ -13,7 +13,7 @@ import ChatBubble from '../components/ChatBubble';
 import { AuthContext } from '../context/AuthContext';
 
 const Reports = () => {
-    const { user } = React.useContext(AuthContext);
+    const { id } = React.useContext(AuthContext);
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -30,7 +30,7 @@ const Reports = () => {
         const fetchReportData = async () => {
             try {
                 setLoading(true);
-                const cardsData = await fetchCardsByUserID(user.id);
+                const cardsData = await fetchCardsByUserID(id);
                 const { totalCostSum, cards } = processFetchedCards(cardsData, verbose);
 
                 let cardsWithMarketPrice = await Promise.all(cards.map(async (card) => {
