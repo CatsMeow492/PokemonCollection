@@ -1,17 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Container, Typography, Grid, Card, CardMedia, CardContent, IconButton } from '@mui/material';
 import AddCardModal from '../modals/AddCardModal';
 import '../styles/CardList.css';
-import { fetchMarketPrice, fetchCards, processFetchedCards, addCard, updateCardQuantity } from '../utils/apiUtils';
+import { fetchMarketPrice, fetchCardsByUserID, processFetchedCards, addCard, updateCardQuantity } from '../utils/apiUtils';
 import { Button } from '@mui/material';
 import ArrowCircleUpTwoToneIcon from '@mui/icons-material/ArrowCircleUpTwoTone';
 import ArrowCircleDownTwoToneIcon from '@mui/icons-material/ArrowCircleDownTwoTone';
 import useRouteLoading from '../hooks/useRouteLoading';
 import { ClipLoader } from 'react-spinners';
 import config from '../config';
+import { AuthContext } from '../context/AuthContext';
 
 const CardList = () => {
     const routeLoading = useRouteLoading();
+    const { id } = useContext(AuthContext); // Access id from AuthContext
     const [cards, setCards] = useState([]);
     const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
     const cardImageRefs = useRef([]);
@@ -20,8 +22,13 @@ const CardList = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!id) {
+            console.error('User ID is undefined');
+            return;
+        }
+
         setLoading(true);
-        fetchCards()
+        fetchCardsByUserID(id)
             .then(data => {
                 const { cards } = processFetchedCards(data, verbose);
                 setCards(cards);
@@ -32,12 +39,16 @@ const CardList = () => {
             .finally(() => {
                 setLoading(false);
             });
-    }, [verbose]);
+    }, [id, verbose]);
 
     useEffect(() => {
         const updateCardsWithMarketPrice = async () => {
             setLoading(true);
             const updatedCards = await Promise.all(cards.map(async (card) => {
+                if (!card || !card.id) {
+                    console.error('Card or card ID is undefined:', card);
+                    return card; // Return the card as is if it's undefined or has no ID
+                }
                 const marketPrice = await fetchMarketPrice(card.name, card.id, card.edition, card.grade);
                 return { ...card, marketPrice };
             }));

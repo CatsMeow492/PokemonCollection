@@ -5,10 +5,9 @@ import Header from './components/Header';
 import CardList from './pages/CardList';
 import Reports from './pages/Reports';
 import Shop from './pages/Shop';
-import Login from './pages/Login';
-import Register from './pages/Register';
 import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import Auth from './pages/Auth';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -19,8 +18,7 @@ function App() {
           <Header />
           <div className="content">
             <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              <Route path="/auth" element={<Auth />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<CardList />} />
                 <Route path="/reports" element={<Reports />} />
