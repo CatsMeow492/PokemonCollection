@@ -19,6 +19,7 @@ export const fetchMarketPrice = async (cardName, cardId, edition, grade) => {
 };
 
 export const fetchCardsByUserID = async (userID) => {
+    if (verbose) console.log(`Fetching cards for user ID: ${userID}`);
     const response = await fetch(`/api/cards?user_id=${userID}`);
     if (!response.ok) {
         throw new Error('Failed to fetch cards');

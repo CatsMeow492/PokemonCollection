@@ -219,25 +219,38 @@ func GetAllCardsByUserID(w http.ResponseWriter, r *http.Request, userID string) 
 		log.Fatalf("Error reading collection.json: %v", err)
 	}
 
-	var userCollection models.UserCollection
-	if err := json.Unmarshal(file, &userCollection); err != nil {
+	var data struct {
+		User struct {
+			ID         string        `json:"id"`
+			Collection []models.Card `json:"collection"`
+		} `json:"user"`
+	}
+	if err := json.Unmarshal(file, &data); err != nil {
 		log.Fatalf("Error unmarshalling collection.json: %v", err)
 	}
 
+	log.Printf("User ID: %s", userID)
+	log.Printf("User Collection: %+v", data.User.Collection)
+
 	cards := []models.Card{}
-	for _, card := range userCollection.Cards { // Changed Collection to Cards
-		fetchedCard, err := services.FetchCard(apiKey, card.ID)
-		if err != nil {
-			log.Printf("Error fetching card %s: %v", card.ID, err)
-			continue
+	if data.User.ID == userID {
+		for _, card := range data.User.Collection {
+			log.Printf("Processing card: %+v", card)
+			fetchedCard, err := services.FetchCard(apiKey, card.ID)
+			if err != nil {
+				log.Printf("Error fetching card %s: %v", card.ID, err)
+				continue
+			}
+			// Update fetched card with grade and price from collection.json
+			fetchedCard.Grade = card.Grade
+			fetchedCard.Price = card.Price
+			fetchedCard.Quantity = card.Quantity
+			fetchedCard.ID = card.ID
+			cards = append(cards, *fetchedCard)
 		}
-		// Update fetched card with grade and price from collection.json
-		fetchedCard.Grade = card.Grade
-		fetchedCard.Price = card.Price
-		fetchedCard.Quantity = card.Quantity
-		fetchedCard.ID = card.ID
-		cards = append(cards, *fetchedCard)
 	}
+
+	log.Printf("Fetched Cards: %+v", cards)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(cards)
