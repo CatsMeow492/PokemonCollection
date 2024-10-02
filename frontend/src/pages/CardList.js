@@ -182,6 +182,31 @@ const CardList = () => {
         }
     };
 
+    const handleCollectionChange = (e) => {
+        const collectionName = e.target.value;
+        setSelectedCollection(collectionName);
+
+        if (!id || !collectionName) {
+            console.error('User ID or collection name is undefined');
+            return;
+        }
+
+        setLoading(true);
+        fetch(`/api/collections/${id}/${collectionName}`)
+            .then(response => response.json())
+            .then(data => {
+                const { collection } = data; // Extract the collection array
+                const { cards } = processFetchedCards(collection, verbose); // Pass the collection array to processFetchedCards
+                setCards(cards);
+            })
+            .catch(error => {
+                console.error('Error fetching cards for collection:', error);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
     return (
         <Container className="card-list-container">
             <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
@@ -196,7 +221,7 @@ const CardList = () => {
                     labelId="collection-select-label"
                     id="collection-select"
                     value={selectedCollection}
-                    onChange={(e) => setSelectedCollection(e.target.value)}
+                    onChange={handleCollectionChange}
                     label="Select Collection"
                 >
                     {collections && collections.map((collection) => ( // Add check for collections

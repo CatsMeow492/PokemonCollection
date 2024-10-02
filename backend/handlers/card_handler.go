@@ -212,6 +212,33 @@ func GetCollectionsByUserID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func GetCollectionByUserIDandCollectionName(w http.ResponseWriter, r *http.Request, userID string, collectionName string) {
+	// Read collection.json
+	file, err := ioutil.ReadFile("collection.json")
+	if err != nil {
+		http.Error(w, "Error reading collection.json", http.StatusInternalServerError)
+		return
+	}
+
+	var data struct {
+		User models.User `json:"user"`
+	}
+	if err := json.Unmarshal(file, &data); err != nil {
+		http.Error(w, "Error unmarshalling collection.json", http.StatusInternalServerError)
+		return
+	}
+
+	for _, collection := range data.User.Collections {
+		if collection.CollectionName == collectionName {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(collection)
+			return
+		}
+	}
+
+	http.Error(w, "Collection not found", http.StatusNotFound)
+}
+
 func GetAllCardsByUserID(w http.ResponseWriter, r *http.Request, userID string) {
 	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
 
