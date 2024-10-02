@@ -56,6 +56,7 @@ func main() {
 			println("No user ID provided")
 		}
 	}).Methods("GET")
+	r.HandleFunc("/api/collections/{user_id}", handlers.GetCollectionsByUserID).Methods("GET")
 	r.HandleFunc("/api/market-price", handlers.MarketPriceHandler).Methods("GET")
 	r.HandleFunc("/api/cards", handlers.AddCard).Methods("POST")
 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")

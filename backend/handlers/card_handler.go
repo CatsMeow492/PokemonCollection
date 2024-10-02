@@ -10,6 +10,7 @@ import (
 
 	"github.com/CatsMeow492/PokemonCollection/models"
 	"github.com/CatsMeow492/PokemonCollection/services"
+	"github.com/gorilla/mux"
 )
 
 // Update the function signature to accept userID and collectionName
@@ -19,16 +20,18 @@ func GetCardsByUserIDAndCollectionName(w http.ResponseWriter, r *http.Request, u
 	// Read collection.json
 	file, err := ioutil.ReadFile("collection.json")
 	if err != nil {
-		log.Fatalf("Error reading collection.json: %v", err)
+		http.Error(w, "Error reading collection.json", http.StatusInternalServerError)
+		return
 	}
 
 	var userCollection models.UserCollection
 	if err := json.Unmarshal(file, &userCollection); err != nil {
-		log.Fatalf("Error unmarshalling collection.json: %v", err)
+		http.Error(w, "Error unmarshalling collection.json", http.StatusInternalServerError)
+		return
 	}
 
 	cards := []models.Card{}
-	for _, card := range userCollection.Cards { // Changed Collection to Cards
+	for _, card := range userCollection.Collection { // Use Collection instead of Cards
 		fetchedCard, err := services.FetchCard(apiKey, card.ID)
 		if err != nil {
 			log.Printf("Error fetching card %s: %v", card.ID, err)
@@ -73,7 +76,7 @@ func AddCard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add the new card to the collection
-	userCollection.Cards = append(userCollection.Cards, newCard)
+	userCollection.Collection = append(userCollection.Collection, newCard) // Use Collection instead of Cards
 
 	// Write updated collection back to collection.json
 	updatedData, err := json.MarshalIndent(userCollection, "", "  ")
@@ -118,10 +121,10 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var updatedCard *models.Card
-	for i, card := range userCollection.Cards { // Changed Collection to Cards
+	for i, card := range userCollection.Collection { // Changed Collection to Cards
 		if card.ID == cardID {
-			userCollection.Cards[i].Quantity = requestBody.Quantity
-			updatedCard = &userCollection.Cards[i]
+			userCollection.Collection[i].Quantity = requestBody.Quantity
+			updatedCard = &userCollection.Collection[i]
 			break
 		}
 	}
@@ -157,11 +160,8 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCollectionsByUserID(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("user_id")
-	if userID == "" {
-		http.Error(w, "User ID is required", http.StatusBadRequest)
-		return
-	}
+	vars := mux.Vars(r)
+	userID := vars["user_id"]
 
 	collections, err := models.FetchCollectionsByUserID(userID)
 	if err != nil {
@@ -169,8 +169,23 @@ func GetCollectionsByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if collections == nil {
+		http.Error(w, "No collections found for user", http.StatusNotFound)
+		return
+	}
+
+	// Prepare response with collection name, collection ID, and all cards
+	response := []map[string]interface{}{}
+	for _, collection := range collections {
+		response = append(response, map[string]interface{}{
+			"collectionID":   collection.UserID,
+			"collectionName": collection.CollectionName,
+			"cards":          collection.Collection,
+		})
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(collections)
+	json.NewEncoder(w).Encode(response)
 }
 
 // GetCardsByCollection fetches cards based on userID and collectionName
@@ -189,8 +204,8 @@ func GetCardsByCollection(w http.ResponseWriter, r *http.Request, userID string,
 	}
 
 	cards := []models.Card{}
-	for _, card := range userCollection.Cards {
-		if card.UserID == userID && contains(card.CollectionNames, collectionName) {
+	if userCollection.UserID == userID && userCollection.CollectionName == collectionName {
+		for _, card := range userCollection.Collection {
 			fetchedCard, err := services.FetchCard(apiKey, card.ID)
 			if err != nil {
 				log.Printf("Error fetching card %s: %v", card.ID, err)
