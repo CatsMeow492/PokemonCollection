@@ -13,7 +13,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Update the function signature to accept userID and collectionName
 func GetCardsByUserIDAndCollectionName(w http.ResponseWriter, r *http.Request, userID string, collectionName string) {
 	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
 
@@ -24,25 +23,32 @@ func GetCardsByUserIDAndCollectionName(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	var userCollection models.UserCollection
-	if err := json.Unmarshal(file, &userCollection); err != nil {
+	var data struct {
+		User models.User `json:"user"`
+	}
+	if err := json.Unmarshal(file, &data); err != nil {
 		http.Error(w, "Error unmarshalling collection.json", http.StatusInternalServerError)
 		return
 	}
 
-	cards := []models.Card{}
-	for _, card := range userCollection.Collection { // Use Collection instead of Cards
-		fetchedCard, err := services.FetchCard(apiKey, card.ID)
-		if err != nil {
-			log.Printf("Error fetching card %s: %v", card.ID, err)
-			continue
+	var cards []models.Card
+	for _, collection := range data.User.Collections {
+		if collection.CollectionName == collectionName {
+			for _, card := range collection.Collection {
+				fetchedCard, err := services.FetchCard(apiKey, card.ID)
+				if err != nil {
+					log.Printf("Error fetching card %s: %v", card.ID, err)
+					continue
+				}
+				// Update fetched card with grade and price from collection.json
+				fetchedCard.Grade = card.Grade
+				fetchedCard.Price = card.Price
+				fetchedCard.Quantity = card.Quantity
+				fetchedCard.ID = card.ID
+				cards = append(cards, *fetchedCard)
+			}
+			break
 		}
-		// Update fetched card with grade and price from collection.json
-		fetchedCard.Grade = card.Grade
-		fetchedCard.Price = card.Price
-		fetchedCard.Quantity = card.Quantity
-		fetchedCard.ID = card.ID
-		cards = append(cards, *fetchedCard)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -55,7 +61,11 @@ func AddCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newCard models.Card
+	var newCard struct {
+		UserID         string      `json:"user_id"`
+		CollectionName string      `json:"collection_name"`
+		Card           models.Card `json:"card"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&newCard); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -69,17 +79,24 @@ func AddCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userCollection models.UserCollection
-	if err := json.Unmarshal(file, &userCollection); err != nil {
+	var data struct {
+		User models.User `json:"user"`
+	}
+	if err := json.Unmarshal(file, &data); err != nil {
 		http.Error(w, "Error unmarshalling collection file", http.StatusInternalServerError)
 		return
 	}
 
-	// Add the new card to the collection
-	userCollection.Collection = append(userCollection.Collection, newCard) // Use Collection instead of Cards
+	// Find the collection and add the new card
+	for i, collection := range data.User.Collections {
+		if collection.CollectionName == newCard.CollectionName {
+			data.User.Collections[i].Collection = append(data.User.Collections[i].Collection, newCard.Card)
+			break
+		}
+	}
 
 	// Write updated collection back to collection.json
-	updatedData, err := json.MarshalIndent(userCollection, "", "  ")
+	updatedData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		http.Error(w, "Error marshalling updated collection", http.StatusInternalServerError)
 		return
@@ -91,7 +108,7 @@ func AddCard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(newCard)
+	json.NewEncoder(w).Encode(newCard.Card)
 }
 
 func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +119,9 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requestBody struct {
-		Quantity int `json:"quantity"`
+		UserID         string `json:"user_id"`
+		CollectionName string `json:"collection_name"`
+		Quantity       int    `json:"quantity"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -115,17 +134,23 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Error reading collection.json: %v", err)
 	}
 
-	var userCollection models.UserCollection
-	if err := json.Unmarshal(file, &userCollection); err != nil {
+	var data struct {
+		User models.User `json:"user"`
+	}
+	if err := json.Unmarshal(file, &data); err != nil {
 		log.Fatalf("Error unmarshalling collection.json: %v", err)
 	}
 
 	var updatedCard *models.Card
-	for i, card := range userCollection.Collection { // Changed Collection to Cards
-		if card.ID == cardID {
-			userCollection.Collection[i].Quantity = requestBody.Quantity
-			updatedCard = &userCollection.Collection[i]
-			break
+	for i, collection := range data.User.Collections {
+		if collection.CollectionName == requestBody.CollectionName {
+			for j, card := range collection.Collection {
+				if card.ID == cardID {
+					data.User.Collections[i].Collection[j].Quantity = requestBody.Quantity
+					updatedCard = &data.User.Collections[i].Collection[j]
+					break
+				}
+			}
 		}
 	}
 
@@ -147,7 +172,7 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write updated collection back to file
-	updatedFile, err := json.MarshalIndent(userCollection, "", "  ")
+	updatedFile, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		log.Fatalf("Error marshalling updated collection: %v", err)
 	}
@@ -178,7 +203,6 @@ func GetCollectionsByUserID(w http.ResponseWriter, r *http.Request) {
 	response := []map[string]interface{}{}
 	for _, collection := range collections {
 		response = append(response, map[string]interface{}{
-			"collectionID":   collection.UserID,
 			"collectionName": collection.CollectionName,
 			"cards":          collection.Collection,
 		})
@@ -188,43 +212,6 @@ func GetCollectionsByUserID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// GetCardsByCollection fetches cards based on userID and collectionName
-func GetCardsByCollection(w http.ResponseWriter, r *http.Request, userID string, collectionName string) {
-	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
-
-	// Read collection.json
-	file, err := ioutil.ReadFile("collection.json")
-	if err != nil {
-		log.Fatalf("Error reading collection.json: %v", err)
-	}
-
-	var userCollection models.UserCollection
-	if err := json.Unmarshal(file, &userCollection); err != nil {
-		log.Fatalf("Error unmarshalling collection.json: %v", err)
-	}
-
-	cards := []models.Card{}
-	if userCollection.UserID == userID && userCollection.CollectionName == collectionName {
-		for _, card := range userCollection.Collection {
-			fetchedCard, err := services.FetchCard(apiKey, card.ID)
-			if err != nil {
-				log.Printf("Error fetching card %s: %v", card.ID, err)
-				continue
-			}
-			// Update fetched card with grade and price from collection.json
-			fetchedCard.Grade = card.Grade
-			fetchedCard.Price = card.Price
-			fetchedCard.Quantity = card.Quantity
-			fetchedCard.ID = card.ID
-			cards = append(cards, *fetchedCard)
-		}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(cards)
-}
-
-// GetAllCards fetches all cards
 func GetAllCardsByUserID(w http.ResponseWriter, r *http.Request, userID string) {
 	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
 
@@ -235,37 +222,30 @@ func GetAllCardsByUserID(w http.ResponseWriter, r *http.Request, userID string) 
 	}
 
 	var data struct {
-		User struct {
-			ID         string        `json:"id"`
-			Collection []models.Card `json:"collection"`
-		} `json:"user"`
+		User models.User `json:"user"`
 	}
 	if err := json.Unmarshal(file, &data); err != nil {
 		log.Fatalf("Error unmarshalling collection.json: %v", err)
 	}
 
-	log.Printf("User ID: %s", userID)
-	log.Printf("User Collection: %+v", data.User.Collection)
-
 	cards := []models.Card{}
 	if data.User.ID == userID {
-		for _, card := range data.User.Collection {
-			log.Printf("Processing card: %+v", card)
-			fetchedCard, err := services.FetchCard(apiKey, card.ID)
-			if err != nil {
-				log.Printf("Error fetching card %s: %v", card.ID, err)
-				continue
+		for _, collection := range data.User.Collections {
+			for _, card := range collection.Collection {
+				fetchedCard, err := services.FetchCard(apiKey, card.ID)
+				if err != nil {
+					log.Printf("Error fetching card %s: %v", card.ID, err)
+					continue
+				}
+				// Update fetched card with grade and price from collection.json
+				fetchedCard.Grade = card.Grade
+				fetchedCard.Price = card.Price
+				fetchedCard.Quantity = card.Quantity
+				fetchedCard.ID = card.ID
+				cards = append(cards, *fetchedCard)
 			}
-			// Update fetched card with grade and price from collection.json
-			fetchedCard.Grade = card.Grade
-			fetchedCard.Price = card.Price
-			fetchedCard.Quantity = card.Quantity
-			fetchedCard.ID = card.ID
-			cards = append(cards, *fetchedCard)
 		}
 	}
-
-	log.Printf("Fetched Cards: %+v", cards)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(cards)

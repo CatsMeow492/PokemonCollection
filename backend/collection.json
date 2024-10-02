@@ -2,207 +2,226 @@
   "user": {
     "username": "Taylor",
     "id": "1",
-    "collectionName": "Taylor's Collection 1",
-    "collection": [
+    "collections": [
       {
-        "name": "Haunter",
-        "edition": "Fossil",
-        "set": "base3",
-        "grade": "10",
-        "price": 259.99,
-        "image": "https://images.pokemontcg.io/base3/6_hires.png",
-        "quantity": 1,
-        "id": "base3-6"
+        "collectionName": "Taylor's Collection 1",
+        "collection": [
+          {
+            "name": "Haunter",
+            "edition": "Fossil",
+            "set": "base3",
+            "grade": "10",
+            "price": 259.99,
+            "image": "https://images.pokemontcg.io/base3/6_hires.png",
+            "quantity": 1,
+            "id": "base3-6"
+          },
+          {
+            "name": "Mew",
+            "edition": "2000 Black Star Promo",
+            "set": "basep",
+            "grade": "10",
+            "price": 425.00,
+            "image": "",
+            "quantity": 1,
+            "id": "basep-8"
+          },
+          {
+            "name": "Articuno",
+            "edition": "1999 Fossil - Unlimited",
+            "set": "base3",
+            "grade": "9",
+            "price": 89.99,
+            "image": "",
+            "quantity": 1,
+            "id": "base3-2"
+          },
+          {
+            "name": "Moltres",
+            "edition": "1999 Fossil",
+            "set": "base3",
+            "grade": "8",
+            "price": 59.99,
+            "image": "",
+            "quantity": 1,
+            "id": "base3-12"
+          },
+          {
+            "name": "Jolteon",
+            "edition": "1999 Jungle",
+            "set": "base2",
+            "grade": "8.5",
+            "price": 55.00,
+            "image": "https://images.pokemontcg.io/base2/4_hires.png",
+            "quantity": 1,
+            "id": "base2-4"
+          },
+          {
+            "name": "Kangaskhan",
+            "edition": "Jungle Unlimited",
+            "set": "base2",
+            "grade": "Ungraded",
+            "price": 11.99,
+            "image": "",
+            "quantity": 1,
+            "id": "base2-5"
+          },
+          {
+            "name": "Clefable",
+            "edition": "Jungle",
+            "set": "base2",
+            "grade": "8",
+            "price": 39.99,
+            "image": "",
+            "quantity": 1,
+            "id": "base2-1"
+          },
+          {
+            "name": "Flareon",
+            "edition": "1999 Jungle Unlimited",
+            "set": "base2",
+            "grade": "8",
+            "price": 50.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base2-3"
+          },
+          {
+            "name": "Mr. Mime",
+            "edition": "1999 Jungle",
+            "set": "base3",
+            "grade": "7",
+            "price": 30.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base2-6"
+          },
+          {
+            "name": "Vaporeon",
+            "edition": "1999 Jungle",
+            "set": "base2",
+            "grade": "8",
+            "price": 50.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base2-12"
+          },
+          {
+            "name": "Mew",
+            "edition": "Pokémon Evolutions",
+            "set": "xy12",
+            "grade": "9",
+            "price": 34.90,
+            "image": "",
+            "quantity": 1,
+            "id": "xy12-53"
+          },
+          {
+            "name": "Gengar",
+            "edition": "1999 Fossil 1st Edition",
+            "set": "base3",
+            "grade": "8",
+            "price": 245.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base3-5"
+          },
+          {
+            "name": "Charizard",
+            "edition": "1999 Fossil 1st Edition",
+            "set": "base1",
+            "grade": "Ungraded",
+            "price": 0.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base1-4"
+          },
+          {
+            "name": "Blastoise",
+            "edition": "1999 Fossil 1st Edition",
+            "set": "base1",
+            "grade": "Ungraded",
+            "price": 0.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base1-2"
+          },
+          {
+            "name": "Venusaur",
+            "edition": "1999 Fossil 1st Edition",
+            "set": "base1",
+            "grade": "Ungraded",
+            "price": 0.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base1-15"
+          },
+          {
+            "name": "Mewtwo",
+            "edition": "1999 Fossil 1st Edition",
+            "set": "base1",
+            "grade": "Ungraded",
+            "price": 0.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base1-10"
+          },
+          {
+            "name": "Gyarados",
+            "edition": "1999 Fossil 1st Edition",
+            "set": "base1",
+            "grade": "Ungraded",
+            "price": 0.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base1-6"
+          },
+          {
+            "name": "Aerodactyl",
+            "edition": "1999 Fossil 1st Edition",
+            "set": "base3",
+            "grade": "Ungraded",
+            "price": 0.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base3-1"
+          },
+          {
+            "name": "Snorlax",
+            "edition": "1999 Fossil 1st Edition",
+            "set": "base2",
+            "grade": "Ungraded",
+            "price": 0.00,
+            "image": "",
+            "quantity": 1,
+            "id": "base2-11"
+          },
+          {
+            "name": "Ninetales",
+            "edition": "Jungle",
+            "set": "base1",
+            "grade": "Ungraded",
+            "price": 0.00,
+            "image": "https://images.pokemontcg.io/base1/12_hires.png",
+            "quantity": 1,
+            "id": "base1-12"
+          }
+        ]
       },
       {
-        "name": "Mew",
-        "edition": "2000 Black Star Promo",
-        "set": "basep",
-        "grade": "10",
-        "price": 425.00,
-        "image": "",
-        "quantity": 1,
-        "id": "basep-8"
-      },
-      {
-        "name": "Articuno",
-        "edition": "1999 Fossil - Unlimited",
-        "set": "base3",
-        "grade": "9",
-        "price": 89.99,
-        "image": "",
-        "quantity": 1,
-        "id": "base3-2"
-      },
-      {
-        "name": "Moltres",
-        "edition": "1999 Fossil",
-        "set": "base3",
-        "grade": "8",
-        "price": 59.99,
-        "image": "",
-        "quantity": 1,
-        "id": "base3-12"
-      },
-      {
-        "name": "Jolteon",
-        "edition": "1999 Jungle",
-        "set": "base2",
-        "grade": "8.5",
-        "price": 55.00,
-        "image": "https://images.pokemontcg.io/base2/4_hires.png",
-        "quantity": 1,
-        "id": "base2-4"
-      },
-      {
-        "name": "Kangaskhan",
-        "edition": "Jungle Unlimited",
-        "set": "base2",
-        "grade": "Ungraded",
-        "price": 11.99,
-        "image": "",
-        "quantity": 1,
-        "id": "base2-5"
-      },
-      {
-        "name": "Clefable",
-        "edition": "Jungle",
-        "set": "base2",
-        "grade": "8",
-        "price": 39.99,
-        "image": "",
-        "quantity": 1,
-        "id": "base2-1"
-      },
-      {
-        "name": "Flareon",
-        "edition": "1999 Jungle Unlimited",
-        "set": "base2",
-        "grade": "8",
-        "price": 50.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base2-3"
-      },
-      {
-        "name": "Mr. Mime",
-        "edition": "1999 Jungle",
-        "set": "base3",
-        "grade": "7",
-        "price": 30.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base2-6"
-      },
-      {
-        "name": "Vaporeon",
-        "edition": "1999 Jungle",
-        "set": "base2",
-        "grade": "8",
-        "price": 50.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base2-12"
-      },
-      {
-        "name": "Mew",
-        "edition": "Pokémon Evolutions",
-        "set": "xy12",
-        "grade": "9",
-        "price": 34.90,
-        "image": "",
-        "quantity": 1,
-        "id": "xy12-53"
-      },
-      {
-        "name": "Gengar",
-        "edition": "1999 Fossil 1st Edition",
-        "set": "base3",
-        "grade": "8",
-        "price": 245.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base3-5"
-      },
-      {
-        "name": "Charizard",
-        "edition": "1999 Fossil 1st Edition",
-        "set": "base1",
-        "grade": "Ungraded",
-        "price": 0.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base1-4"
-      },
-      {
-        "name": "Blastoise",
-        "edition": "1999 Fossil 1st Edition",
-        "set": "base1",
-        "grade": "Ungraded",
-        "price": 0.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base1-2"
-      },
-      {
-        "name": "Venusaur",
-        "edition": "1999 Fossil 1st Edition",
-        "set": "base1",
-        "grade": "Ungraded",
-        "price": 0.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base1-15"
-      },
-      {
-        "name": "Mewtwo",
-        "edition": "1999 Fossil 1st Edition",
-        "set": "base1",
-        "grade": "Ungraded",
-        "price": 0.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base1-10"
-      },
-      {
-        "name": "Gyarados",
-        "edition": "1999 Fossil 1st Edition",
-        "set": "base1",
-        "grade": "Ungraded",
-        "price": 0.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base1-6"
-      },
-      {
-        "name": "Aerodactyl",
-        "edition": "1999 Fossil 1st Edition",
-        "set": "base3",
-        "grade": "Ungraded",
-        "price": 0.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base3-1"
-      },
-      {
-        "name": "Snorlax",
-        "edition": "1999 Fossil 1st Edition",
-        "set": "base2",
-        "grade": "Ungraded",
-        "price": 0.00,
-        "image": "",
-        "quantity": 1,
-        "id": "base2-11"
-      },
-      {
-        "name": "Ninetales",
-        "edition": "Jungle",
-        "set": "base1",
-        "grade": "Ungraded",
-        "price": 0.00,
-        "image": "https://images.pokemontcg.io/base1/12_hires.png",
-        "quantity": 1,
-        "id": "base1-12"
+        "collectionName": "Taylor's Collection 2",
+        "collection": [
+          {
+            "name": "Haunter",
+            "edition": "Fossil",
+            "set": "base3",
+            "grade": "10",
+            "price": 259.99,
+            "image": "https://images.pokemontcg.io/base3/6_hires.png",
+            "quantity": 1,
+            "id": "base3-6"
+          }
+        ]
       }
     ]
   }
