@@ -2,12 +2,16 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Container, Typography, Grid, Card, CardMedia, CardContent, IconButton } from '@mui/material';
 import AddCardModal from '../modals/AddCardModal';
 import '../styles/CardList.css';
-import { fetchMarketPrice, fetchCardsByUserID, processFetchedCards, addCard, updateCardQuantity } from '../utils/apiUtils';
+import { fetchMarketPrice, fetchCardsByUserID, processFetchedCards, addCard, updateCardQuantity, fetchCollectionsByUserID } from '../utils/apiUtils';
 import { Button } from '@mui/material';
 import ArrowCircleUpTwoToneIcon from '@mui/icons-material/ArrowCircleUpTwoTone';
 import ArrowCircleDownTwoToneIcon from '@mui/icons-material/ArrowCircleDownTwoTone';
 import useRouteLoading from '../hooks/useRouteLoading';
 import { ClipLoader } from 'react-spinners';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import config from '../config';
 import { AuthContext } from '../context/AuthContext';
 
@@ -20,7 +24,9 @@ const CardList = () => {
     const { verbose } = config;
     const [modalOpen, setModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
-
+    const [collections, setCollections] = useState([]); // Initialize as an empty array
+    const [selectedCollection, setSelectedCollection] = useState('');
+    
     useEffect(() => {
         if (!id) {
             console.error('User ID is undefined');
@@ -38,6 +44,15 @@ const CardList = () => {
             })
             .finally(() => {
                 setLoading(false);
+            });
+
+        fetchCollectionsByUserID(id)
+            .then(data => {
+                setCollections(data || []); // Ensure collections is set to an array
+                if (verbose) console.log('Fetched collections:', data);
+            })
+            .catch(error => {
+                console.error('Error fetching collections:', error);
             });
     }, [id, verbose]);
 
@@ -173,6 +188,25 @@ const CardList = () => {
                 My Pokémon Card Collection
             </Typography>
             <Button variant="contained" color="primary" style={{ marginBottom: '1rem' }} onClick={() => setModalOpen(true)}>Add Card</Button>
+
+            {/*  Select Collection Dropdown */}
+            <FormControl variant="outlined" style={{ marginBottom: '1rem', minWidth: 200 }}>
+                <InputLabel id="collection-select-label">Select Collection</InputLabel>
+                <Select
+                    labelId="collection-select-label"
+                    id="collection-select"
+                    value={selectedCollection}
+                    onChange={(e) => setSelectedCollection(e.target.value)}
+                    label="Select Collection"
+                >
+                    {collections && collections.map((collection) => ( // Add check for collections
+                        <MenuItem key={collection.collectionName} value={collection.collectionName}>
+                            {collection.collectionName}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+            
             <AddCardModal open={modalOpen} onClose={() => setModalOpen(false)} onAddCard={handleAddCard} />
             <Grid container spacing={3}>
                 {cardsWithMarketPrice.map((card, index) => {

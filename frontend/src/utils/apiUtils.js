@@ -27,12 +27,24 @@ export const fetchCardsByUserID = async (userID) => {
     return response.json();
 };
 
-export const fetchCollections = async (userID) => {
-    const response = await fetch(`/api/collections/${userID}`);
-    if (!response.ok) {
-        throw new Error('Failed to fetch collections');
+export const fetchCollectionsByUserID = async (userID) => {
+    const verbose = config.verbose; // Ensure verbose is defined
+    if (verbose) console.log(`Fetching collections for user ID: ${userID}`);
+    
+    try {
+        const response = await fetch(`/api/collections/${userID}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch collections');
+        }
+        
+        // Ensure response.json() is called only once
+        const data = await response.json();
+        if (verbose) console.log('Collections fetched:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching collections:', error);
+        throw error; // Re-throw the error to handle it in the calling function
     }
-    return response.json();
 };
 
 export const processFetchedCards = (data, verbose) => {
