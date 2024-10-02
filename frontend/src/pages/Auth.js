@@ -45,9 +45,9 @@ const Auth = () => {
     if (tab === 0) {
       // Sign In
       try {
-        const { token, username: loggedInUsername } = await loginUser(username, password);
-        if (verbose) console.log(`Login successful: ${token}, ${loggedInUsername}`);
-        login(token, loggedInUsername, profilePicture);
+        const { token, username: loggedInUsername, id, profile_picture } = await loginUser(username, password);
+        if (verbose) console.log(`Login successful: ${token}, ${loggedInUsername}, ${id}`);
+        login(token, loggedInUsername, id, profile_picture); // Ensure id is passed here
         navigate('/'); // Redirect to /collection after login
       } catch (error) {
         console.error('Login failed:', error);

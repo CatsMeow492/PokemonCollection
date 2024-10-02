@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Grid, CircularProgress, Card, CardContent, Divider } from '@mui/material';
-import { fetchCards, processFetchedCards, fetchMarketPrice } from '../utils/apiUtils';
+import { fetchCardsByUserID, processFetchedCards, fetchMarketPrice } from '../utils/apiUtils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import config from '../config';
 import '../styles/Reports.css';
@@ -10,8 +10,10 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import Clefairy from '../assets/images/clefairy.png';
 import Snorlax from '../assets/images/snorlax.webp';
 import ChatBubble from '../components/ChatBubble';
+import { AuthContext } from '../context/AuthContext';
 
 const Reports = () => {
+    const { user } = React.useContext(AuthContext);
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -28,7 +30,7 @@ const Reports = () => {
         const fetchReportData = async () => {
             try {
                 setLoading(true);
-                const cardsData = await fetchCards();
+                const cardsData = await fetchCardsByUserID(user.id);
                 const { totalCostSum, cards } = processFetchedCards(cardsData, verbose);
 
                 let cardsWithMarketPrice = await Promise.all(cards.map(async (card) => {

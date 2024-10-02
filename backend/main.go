@@ -45,11 +45,16 @@ func main() {
 	r.HandleFunc("/api/cards", func(w http.ResponseWriter, r *http.Request) {
 		userID := r.URL.Query().Get("user_id")
 		collectionName := r.URL.Query().Get("collection_name")
-		if userID == "" || collectionName == "" {
-			http.Error(w, "User ID and Collection Name are required", http.StatusBadRequest)
-			return
+		if userID != "" {
+			if collectionName != "" {
+				handlers.GetCardsByUserIDAndCollectionName(w, r, userID, collectionName)
+			} else {
+				handlers.GetAllCardsByUserID(w, r, userID)
+			}
+		} else {
+			// This should return a demo collection
+			println("No user ID provided")
 		}
-		handlers.GetCards(w, r, userID, collectionName)
 	}).Methods("GET")
 	r.HandleFunc("/api/market-price", handlers.MarketPriceHandler).Methods("GET")
 	r.HandleFunc("/api/cards", handlers.AddCard).Methods("POST")
@@ -66,9 +71,6 @@ func main() {
 		json.NewEncoder(w).Encode(products)
 	}).Methods("GET")
 	r.HandleFunc("/api/cards/quantity", handlers.UpdateCardQuantity).Methods("PUT") // Ensure the method is specified
-
-	// New endpoint to fetch collections by user ID
-	r.HandleFunc("/api/collections", handlers.GetCollectionsByUserID).Methods("GET")
 
 	// Serve images from the "images" directory
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))

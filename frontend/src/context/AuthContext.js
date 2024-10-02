@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [username, setUsername] = useState('');
 	const [profilePicture, setProfilePicture] = useState('');
+	const [id, setId] = useState(null);
 
 	useEffect(() => {
 		// Check if user is authenticated (e.g., by checking for a token in localStorage)
@@ -18,20 +19,23 @@ export const AuthProvider = ({ children }) => {
 			setIsAuthenticated(true);
 			setUsername(storedUsername);
 			setProfilePicture(storedProfilePicture || '');
+			setId(localStorage.getItem('id'));
 			if (verbose) {
 				console.log('User is authenticated');
 			}
 		}
 	}, []);
 
-	const login = (token, username, profilePicture) => {
+	const login = (token, username, id, profilePicture) => {
 		console.log('Login function called with:', token, username, profilePicture);
 		localStorage.setItem('token', token);
 		localStorage.setItem('username', username);
 		localStorage.setItem('profilePicture', profilePicture || '');
+		localStorage.setItem('id', id);
 		setIsAuthenticated(true);
 		setUsername(username);
 		setProfilePicture(profilePicture || '');
+		setId(id);
 		if (verbose) {
 			console.log('User is authenticated', username, profilePicture);
 		}
@@ -41,9 +45,11 @@ export const AuthProvider = ({ children }) => {
 		localStorage.removeItem('token');
 		localStorage.removeItem('username');
 		localStorage.removeItem('profilePicture');
+		localStorage.removeItem('id');
 		setIsAuthenticated(false);
 		setUsername('');
 		setProfilePicture('');
+		setId(null);
 		if (verbose) {
 			console.log('User is logged out');
 		}
@@ -54,10 +60,11 @@ export const AuthProvider = ({ children }) => {
 		setProfilePicture(newProfilePicture);
 		localStorage.setItem('username', newUsername);
 		localStorage.setItem('profilePicture', newProfilePicture);
+		localStorage.setItem('id', id);
 	};
 
 	return (
-		<AuthContext.Provider value={{ isAuthenticated, username, profilePicture, login, logout, updateProfile }}>
+		<AuthContext.Provider value={{ isAuthenticated, username, profilePicture, id, login, logout, updateProfile }}>
 			{children}
 		</AuthContext.Provider>
 	);

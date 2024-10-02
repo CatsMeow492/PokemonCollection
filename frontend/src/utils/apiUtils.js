@@ -18,8 +18,8 @@ export const fetchMarketPrice = async (cardName, cardId, edition, grade) => {
     }
 };
 
-export const fetchCards = async () => {
-    const response = await fetch('/api/cards');
+export const fetchCardsByUserID = async (userID) => {
+    const response = await fetch(`/api/cards?user_id=${userID}`);
     if (!response.ok) {
         throw new Error('Failed to fetch cards');
     }
@@ -144,7 +144,8 @@ export const loginUser = async (username, password) => {
 
     const data = await response.json();
     console.log('Login response data:', data); // Add logging here
-    return { token: data.token, username: data.username, profile_picture: data.profile_picture };
+    if (verbose) console.log(`ID: ${data.id}`);
+    return { token: data.token, username: data.username, profile_picture: data.profile_picture, id: data.id };
 };
 
 export const updateUserProfile = async (newUsername, newProfilePicture) => {

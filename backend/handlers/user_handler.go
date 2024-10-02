@@ -108,7 +108,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Header().Set("Content-Type", "application/json")
-	response := map[string]string{"token": tokenString, "username": storedUser.Username, "profile_picture": storedUser.ProfilePicture}
+	response := map[string]string{"token": tokenString, "username": storedUser.Username, "profile_picture": storedUser.ProfilePicture, "id": storedUser.ID}
 	log.Printf("Login response: %+v", response) // Add logging here
 	json.NewEncoder(w).Encode(response)
 }

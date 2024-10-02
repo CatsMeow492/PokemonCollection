@@ -13,7 +13,7 @@ import (
 )
 
 // Update the function signature to accept userID and collectionName
-func GetCards(w http.ResponseWriter, r *http.Request, userID string, collectionName string) {
+func GetCardsByUserIDAndCollectionName(w http.ResponseWriter, r *http.Request, userID string, collectionName string) {
 	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
 
 	// Read collection.json
@@ -28,17 +28,17 @@ func GetCards(w http.ResponseWriter, r *http.Request, userID string, collectionN
 	}
 
 	cards := []models.Card{}
-	for _, card := range userCollection.Collection {
-		fetchedCard, err := services.FetchCard(apiKey, card.Id)
+	for _, card := range userCollection.Cards { // Changed Collection to Cards
+		fetchedCard, err := services.FetchCard(apiKey, card.ID)
 		if err != nil {
-			log.Printf("Error fetching card %s: %v", card.Id, err)
+			log.Printf("Error fetching card %s: %v", card.ID, err)
 			continue
 		}
 		// Update fetched card with grade and price from collection.json
 		fetchedCard.Grade = card.Grade
 		fetchedCard.Price = card.Price
 		fetchedCard.Quantity = card.Quantity
-		fetchedCard.Id = card.Id
+		fetchedCard.ID = card.ID
 		cards = append(cards, *fetchedCard)
 	}
 
@@ -73,7 +73,7 @@ func AddCard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add the new card to the collection
-	userCollection.Collection = append(userCollection.Collection, newCard)
+	userCollection.Cards = append(userCollection.Cards, newCard)
 
 	// Write updated collection back to collection.json
 	updatedData, err := json.MarshalIndent(userCollection, "", "  ")
@@ -118,10 +118,10 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var updatedCard *models.Card
-	for i, card := range userCollection.Collection {
-		if card.Id == cardID {
-			userCollection.Collection[i].Quantity = requestBody.Quantity
-			updatedCard = &userCollection.Collection[i]
+	for i, card := range userCollection.Cards { // Changed Collection to Cards
+		if card.ID == cardID {
+			userCollection.Cards[i].Quantity = requestBody.Quantity
+			updatedCard = &userCollection.Cards[i]
 			break
 		}
 	}
@@ -134,9 +134,9 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 	// Check if the image is available in the cache
 	if updatedCard.Image == "" {
 		// Fetch the image using card_service
-		fetchedCard, err := services.FetchCard(os.Getenv("POKEMON_TCG_API_KEY"), updatedCard.Id)
+		fetchedCard, err := services.FetchCard(os.Getenv("POKEMON_TCG_API_KEY"), updatedCard.ID)
 		if err != nil {
-			log.Printf("Error fetching card %s: %v", updatedCard.Id, err)
+			log.Printf("Error fetching card %s: %v", updatedCard.ID, err)
 			http.Error(w, "Error fetching card image", http.StatusInternalServerError)
 			return
 		}
@@ -171,4 +171,83 @@ func GetCollectionsByUserID(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(collections)
+}
+
+// GetCardsByCollection fetches cards based on userID and collectionName
+func GetCardsByCollection(w http.ResponseWriter, r *http.Request, userID string, collectionName string) {
+	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
+
+	// Read collection.json
+	file, err := ioutil.ReadFile("collection.json")
+	if err != nil {
+		log.Fatalf("Error reading collection.json: %v", err)
+	}
+
+	var userCollection models.UserCollection
+	if err := json.Unmarshal(file, &userCollection); err != nil {
+		log.Fatalf("Error unmarshalling collection.json: %v", err)
+	}
+
+	cards := []models.Card{}
+	for _, card := range userCollection.Cards {
+		if card.UserID == userID && contains(card.CollectionNames, collectionName) {
+			fetchedCard, err := services.FetchCard(apiKey, card.ID)
+			if err != nil {
+				log.Printf("Error fetching card %s: %v", card.ID, err)
+				continue
+			}
+			// Update fetched card with grade and price from collection.json
+			fetchedCard.Grade = card.Grade
+			fetchedCard.Price = card.Price
+			fetchedCard.Quantity = card.Quantity
+			fetchedCard.ID = card.ID
+			cards = append(cards, *fetchedCard)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(cards)
+}
+
+// GetAllCards fetches all cards
+func GetAllCardsByUserID(w http.ResponseWriter, r *http.Request, userID string) {
+	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
+
+	// Read collection.json
+	file, err := ioutil.ReadFile("collection.json")
+	if err != nil {
+		log.Fatalf("Error reading collection.json: %v", err)
+	}
+
+	var userCollection models.UserCollection
+	if err := json.Unmarshal(file, &userCollection); err != nil {
+		log.Fatalf("Error unmarshalling collection.json: %v", err)
+	}
+
+	cards := []models.Card{}
+	for _, card := range userCollection.Cards { // Changed Collection to Cards
+		fetchedCard, err := services.FetchCard(apiKey, card.ID)
+		if err != nil {
+			log.Printf("Error fetching card %s: %v", card.ID, err)
+			continue
+		}
+		// Update fetched card with grade and price from collection.json
+		fetchedCard.Grade = card.Grade
+		fetchedCard.Price = card.Price
+		fetchedCard.Quantity = card.Quantity
+		fetchedCard.ID = card.ID
+		cards = append(cards, *fetchedCard)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(cards)
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
