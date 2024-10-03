@@ -34,7 +34,7 @@ func FetchCard(apiKey, cardIdentifier string) (*models.Card, error) {
 	set, name := parts[0], parts[1]
 
 	// Construct the search URL
-	apiURL := fmt.Sprintf("https://api.pokemontcg.io/v2/cards?q=name:%s set.id:%s", url.QueryEscape(name), url.QueryEscape(set))
+	apiURL := fmt.Sprintf("https://api.pokemontcg.io/v2/cards?q=set.id:%s name:%s", url.QueryEscape(set), url.QueryEscape(name))
 	log.Printf("FetchCard: API URL: %s", apiURL)
 
 	req, _ := http.NewRequest("GET", apiURL, nil)
@@ -62,6 +62,7 @@ func FetchCard(apiKey, cardIdentifier string) (*models.Card, error) {
 	}
 
 	if len(result.Data) == 0 {
+		log.Printf("FetchCard: No cards found matching the criteria for identifier: %s", cardIdentifier)
 		return nil, fmt.Errorf("no cards found matching the criteria")
 	}
 

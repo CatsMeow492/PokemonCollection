@@ -290,6 +290,9 @@ const CardList = () => {
                                     <Typography className="textSecondary">
                                         {card.edition}
                                     </Typography>
+                                    <Typography variant="caption" component="p" style={{ fontSize: '0.7rem', color: '#999' }}>
+                                        Collection: {card.collectionName || 'N/A'}
+                                    </Typography>
                                     <Typography variant="body2" component="p">
                                         Grade: {card.grade}
                                     </Typography>

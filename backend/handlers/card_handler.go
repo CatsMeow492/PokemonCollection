@@ -14,7 +14,6 @@ import (
 )
 
 func GetCardsByUserIDAndCollectionName(w http.ResponseWriter, r *http.Request, userID string, collectionName string) {
-	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
 
 	// Read collection.json
 	file, err := ioutil.ReadFile("collection.json")
@@ -34,19 +33,7 @@ func GetCardsByUserIDAndCollectionName(w http.ResponseWriter, r *http.Request, u
 	var cards []models.Card
 	for _, collection := range data.User.Collections {
 		if collection.CollectionName == collectionName {
-			for _, card := range collection.Collection {
-				fetchedCard, err := services.FetchCard(apiKey, card.ID)
-				if err != nil {
-					log.Printf("Error fetching card %s: %v", card.ID, err)
-					continue
-				}
-				// Update fetched card with grade and price from collection.json
-				fetchedCard.Grade = card.Grade
-				fetchedCard.Price = card.Price
-				fetchedCard.Quantity = card.Quantity
-				fetchedCard.ID = card.ID
-				cards = append(cards, *fetchedCard)
-			}
+			cards = append(cards, collection.Collection...)
 			break
 		}
 	}
@@ -184,42 +171,44 @@ func GetCollectionByUserIDandCollectionName(w http.ResponseWriter, r *http.Reque
 }
 
 func GetAllCardsByUserID(w http.ResponseWriter, r *http.Request, userID string) {
-	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
+	log.Printf("GetAllCardsByUserID: Fetching all cards for user ID: %s", userID)
 
 	// Read collection.json
 	file, err := ioutil.ReadFile("collection.json")
 	if err != nil {
-		log.Fatalf("Error reading collection.json: %v", err)
+		log.Printf("GetAllCardsByUserID: Error reading collection.json: %v", err)
+		http.Error(w, "Error reading collection file", http.StatusInternalServerError)
+		return
 	}
 
 	var data struct {
 		User models.User `json:"user"`
 	}
 	if err := json.Unmarshal(file, &data); err != nil {
-		log.Fatalf("Error unmarshalling collection.json: %v", err)
+		log.Printf("GetAllCardsByUserID: Error unmarshalling collection.json: %v", err)
+		http.Error(w, "Error processing collection data", http.StatusInternalServerError)
+		return
 	}
 
-	cards := []models.Card{}
-	if data.User.ID == userID {
-		for _, collection := range data.User.Collections {
-			for _, card := range collection.Collection {
-				fetchedCard, err := services.FetchCard(apiKey, card.ID)
-				if err != nil {
-					log.Printf("Error fetching card %s: %v", card.ID, err)
-					continue
-				}
-				// Update fetched card with grade and price from collection.json
-				fetchedCard.Grade = card.Grade
-				fetchedCard.Price = card.Price
-				fetchedCard.Quantity = card.Quantity
-				fetchedCard.ID = card.ID
-				cards = append(cards, *fetchedCard)
-			}
+	if data.User.ID != userID {
+		log.Printf("GetAllCardsByUserID: User not found, ID: %s", userID)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	var cards []models.Card
+	for _, collection := range data.User.Collections {
+		for _, card := range collection.Collection {
+			// Directly append the card from collection.json
+			cards = append(cards, card)
 		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(cards)
+	if err := json.NewEncoder(w).Encode(cards); err != nil {
+		log.Printf("GetAllCardsByUserID: Error encoding response: %v", err)
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
 }
 
 func contains(slice []string, item string) bool {
