@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { 
   Container, 
   Paper, 
@@ -32,9 +32,15 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [profilePicture, setProfilePicture] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useContext(AuthContext);
+  const { login, isAuthenticated } = useContext(AuthContext); // Destructure isAuthenticated
   const verbose = config;
   const navigate = useNavigate(); // Initialize navigate
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/'); // Redirect to /cardlist if already authenticated
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleTabChange = (event, newValue) => {
     setTab(newValue);
