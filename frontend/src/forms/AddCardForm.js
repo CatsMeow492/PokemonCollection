@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Container, Button, Typography, Select, MenuItem, FormControl, InputLabel, Autocomplete, TextField } from '@mui/material';
 import '../styles/AddCardForm.css';
 import { addCard, fetchPokemonNames } from '../utils/apiUtils';
+import { AuthContext } from '../context/AuthContext';
+import { useContext } from 'react';
 import config from '../config';
 
-const AddCardForm = () => {
+const AddCardForm = (props) => {
+  const { id } = useContext(AuthContext);
   const [name, setName] = useState('');
   const [edition, setEdition] = useState('');
   const [grade, setGrade] = useState('');
@@ -14,7 +17,8 @@ const AddCardForm = () => {
   const [set, setSet] = useState('');
   const [pokemonNames, setPokemonNames] = useState([]);
   const { verbose } = config;
-
+  const { collections } = props;
+  const [selectedCollection, setSelectedCollection] = useState('');
   useEffect(() => {
     fetchPokemonNames()
       .then(data => {
@@ -38,9 +42,9 @@ const AddCardForm = () => {
       setPriceError('');
     }
 
-    const newCard = { name, edition, grade, price, image, set };
+    const newCard = { name, edition, grade: grade === 'Ungraded' ? 'Ungraded' : parseInt(grade, 10), price: parseFloat(price) || 0, image, set, collectionName: selectedCollection };
 
-    addCard(newCard);
+    addCard(newCard, id, selectedCollection);
 
     setName('');
     setEdition('');
@@ -48,6 +52,7 @@ const AddCardForm = () => {
     setPrice('');
     setImage('');
     setSet('');
+    setSelectedCollection('');
   };
 
   const setAndEditions = require('../data/sets_and_editions.json');
@@ -83,6 +88,21 @@ const AddCardForm = () => {
           fullWidth
           margin="normal"
         />
+        <FormControl fullWidth margin="normal" variant="outlined">
+          <InputLabel htmlFor="collection-select">Collection</InputLabel>
+          <Select
+            id="collection-select"
+            value={selectedCollection}
+            onChange={(e) => setSelectedCollection(e.target.value)}
+            label="Collection"
+          >
+            {collections.map((collection) => (
+              <MenuItem key={collection.collectionName} value={collection.collectionName}>
+                {collection.collectionName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <FormControl fullWidth margin="normal" variant="outlined">
           <InputLabel htmlFor="grade-select">Grade</InputLabel>
           <Select

@@ -210,6 +210,16 @@
             "image": "https://images.pokemontcg.io/base1/12_hires.png",
             "quantity": 1,
             "id": "base1-12"
+          },
+          {
+            "name": "Bulbasaur",
+            "edition": "Base",
+            "set": "base1",
+            "grade": 10,
+            "price": 15,
+            "image": "https://images.pokemontcg.io/base1/44_hires.png",
+            "quantity": 1,
+            "id": "base1-44"
           }
         ]
       },

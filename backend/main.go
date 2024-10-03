@@ -42,6 +42,10 @@ func main() {
 	r.HandleFunc("/api/register", handlers.Register).Methods("POST")
 
 	// Cards
+	r.HandleFunc("/api/cards", handlers.AddCardWithUserID).Methods("POST")
+	r.HandleFunc("/api/cards/collection", handlers.AddCardWithUserIDAndCollection).Methods("POST")
+
+	// Cards
 	r.HandleFunc("/api/cards", func(w http.ResponseWriter, r *http.Request) {
 		userID := r.URL.Query().Get("user_id")
 		collectionName := r.URL.Query().Get("collection_name")
@@ -64,7 +68,6 @@ func main() {
 		handlers.GetCollectionByUserIDandCollectionName(w, r, userID, collectionName)
 	}).Methods("GET")
 	r.HandleFunc("/api/market-price", handlers.MarketPriceHandler).Methods("GET")
-	r.HandleFunc("/api/cards", handlers.AddCard).Methods("POST")
 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 	r.HandleFunc("/api/pokemon-names", handlers.GetPokemonNames).Methods("GET")
 	r.HandleFunc("/api/product/{id}", func(w http.ResponseWriter, r *http.Request) {

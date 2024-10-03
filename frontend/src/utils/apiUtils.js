@@ -70,13 +70,18 @@ export const processFetchedCards = (data, verbose) => {
     return { totalCostSum, cards: data };
 };
 
-export const addCard = async (card) => {
+// Function to add a card with just userId (uses default collection)
+export const addCardWithUserId = async (card, userId) => {
+    if (verbose) console.log(`Adding card for user: ${userId}, ${JSON.stringify(card)}`);
     const response = await fetch('/api/cards', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(card),
+        body: JSON.stringify({
+            user_id: userId,
+            card: card
+        }),
     });
 
     if (!response.ok) {
@@ -84,6 +89,37 @@ export const addCard = async (card) => {
     }
 
     return response.json();
+};
+
+// Function to add a card with userId and collectionName
+export const addCardWithCollection = async (card, userId, collectionName) => {
+    if (verbose) console.log(`Adding card to collection: ${userId}, ${JSON.stringify(card)}, ${collectionName}`);
+    const response = await fetch('/api/cards/collection', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            user_id: userId,
+            collection_name: collectionName,
+            card: card
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to add card to collection');
+    }
+
+    return response.json();
+};
+
+// You can keep the original addCard function as a wrapper if you want to maintain backwards compatibility
+export const addCard = async (card, userId, collectionName) => {
+    if (collectionName) {
+        return addCardWithCollection(card, userId, collectionName);
+    } else {
+        return addCardWithUserId(card, userId);
+    }
 };
 
 export const fetchProducts = async () => {
@@ -102,14 +138,18 @@ export const fetchProductByID = async (id) => {
     return response.json();
 };
 
-export const updateCardQuantity = async (cardId, newQuantity) => {
-    if (verbose) console.log(`Updating quantity for card with ID: ${cardId} to ${newQuantity}`);
+export const updateCardQuantity = async (cardId, newQuantity, collectionName, userId) => {
+    if (verbose) console.log(`Updating quantity for card with ID: ${cardId} to ${newQuantity} in collection: ${collectionName}`);
     const response = await fetch(`/api/cards/quantity?id=${cardId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ quantity: newQuantity }),
+        body: JSON.stringify({
+            user_id: userId, // Add user ID
+            collection_name: collectionName, // Add collection name
+            quantity: newQuantity
+        }),
     });
 
     if (!response.ok) {
