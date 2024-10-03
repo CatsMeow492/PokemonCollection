@@ -4,8 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"strings"
 	"time"
+
+	"net/url"
 
 	"github.com/CatsMeow492/PokemonCollection/models"
 	"github.com/patrickmn/go-cache"
@@ -19,16 +23,19 @@ func init() {
 	imageCache = cache.New(24*time.Hour, 48*time.Hour) // Cache for 1 day, purge expired items every 2 days
 }
 
-func FetchCard(apiKey, cardID string) (*models.Card, error) {
-	if cachedCard, found := cardCache.Get(cardID); found {
-		return cachedCard.(*models.Card), nil
-	}
+func FetchCard(apiKey, cardIdentifier string) (*models.Card, error) {
+	log.Printf("FetchCard: Attempting to fetch card with identifier: %s", cardIdentifier)
 
-	if cardID == "" {
-		return nil, fmt.Errorf("cardID must be provided")
+	// Split the identifier into set and name
+	parts := strings.Split(cardIdentifier, "-")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("invalid card identifier format")
 	}
+	set, name := parts[0], parts[1]
 
-	apiURL := fmt.Sprintf("https://api.pokemontcg.io/v2/cards/%s", cardID)
+	// Construct the search URL
+	apiURL := fmt.Sprintf("https://api.pokemontcg.io/v2/cards?q=set.id:%s name:%s", url.QueryEscape(set), url.QueryEscape(name))
+	log.Printf("FetchCard: API URL: %s", apiURL)
 
 	req, _ := http.NewRequest("GET", apiURL, nil)
 	req.Header.Set("X-Api-Key", apiKey)
@@ -36,45 +43,45 @@ func FetchCard(apiKey, cardID string) (*models.Card, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("FetchCard: Error making request: %v", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("FetchCard: Received non-200 response code: %d, Body: %s", resp.StatusCode, string(body))
 		return nil, fmt.Errorf("received non-200 response code: %d", resp.StatusCode)
 	}
 
-	var result map[string]interface{}
+	var result struct {
+		Data []map[string]interface{} `json:"data"`
+	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
-	cardData, ok := result["data"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("unexpected data format for card: %s", cardID)
+	if len(result.Data) == 0 {
+		log.Printf("FetchCard: No cards found matching the criteria for identifier: %s", cardIdentifier)
+		return nil, fmt.Errorf("no cards found matching the criteria")
 	}
 
+	cardData := result.Data[0]
 	imageURL := cardData["images"].(map[string]interface{})["large"].(string)
-	if cachedImage, found := imageCache.Get(imageURL); found {
-		imageURL = cachedImage.(string)
-	} else {
-		imageCache.Set(imageURL, imageURL, cache.DefaultExpiration)
-	}
 
 	card := &models.Card{
+		ID:      cardData["id"].(string),
 		Name:    cardData["name"].(string),
 		Edition: cardData["set"].(map[string]interface{})["name"].(string),
-		Grade:   "N/A", // Grade is not provided by the API
+		Set:     cardData["set"].(map[string]interface{})["id"].(string),
+		Grade:   "N/A", // This is now valid as Grade is an interface{}
 		Price:   0.00,  // Price is not provided by the API
 		Image:   imageURL,
 	}
 
-	cardCache.Set(cardID, card, cache.DefaultExpiration)
+	log.Printf("FetchCard: Successfully fetched card: %+v", card)
 
-	// Update collection.json with the new image URL
-	if err := updateCollectionJSON(cardID, imageURL); err != nil {
-		return nil, fmt.Errorf("failed to update collection.json: %v", err)
-	}
+	cardCache.Set(card.ID, card, cache.DefaultExpiration)
 
 	return card, nil
 }

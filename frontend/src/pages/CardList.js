@@ -127,12 +127,18 @@ const CardList = () => {
         }
     };
 
-    const handleAddCard = async (newCard) => {
+    const handleAddCard = async (newCard, selectedCollection = null) => {
+        if (!id) {
+            console.error('User ID is not available');
+            return;
+        }
         try {
-          const addedCard = await addCard(newCard);
-          setCards([...cards, addedCard]);
+            const addedCard = await addCard(newCard, id, selectedCollection);
+            setCards(prevCards => [...prevCards, addedCard]);
+            setModalOpen(false); // Close the modal after adding the card
         } catch (error) {
-          console.error('Failed to add card:', error);
+            console.error('Failed to add card:', error);
+            // Optionally, you can set an error state here to display to the user
         }
     };
 
@@ -150,7 +156,7 @@ const CardList = () => {
             return;
         }
         try {
-            const updatedCard = await updateCardQuantity(card.id, card.quantity + 1);
+            const updatedCard = await updateCardQuantity(card.id, card.quantity + 1, selectedCollection, id); // Pass userId (id)
             const updatedCards = [...cardsWithMarketPrice];
             updatedCards[index] = { ...card, ...updatedCard }; // Merge the updated card data
             setCardsWithMarketPrice(updatedCards);
@@ -168,12 +174,12 @@ const CardList = () => {
             console.log("New quantity: ", cardsWithMarketPrice[index]?.quantity - 1);
         }
         const card = cardsWithMarketPrice[index];
-        if (!card || !card.id) {
-            console.error('Card ID is undefined or card data is missing:', card);
+        if (!card || !card.id || !selectedCollection) {
+            console.error('Card ID or collection name is undefined or card data is missing:', card);
             return;
         }
         try {
-            const updatedCard = await updateCardQuantity(card.id, card.quantity - 1);
+            const updatedCard = await updateCardQuantity(card.id, card.quantity - 1, selectedCollection, id); // Ensure collectionName and userId are passed
             const updatedCards = [...cardsWithMarketPrice];
             updatedCards[index] = { ...card, ...updatedCard };
             setCardsWithMarketPrice(updatedCards);
@@ -249,8 +255,13 @@ const CardList = () => {
                     ))}
                 </Select>
             </FormControl>
-            
-            <AddCardModal open={modalOpen} onClose={() => setModalOpen(false)} onAddCard={handleAddCard} />
+            <AddCardModal 
+                open={modalOpen} 
+                onClose={() => setModalOpen(false)} 
+                onAddCard={handleAddCard} 
+                collections={collections}
+                selectedCollection={selectedCollection}
+            />
             <Grid container spacing={3}>
                 {cardsWithMarketPrice.map((card, index) => {
                     cardImageRefs.current[index] = cardImageRefs.current[index] || React.createRef();
@@ -278,6 +289,9 @@ const CardList = () => {
                                     </Typography>
                                     <Typography className="textSecondary">
                                         {card.edition}
+                                    </Typography>
+                                    <Typography variant="caption" component="p" style={{ fontSize: '0.7rem', color: '#999' }}>
+                                        Collection: {card.collectionName || 'N/A'}
                                     </Typography>
                                     <Typography variant="body2" component="p">
                                         Grade: {card.grade}
