@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -69,5 +70,60 @@ func FetchCard(apiKey, cardID string) (*models.Card, error) {
 	}
 
 	cardCache.Set(cardID, card, cache.DefaultExpiration)
+
+	// Update collection.json with the new image URL
+	if err := updateCollectionJSON(cardID, imageURL); err != nil {
+		return nil, fmt.Errorf("failed to update collection.json: %v", err)
+	}
+
 	return card, nil
+}
+
+// Helper function to update collection.json
+func updateCollectionJSON(cardID, imageURL string) error {
+	filePath := "collection.json"
+
+	// Read the existing collection.json
+	file, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("error reading collection.json: %v", err)
+	}
+
+	var data struct {
+		User models.User `json:"user"`
+	}
+	if err := json.Unmarshal(file, &data); err != nil {
+		return fmt.Errorf("error unmarshalling collection.json: %v", err)
+	}
+
+	// Update the card's image URL
+	updated := false
+	for i, collection := range data.User.Collections {
+		for j, card := range collection.Collection {
+			if card.ID == cardID {
+				data.User.Collections[i].Collection[j].Image = imageURL
+				updated = true
+				break
+			}
+		}
+		if updated {
+			break
+		}
+	}
+
+	if !updated {
+		return fmt.Errorf("card ID %s not found in collection.json", cardID)
+	}
+
+	// Write the updated data back to collection.json
+	updatedData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error marshalling updated collection.json: %v", err)
+	}
+
+	if err := ioutil.WriteFile(filePath, updatedData, 0644); err != nil {
+		return fmt.Errorf("error writing to collection.json: %v", err)
+	}
+
+	return nil
 }

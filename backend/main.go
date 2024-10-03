@@ -57,6 +57,12 @@ func main() {
 		}
 	}).Methods("GET")
 	r.HandleFunc("/api/collections/{user_id}", handlers.GetCollectionsByUserID).Methods("GET")
+	r.HandleFunc("/api/collections/{user_id}/{collection_name}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		userID := vars["user_id"]
+		collectionName := vars["collection_name"]
+		handlers.GetCollectionByUserIDandCollectionName(w, r, userID, collectionName)
+	}).Methods("GET")
 	r.HandleFunc("/api/market-price", handlers.MarketPriceHandler).Methods("GET")
 	r.HandleFunc("/api/cards", handlers.AddCard).Methods("POST")
 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")

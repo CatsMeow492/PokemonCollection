@@ -47,6 +47,14 @@ export const fetchCollectionsByUserID = async (userID) => {
     }
 };
 
+export const fetchCollectionByUserIDandCollectionName = async (userID, collectionName) => {
+    const response = await fetch(`/api/collections/${userID}/${collectionName}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch collection');
+    }
+    return response.json();
+};
+
 export const processFetchedCards = (data, verbose) => {
     if (verbose) console.log('Fetched data:', data); // Log fetched data
 

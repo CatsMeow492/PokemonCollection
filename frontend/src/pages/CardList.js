@@ -182,6 +182,48 @@ const CardList = () => {
         }
     };
 
+    const handleCollectionChange = (e) => {
+        const collectionName = e.target.value;
+        setSelectedCollection(collectionName);
+
+        if (!id) {
+            console.error('User ID is undefined');
+            return;
+        }
+
+        setLoading(true);
+
+        if (collectionName === 'all') {
+            // Fetch all cards if "All Cards" is selected
+            fetchCardsByUserID(id)
+                .then(data => {
+                    const { cards } = processFetchedCards(data, verbose);
+                    setCards(cards);
+                })
+                .catch(error => {
+                    console.error('Error fetching all cards:', error);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        } else {
+            // Fetch cards for the selected collection
+            fetch(`/api/collections/${id}/${collectionName}`)
+                .then(response => response.json())
+                .then(data => {
+                    const { collection } = data;
+                    const { cards } = processFetchedCards(collection, verbose);
+                    setCards(cards);
+                })
+                .catch(error => {
+                    console.error('Error fetching cards for collection:', error);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        }
+    };
+
     return (
         <Container className="card-list-container">
             <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
@@ -196,10 +238,11 @@ const CardList = () => {
                     labelId="collection-select-label"
                     id="collection-select"
                     value={selectedCollection}
-                    onChange={(e) => setSelectedCollection(e.target.value)}
+                    onChange={handleCollectionChange}
                     label="Select Collection"
                 >
-                    {collections && collections.map((collection) => ( // Add check for collections
+                    <MenuItem value="all">All Cards</MenuItem> {/* Add "All Cards" option */}
+                    {collections && collections.map((collection) => (
                         <MenuItem key={collection.collectionName} value={collection.collectionName}>
                             {collection.collectionName}
                         </MenuItem>
@@ -221,6 +264,10 @@ const CardList = () => {
                                     image={card.image}
                                     alt={card.name}
                                     ref={cardImageRefs.current[index]}
+                                    onError={(e) => {
+                                        console.error('Error loading image:', e.target.src);
+                                        e.target.src = 'https://i.pinimg.com/originals/45/84/c0/4584c0b11190ed3bd738acf8f1d24fa4.jpg'; // Fallback image
+                                    }}
                                     onMouseMove={(e) => handleMouseMove(e, index)}
                                     onMouseLeave={() => handleMouseLeave(index)}
                                     style={{ overflow: 'visible' }}

@@ -11,9 +11,10 @@
     position: relative;
     max-width: 250px;
     margin: auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
+    box-shadow: var(--box-shadow);
+    border-radius: var(--border-radius);
     overflow: visible;
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
 .card-image {
@@ -55,27 +56,28 @@
 }
 
 .card-content {
-    padding: 16px;
+    padding: calc(var(--spacing-unit) * 2);
+    color: var(--text-color);
 }
 
 .card-content h2 {
     font-size: 1.25rem;
     margin-bottom: 8px;
-    color: #eeeeef;
+    color: var(--text-color);
 }
 
 .card-content p {
     margin: 4px 0;
-    color: #eeeeef;
+    color: var(--text-color);
 }
 
 .card-content .textSecondary {
-    color: #cfcece;
+    color: var(--text-secondary-color);
 }
 
 .card-content .market-price {
     font-weight: bold;
-    color: #4caf50;
+    color: var(--success-color);
 }
 
 .quantity-bubble {
