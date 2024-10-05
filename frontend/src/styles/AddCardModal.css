@@ -1,0 +1,51 @@
+.add-card-modal .MuiDialog-paper {
+    background-color: white;
+    color: #333;
+}
+
+.add-card-modal .modal-content {
+    padding: 20px;
+}
+
+.add-card-modal .modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #1976d2;
+}
+
+.add-card-modal .form-field {
+    margin-bottom: 16px;
+}
+
+.add-card-modal .submit-button {
+    margin-top: 16px;
+}
+
+/* Override Material-UI styles */
+.add-card-modal .MuiInputLabel-root,
+.add-card-modal .MuiInputBase-input,
+.add-card-modal .MuiSelect-select,
+.add-card-modal .MuiMenuItem-root {
+    color: #333 !important;
+}
+
+.add-card-modal .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 0, 0, 0.23) !important;
+}
+
+.add-card-modal .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.add-card-modal .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #1976d2 !important;
+}
+
+.add-card-modal .MuiButton-root {
+    color: #1976d2;
+}
+
+.add-card-modal .MuiButton-root:hover {
+    background-color: rgba(25, 118, 210, 0.04);
+}

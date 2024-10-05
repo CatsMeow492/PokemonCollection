@@ -80,7 +80,10 @@ func main() {
 		handlers.CreateCollectionByUserIDandCollectionName(w, r)
 	}).Methods("POST")
 
-	r.HandleFunc("/api/market-price", handlers.MarketPriceHandler).Methods("GET")
+	r.HandleFunc("/api/market-price", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Market price endpoint hit")
+		handlers.MarketPriceHandler(w, r)
+	}).Methods("GET")
 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 	r.HandleFunc("/api/pokemon-names", handlers.GetPokemonNames).Methods("GET")
 	r.HandleFunc("/api/product/{id}", func(w http.ResponseWriter, r *http.Request) {

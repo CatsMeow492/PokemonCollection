@@ -37,7 +37,7 @@ const Reports = () => {
                     const marketPrice = await fetchMarketPrice(card.name, card.id, card.edition, card.grade);
                     return { ...card, marketPrice: parseFloat(marketPrice) || 0 };
                 }));
-                if (verbose) console.log(cardsWithMarketPrice);
+                if (verbose) console.log('In Reports.js, cardsWithMarketPrice:', cardsWithMarketPrice);
                 const totalMarketPrice = cardsWithMarketPrice.reduce((sum, card) => sum + card.marketPrice, 0);
                 const totalProfit = totalMarketPrice - totalCostSum;
                 const sets = cardsWithMarketPrice.map(card => card.edition);

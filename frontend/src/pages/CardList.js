@@ -1,19 +1,26 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { Container, Typography, Grid, Card, CardMedia, CardContent, IconButton } from '@mui/material';
+import { Container, Typography, Grid, Card, CardMedia, CardContent, IconButton, Button, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import AddCardModal from '../modals/AddCardModal';
+import ManageCollectionsModal from '../modals/ManageCollectionsModal';
 import '../styles/CardList.css';
-import { fetchMarketPrice, fetchCardsByUserID, processFetchedCards, addCard, updateCardQuantity, fetchCollectionsByUserID } from '../utils/apiUtils';
-import { Button } from '@mui/material';
+import { 
+    fetchMarketPrice, 
+    fetchCardsByUserID, 
+    processFetchedCards, 
+    addCard, 
+    updateCardQuantity, 
+    fetchCollectionsByUserID,
+    createCollection,
+    deleteCollection
+} from '../utils/apiUtils';
 import ArrowCircleUpTwoToneIcon from '@mui/icons-material/ArrowCircleUpTwoTone';
 import ArrowCircleDownTwoToneIcon from '@mui/icons-material/ArrowCircleDownTwoTone';
 import useRouteLoading from '../hooks/useRouteLoading';
 import { ClipLoader } from 'react-spinners';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
 import config from '../config';
 import { AuthContext } from '../context/AuthContext';
+import AddIcon from '@mui/icons-material/Add';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const CardList = () => {
     const routeLoading = useRouteLoading();
@@ -22,11 +29,13 @@ const CardList = () => {
     const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
     const cardImageRefs = useRef([]);
     const { verbose } = config;
-    const [modalOpen, setModalOpen] = useState(false);
+    const [addCardModalOpen, setAddCardModalOpen] = useState(false);
+    const [manageCollectionsModalOpen, setManageCollectionsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [collections, setCollections] = useState([]); // Initialize as an empty array
     const [selectedCollection, setSelectedCollection] = useState('');
-    
+    const [collectionName, setCollectionName] = useState('');
+
     useEffect(() => {
         if (!id) {
             console.error('User ID is undefined');
@@ -135,7 +144,7 @@ const CardList = () => {
         try {
             const addedCard = await addCard(newCard, id, selectedCollection);
             setCards(prevCards => [...prevCards, addedCard]);
-            setModalOpen(false); // Close the modal after adding the card
+            setAddCardModalOpen(false); // Close the modal after adding the card
         } catch (error) {
             console.error('Failed to add card:', error);
             // Optionally, you can set an error state here to display to the user
@@ -230,37 +239,102 @@ const CardList = () => {
         }
     };
 
+    const handleAddCollection = async (userId, collectionName) => {
+        try {
+            await createCollection(userId, collectionName);
+            // Handle successful creation (e.g., update state, show message)
+            setManageCollectionsModalOpen(false);
+            // Refresh collections list
+            fetchCollectionsByUserID(id)
+                .then(data => {
+                    setCollections(data || []);
+                })
+                .catch(error => {
+                    console.error('Error fetching collections:', error);
+                });
+        } catch (error) {
+            console.error('Failed to create collection:', error);
+            // Handle error (e.g., show error message)
+        }
+    };
+
+    const handleDeleteCollection = async (userId, collectionName) => {
+        try {
+            await deleteCollection(userId, collectionName);
+            // Handle successful deletion (e.g., update state, show message)
+            setManageCollectionsModalOpen(false);
+            // Refresh collections list
+            fetchCollectionsByUserID(id)
+                .then(data => {
+                    setCollections(data || []);
+                })
+                .catch(error => {
+                    console.error('Error fetching collections:', error);
+                });
+        } catch (error) {
+            console.error('Failed to delete collection:', error);
+            // Handle error (e.g., show error message)
+        }
+    };
+
     return (
         <Container className="card-list-container">
-            <Typography variant="h4" component="h1" className="title" style={{ color: 'aliceblue' }} gutterBottom>
+            <Typography variant="h4" component="h1" className="title" gutterBottom>
                 My Pokémon Card Collection
             </Typography>
-            <Button variant="contained" color="primary" style={{ marginBottom: '1rem' }} onClick={() => setModalOpen(true)}>Add Card</Button>
+            
+            <div className="card-list-toolbar">
+                <div className="toolbar-group">
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<AddIcon />}
+                        onClick={() => setAddCardModalOpen(true)}
+                    >
+                        Add Card
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<SettingsIcon />}
+                        onClick={() => setManageCollectionsModalOpen(true)}
+                    >
+                        Manage Collections
+                    </Button>
+                </div>
+                <FormControl variant="outlined" className="collection-select">
+                    <InputLabel id="collection-select-label">Select Collection</InputLabel>
+                    <Select
+                        labelId="collection-select-label"
+                        id="collection-select"
+                        value={selectedCollection}
+                        onChange={handleCollectionChange}
+                        label="Select Collection"
+                    >
+                        <MenuItem value="all">All Cards</MenuItem>
+                        {collections && collections.map((collection) => (
+                            <MenuItem key={collection.collectionName} value={collection.collectionName}>
+                                {collection.collectionName}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </div>
 
-            {/*  Select Collection Dropdown */}
-            <FormControl variant="outlined" style={{ marginBottom: '1rem', minWidth: 200 }}>
-                <InputLabel id="collection-select-label">Select Collection</InputLabel>
-                <Select
-                    labelId="collection-select-label"
-                    id="collection-select"
-                    value={selectedCollection}
-                    onChange={handleCollectionChange}
-                    label="Select Collection"
-                >
-                    <MenuItem value="all">All Cards</MenuItem> {/* Add "All Cards" option */}
-                    {collections && collections.map((collection) => (
-                        <MenuItem key={collection.collectionName} value={collection.collectionName}>
-                            {collection.collectionName}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
             <AddCardModal 
-                open={modalOpen} 
-                onClose={() => setModalOpen(false)} 
+                open={addCardModalOpen} 
+                onClose={() => setAddCardModalOpen(false)} 
                 onAddCard={handleAddCard} 
                 collections={collections}
                 selectedCollection={selectedCollection}
+            />
+            <ManageCollectionsModal
+                open={manageCollectionsModalOpen}
+                onClose={() => setManageCollectionsModalOpen(false)}
+                onAddCollection={handleAddCollection}
+                onDeleteCollection={handleDeleteCollection}
+                userId={id}
+                collections={collections}
             />
             <Grid container spacing={3}>
                 {cardsWithMarketPrice.map((card, index) => {

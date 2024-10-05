@@ -11,6 +11,7 @@ export const fetchMarketPrice = async (cardName, cardId, edition, grade) => {
             throw new Error(`Failed to fetch market price: ${response.status} ${response.statusText} - ${errorText}`);
         }
         const data = await response.json();
+        if (verbose) console.log('Market price data:', data);
         return data.market_price;
     } catch (error) {
         console.error('Error fetching market price:', error);
@@ -235,4 +236,49 @@ export const updateUserProfile = async (newUsername, newProfilePicture) => {
     }
 
     return response.json();
+};
+
+export const createCollection = async (userId, collectionName) => {
+    const verbose = config.verbose;
+    if (verbose) console.log(`Creating collection '${collectionName}' for user ID: ${userId}`);
+
+    try {
+        const response = await fetch(`/api/collections/${userId}/${collectionName}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create collection');
+        }
+
+        const data = await response.json();
+        if (verbose) console.log('Collection created:', data);
+        return data;
+    } catch (error) {
+        console.error('Error creating collection:', error);
+        throw error;
+    }
+};
+
+export const deleteCollection = async (userId, collectionName) => {
+    const verbose = config.verbose;
+    if (verbose) console.log(`Deleting collection '${collectionName}' for user ID: ${userId}`);
+
+    try {
+        const response = await fetch(`/api/collections/${userId}/${collectionName}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete collection');
+        }
+
+        if (verbose) console.log(`Collection '${collectionName}' deleted for user ID: ${userId}`);
+    } catch (error) {
+        console.error('Error deleting collection:', error);
+        throw error;
+    }
 };

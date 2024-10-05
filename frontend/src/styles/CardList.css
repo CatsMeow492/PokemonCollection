@@ -206,4 +206,71 @@
     color: #f44336;
 }
 
+/* Add these styles to your existing CardList.css file */
 
+.card-list-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-group {
+    display: flex;
+    gap: 10px;
+}
+
+.collection-select {
+    min-width: 250px; /* Increased from 200px */
+    width: 30%; /* This will make it responsive */
+    max-width: 300px; /* Set a maximum width if needed */
+}
+
+/* Style for Material-UI components */
+.MuiButton-root {
+    text-transform: none !important;
+}
+
+.MuiSelect-root {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.MuiInputLabel-root {
+    color: rgba(255, 255, 255, 0.7) !important; /* Lighter color with some transparency */
+}
+
+.MuiInputLabel-shrink {
+    color: rgba(255, 255, 255, 0.9) !important; /* Even lighter when shrunk */
+}
+
+.MuiSelect-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.MuiFormLabel-root.Mui-focused {
+    color: #fff !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #fff !important;
+}
+
+/* Ensure the text inside the select is visible */
+.MuiSelect-select {
+    color: #fff !important; /* White text for selected option */
+    padding-right: 32px !important; /* Ensure text doesn't overlap with the dropdown icon */
+}
+
+/* Style the dropdown icon */
+.MuiSelect-icon {
+    color: rgba(255, 255, 255, 0.7) !important; /* Match the label color */
+}
+
+/* Style for the options in the dropdown */
+.MuiMenuItem-root {
+    color: #333 !important; /* Dark color for dropdown options */
+}
