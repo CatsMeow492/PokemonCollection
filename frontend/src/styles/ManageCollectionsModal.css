@@ -1,0 +1,79 @@
+.manage-collections-modal .MuiDialog-paper {
+    background-color: white;
+    color: #333;
+}
+
+.manage-collections-modal .modal-content {
+    padding: 20px;
+}
+
+.manage-collections-modal .modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #1976d2;
+}
+
+.manage-collections-modal .modal-subtitle {
+    font-size: 1.2rem;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+.manage-collections-modal .new-collection-input {
+    display: flex;
+    margin-bottom: 16px;
+}
+
+.manage-collections-modal .new-collection-input .MuiTextField-root {
+    flex-grow: 1;
+    margin-right: 8px;
+}
+
+.manage-collections-modal .collection-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.manage-collections-modal .collection-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.manage-collections-modal .collection-name {
+    font-size: 1rem;
+    color: #333;
+}
+
+.manage-collections-modal .delete-button {
+    color: #f44336;
+}
+
+.manage-collections-modal .close-button {
+    margin-top: 16px;
+    color: #1976d2;
+}
+
+/* Override Material-UI styles */
+.manage-collections-modal .MuiInputLabel-root,
+.manage-collections-modal .MuiInputBase-input,
+.manage-collections-modal .MuiListItemText-primary,
+.manage-collections-modal .MuiListItemText-secondary {
+    color: #333 !important;
+}
+
+.manage-collections-modal .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 0, 0, 0.23) !important;
+}
+
+.manage-collections-modal .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.manage-collections-modal .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #1976d2 !important;
+}

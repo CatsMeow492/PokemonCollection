@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -22,7 +23,10 @@ func MarketPriceHandler(w http.ResponseWriter, r *http.Request) {
 	edition := r.URL.Query().Get("edition")
 	grade := r.URL.Query().Get("grade")
 
+	log.Printf("Received request for market price: card_name=%s, card_id=%s, edition=%s, grade=%s", cardName, cardId, edition, grade)
+
 	if cardName == "" || cardId == "" || edition == "" || grade == "" {
+		log.Println("Missing required parameters")
 		http.Error(w, "Missing required parameters", http.StatusBadRequest)
 		return
 	}
@@ -52,6 +56,7 @@ func MarketPriceHandler(w http.ResponseWriter, r *http.Request) {
 		marketPriceCache.Set(cacheKey, marketPrice, cache.DefaultExpiration)
 	}
 
+	log.Printf("Responding with market price: %f", marketPrice)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
