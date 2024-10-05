@@ -60,6 +60,8 @@ func main() {
 			println("No user ID provided")
 		}
 	}).Methods("GET")
+
+	// Collections
 	r.HandleFunc("/api/collections/{user_id}", handlers.GetCollectionsByUserID).Methods("GET")
 	r.HandleFunc("/api/collections/{user_id}/{collection_name}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -67,6 +69,17 @@ func main() {
 		collectionName := vars["collection_name"]
 		handlers.GetCollectionByUserIDandCollectionName(w, r, userID, collectionName)
 	}).Methods("GET")
+	r.HandleFunc("/api/collections/{user_id}/{collection_name}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		log.Printf("DELETE request received for user_id: %s, collection_name: %s", vars["user_id"], vars["collection_name"])
+		handlers.DeleteCollectionByUserIDandCollectionName(w, r)
+	}).Methods("DELETE")
+	r.HandleFunc("/api/collections/{user_id}/{collection_name}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		log.Printf("POST request received for user_id: %s, collection_name: %s", vars["user_id"], vars["collection_name"])
+		handlers.CreateCollectionByUserIDandCollectionName(w, r)
+	}).Methods("POST")
+
 	r.HandleFunc("/api/market-price", handlers.MarketPriceHandler).Methods("GET")
 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 	r.HandleFunc("/api/pokemon-names", handlers.GetPokemonNames).Methods("GET")
