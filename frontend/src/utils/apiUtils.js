@@ -26,6 +26,7 @@ export const fetchCardsByUserID = async (userID) => {
             throw new Error('Failed to fetch cards');
         }
         const data = await response.json();
+        if (verbose) console.log('Fetched cards:', data);
         return data || []; // Return an empty array if data is null or undefined
     } catch (error) {
         console.error('Error fetching cards:', error);
