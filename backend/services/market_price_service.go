@@ -43,8 +43,13 @@ func GetMarketPrice(cardName, cardId, edition, grade string) (float64, error) {
 }
 
 func fetchMarketPrice(cardName, cardId, edition, grade string) (float64, error) {
-	// Use all parameters in the search query
-	searchQuery := fmt.Sprintf("%s %s %s %s", cardName, cardId, edition, grade)
+	var searchQuery string
+	if strings.ToLower(grade) == "ungraded" {
+		searchQuery = fmt.Sprintf("%s %s %s -graded -psa -bgs -cgc", cardName, cardId, edition)
+	} else {
+		searchQuery = fmt.Sprintf("%s %s %s grade:%s", cardName, cardId, edition, grade)
+	}
+
 	url := fmt.Sprintf("https://www.ebay.com/sch/i.html?_nkw=%s&_ipg=100&_sop=13", strings.ReplaceAll(searchQuery, " ", "+"))
 
 	res, err := http.Get(url)
@@ -63,23 +68,54 @@ func fetchMarketPrice(cardName, cardId, edition, grade string) (float64, error) 
 	}
 
 	var prices []float64
-	doc.Find(".s-item__price").Each(func(i int, s *goquery.Selection) {
-		priceText := s.Text()
-		priceText = strings.ReplaceAll(priceText, "$", "")
-		priceText = strings.ReplaceAll(priceText, ",", "")
-		price, err := strconv.ParseFloat(priceText, 64)
-		if err == nil {
-			prices = append(prices, price)
+	doc.Find(".s-item__wrapper").Each(func(i int, s *goquery.Selection) {
+		title := strings.ToLower(s.Find(".s-item__title").Text())
+		priceText := s.Find(".s-item__price").Text()
+
+		if strings.ToLower(grade) == "ungraded" {
+			// For ungraded cards, exclude listings that mention grading
+			if !strings.Contains(title, "graded") && !strings.Contains(title, "psa") &&
+				!strings.Contains(title, "bgs") && !strings.Contains(title, "cgc") {
+				price := parsePrice(priceText)
+				if price > 0 {
+					prices = append(prices, price)
+				}
+			}
+		} else {
+			// For graded cards, include only listings that mention the specific grade
+			if strings.Contains(title, strings.ToLower(grade)) {
+				price := parsePrice(priceText)
+				if price > 0 {
+					prices = append(prices, price)
+				}
+			}
 		}
 	})
 
 	if len(prices) == 0 {
-		return 0, fmt.Errorf("market price not found")
+		return 0, fmt.Errorf("market price not found for %s", grade)
 	}
 
+	return calculateAveragePrice(prices), nil
+}
+
+func parsePrice(priceText string) float64 {
+	priceText = strings.ReplaceAll(priceText, "$", "")
+	priceText = strings.ReplaceAll(priceText, ",", "")
+	price, err := strconv.ParseFloat(priceText, 64)
+	if err != nil {
+		return 0
+	}
+	return price
+}
+
+func calculateAveragePrice(prices []float64) float64 {
+	if len(prices) == 0 {
+		return 0
+	}
 	var total float64
 	for _, price := range prices {
 		total += price
 	}
-	return total / float64(len(prices)), nil
+	return total / float64(len(prices))
 }

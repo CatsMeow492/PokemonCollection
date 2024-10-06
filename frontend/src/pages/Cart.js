@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   Container, 
   Typography, 
@@ -26,14 +26,15 @@ const Cart = () => {
   const navigate = useNavigate();
   const [cartCount, setCartCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
-  const { id } = React.useContext(AuthContext);
+  const { id: userId } = useContext(AuthContext);
   
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (userId) {
+      fetchCart();
+    }
+  }, [userId]);
 
   const fetchCart = async () => {
-    const userId = localStorage.getItem('userId');
     if (verbose) console.log('Fetching cart for user ID:', userId);
     if (userId) {
       const cart = await getCart(userId);
@@ -45,7 +46,6 @@ const Cart = () => {
   };
 
   const handleQuantityChange = async (itemId, newQuantity) => {
-    const userId = id;
     if (userId) {
       await updateCartItem(userId, itemId, newQuantity);
       fetchCart();
@@ -53,7 +53,6 @@ const Cart = () => {
   };
 
   const handleRemoveItem = async (itemId) => {
-    const userId = localStorage.getItem('userId');
     if (userId) {
       await removeFromCart(userId, itemId);
       fetchCart();
@@ -62,6 +61,11 @@ const Cart = () => {
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+  };
+
+  const formatPrice = (price) => {
+    const numPrice = Number(price);
+    return isNaN(numPrice) ? '0.00' : numPrice.toFixed(2);
   };
 
   return (
@@ -96,7 +100,7 @@ const Cart = () => {
                         <Typography>{item.name}</Typography>
                       </Box>
                     </TableCell>
-                    <TableCell align="right">${item.price.toFixed(2)}</TableCell>
+                    <TableCell align="right">${formatPrice(item.price)}</TableCell>
                     <TableCell align="center">
                       <Box className="quantity-control">
                         <IconButton onClick={() => handleQuantityChange(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
@@ -108,7 +112,7 @@ const Cart = () => {
                         </IconButton>
                       </Box>
                     </TableCell>
-                    <TableCell align="right">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                    <TableCell align="right">${formatPrice(Number(item.price) * item.quantity)}</TableCell>
                     <TableCell align="center">
                       <IconButton onClick={() => handleRemoveItem(item.id)} color="error">
                         <Delete />
