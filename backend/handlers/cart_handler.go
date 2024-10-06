@@ -23,8 +23,8 @@ func GetCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(cart)
-	log.Printf("GetCart response for user_id: %s - Cart: %+v", userID, cart)
+	json.NewEncoder(w).Encode(cart.Items) // Return just the Items array
+	log.Printf("GetCart response for user_id: %s - Cart Items: %+v", userID, cart.Items)
 }
 
 func AddToCart(w http.ResponseWriter, r *http.Request) {

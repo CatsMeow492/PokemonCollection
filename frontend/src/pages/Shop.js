@@ -7,6 +7,8 @@ import useRouteLoading from '../hooks/useRouteLoading';
 import { ClipLoader } from 'react-spinners';
 import { addToCart, getCart, getCartCount, getCartTotal, removeFromCart } from '../utils/cartUtils';
 import { AuthContext } from '../context/AuthContext';
+import config from '../config';
+const verbose = config.verbose;
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
@@ -14,7 +16,10 @@ const Shop = () => {
   const { id } = React.useContext(AuthContext);
 
   useEffect(() => {
-    fetchProducts().then(setProducts);
+    fetchProducts().then(products => {
+      if (verbose) console.log('Fetched products:', products);
+      setProducts(products);
+    });
   }, []);
 
   if (loading) {
@@ -26,6 +31,7 @@ const Shop = () => {
   }
 
   const handleAddToCart = async (product) => {
+    if (verbose) console.log(`In Shop.js: Adding item to cart for user_id: ${id} - ProductID: ${product.id}, Quantity: 1`);
     await addToCart(id, product.id, 1);
   };
 
@@ -55,7 +61,7 @@ const Shop = () => {
                 <Typography variant="body2" color="textSecondary" component="p">
                   {product.price}
                 </Typography>
-                <Button variant="contained" color="primary" className="shop-button" onClick={() => handleAddToCart(product.id)}>
+                <Button variant="contained" color="primary" className="shop-button" onClick={() => handleAddToCart(product)}>
                   Add to Cart
                 </Button>
               </CardContent>
