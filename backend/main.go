@@ -98,6 +98,12 @@ func main() {
 	}).Methods("GET")
 	r.HandleFunc("/api/cards/quantity", handlers.UpdateCardQuantity).Methods("PUT") // Ensure the method is specified
 
+	// Cart endpoints
+	r.HandleFunc("/api/cart/{user_id}", handlers.GetCart).Methods("GET")
+	r.HandleFunc("/api/cart/{user_id}/add", handlers.AddToCart).Methods("POST")
+	r.HandleFunc("/api/cart/{user_id}/update", handlers.UpdateCartItem).Methods("PUT")
+	r.HandleFunc("/api/cart/{user_id}/remove", handlers.RemoveFromCart).Methods("DELETE")
+
 	// Serve images from the "images" directory
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
 	log.Println("Server is running on port 8000")
