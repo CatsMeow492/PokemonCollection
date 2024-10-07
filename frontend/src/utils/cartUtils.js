@@ -38,12 +38,12 @@ export const addToCart = async (userId, productId, quantity) => {
 
 export const removeFromCart = async (userId, itemId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/cart/${userId}/remove`, {
+        const response = await fetch(`${API_BASE_URL}/api/cart/${userId}/remove`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ itemId }),
+            body: JSON.stringify({ ProductID: itemId }),
         });
         if (!response.ok) throw new Error('Failed to remove item from cart');
         return await response.json();
@@ -53,14 +53,14 @@ export const removeFromCart = async (userId, itemId) => {
     }
 };
 
-export const updateCartItem = async (userId, item) => {
+export const updateCartItem = async (userId, itemId, newQuantity) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/cart/${userId}/update`, {
+        const response = await fetch(`${API_BASE_URL}/api/cart/${userId}/update`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(item),
+            body: JSON.stringify({ ProductID: itemId, Quantity: newQuantity }),
         });
         if (!response.ok) throw new Error('Failed to update cart item');
         return await response.json();
