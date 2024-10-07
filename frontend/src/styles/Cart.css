@@ -33,7 +33,7 @@
 }
 
 .cart-table .MuiTableCell-body {
-    color: var(--text-color);
+    color: var(--background-color); /* Change this line */
 }
 
 .product-info {
@@ -98,4 +98,17 @@
 
 .empty-cart .MuiButton-root:hover {
     background-color: var(--primary-color-dark);
+}
+
+/* Add these new styles at the end of the file */
+.cart-table .MuiTableCell-root {
+    color: var(--background-color);
+}
+
+.quantity-control .MuiTypography-root {
+    color: var(--background-color);
+}
+
+.quantity-control .MuiIconButton-root {
+    color: var(--background-color);
 }

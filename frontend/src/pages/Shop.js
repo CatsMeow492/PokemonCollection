@@ -32,7 +32,17 @@ const Shop = () => {
 
   const handleAddToCart = async (product) => {
     if (verbose) console.log(`In Shop.js: Adding item to cart for user_id: ${id} - ProductID: ${product.id}, Quantity: 1`);
-    await addToCart(id, product.id, 1);
+    try {
+      const result = await addToCart(id, parseInt(product.id), 1);
+      if (result) {
+        console.log('Item added to cart successfully');
+        // Optionally, you can update the UI to reflect the change
+      } else {
+        console.error('Failed to add item to cart');
+      }
+    } catch (error) {
+      console.error('Error adding item to cart:', error);
+    }
   };
 
   return (
