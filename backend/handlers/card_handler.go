@@ -370,6 +370,61 @@ func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(mergedCard)
 }
 
+func RemoveCardFromCollectionWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
+	log.Println("removeCardFromCollectionWithUserIDAndCollection: Starting function")
+	var requestBody struct {
+		UserID         string `json:"user_id"`
+		CollectionName string `json:"collection_name"`
+		CardID         string `json:"card_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		log.Printf("removeCardFromCollectionWithUserIDAndCollection: Error decoding request body: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.Printf("removeCardFromCollectionWithUserIDAndCollection: Received request to remove card with ID: %s from collection: %s for user ID: %s", requestBody.CardID, requestBody.CollectionName, requestBody.UserID)
+
+	data, err := readCollectionFile()
+	if err != nil {
+		log.Printf("removeCardFromCollectionWithUserIDAndCollection: Error reading collection file: %v", err)
+		http.Error(w, "Error reading collection file", http.StatusInternalServerError)
+		return
+	}
+
+	collectionFound := false
+	for i, collection := range data.User.Collections {
+		if collection.CollectionName == requestBody.CollectionName {
+			for j, card := range collection.Collection {
+				if card.ID == requestBody.CardID {
+					data.User.Collections[i].Collection = append(data.User.Collections[i].Collection[:j], data.User.Collections[i].Collection[j+1:]...)
+					collectionFound = true
+					log.Printf("removeCardFromCollectionWithUserIDAndCollection: Successfully removed card with ID: %s from collection: %s", requestBody.CardID, requestBody.CollectionName)
+					break
+				}
+			}
+			if collectionFound {
+				break
+			}
+		}
+	}
+
+	if !collectionFound {
+		log.Printf("removeCardFromCollectionWithUserIDAndCollection: Collection not found: %s", requestBody.CollectionName)
+		http.Error(w, "Collection not found", http.StatusNotFound)
+		return
+	}
+
+	if err := writeCollectionFile(data); err != nil {
+		log.Printf("removeCardFromCollectionWithUserIDAndCollection: Error writing to collection file: %v", err)
+		http.Error(w, "Error writing to collection file", http.StatusInternalServerError)
+		return
+	}
+
+	log.Println("removeCardFromCollectionWithUserIDAndCollection: Successfully removed card from collection")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+}
+
 // Helper functions to read and write collection file
 func readCollectionFile() (struct {
 	User models.User `json:"user"`

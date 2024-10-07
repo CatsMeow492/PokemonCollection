@@ -282,3 +282,19 @@ export const deleteCollection = async (userId, collectionName) => {
         throw error;
     }
 };
+
+export const removeCardFromCollection = async (userId, collectionName, cardId) => {
+    if (verbose) console.log(`Removing card from collection: ${userId}, ${collectionName}, ${cardId}`);
+    const response = await fetch(`/api/cards/remove/${userId}/${collectionName}/${cardId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to remove card from collection');
+    }
+
+    return response.json();
+};

@@ -188,14 +188,24 @@
 }
 
 .card-actions {
-    position: absolute;
     bottom: .5%;
+    left: 0;
     right: 0;
-    gap: -3px;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
-    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.card-actions .left-group {
+    display: flex;
+    align-items: center;
+}
+
+.card-actions .right-group {
+    display: flex;
+    align-items: center;
+    gap: -3px;
 }
 
 .card-actions .add-button {
@@ -204,6 +214,11 @@
 
 .card-actions .remove-button {
     color: #f44336;
+}
+
+.card-actions .delete-button {
+    color: #f44336;
+    
 }
 
 /* Add these styles to your existing CardList.css file */

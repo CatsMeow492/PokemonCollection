@@ -1,5 +1,17 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { Container, Typography, Grid, Card, CardMedia, CardContent, IconButton, Button, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { 
+    Container, 
+    Typography, 
+    Grid, 
+    Card, 
+    CardMedia, 
+    CardContent, 
+    IconButton, 
+    Button, 
+    TextField, 
+    FormControl, 
+    InputLabel, Select, MenuItem } from '@mui/material';
+import ClearIcon from '@mui/icons-material/Clear';
 import AddCardModal from '../modals/AddCardModal';
 import ManageCollectionsModal from '../modals/ManageCollectionsModal';
 import '../styles/CardList.css';
@@ -11,7 +23,8 @@ import {
     updateCardQuantity, 
     fetchCollectionsByUserID,
     createCollection,
-    deleteCollection
+    deleteCollection,
+    removeCardFromCollection
 } from '../utils/apiUtils';
 import ArrowCircleUpTwoToneIcon from '@mui/icons-material/ArrowCircleUpTwoTone';
 import ArrowCircleDownTwoToneIcon from '@mui/icons-material/ArrowCircleDownTwoTone';
@@ -43,25 +56,25 @@ const CardList = () => {
         }
 
         setLoading(true);
-        fetchCardsByUserID(id)
-            .then(data => {
-                const { cards } = processFetchedCards(data, verbose);
-                setCards(cards);
-            })
-            .catch(error => {
-                console.error('Error fetching cards:', error);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-
         fetchCollectionsByUserID(id)
             .then(data => {
-                setCollections(data || []); // Ensure collections is set to an array
-                if (verbose) console.log('Fetched collections:', data);
+                setCollections(data || []); // Set collections
+                if (verbose) console.log('Fetched collections in CardList.js:', data);
+                
+                // Extract all cards from all collections
+                const allCards = data.flatMap(collection => 
+                    collection.cards.map(card => ({
+                        ...card,
+                        collectionName: collection.collectionName
+                    }))
+                );
+                setCards(allCards);
             })
             .catch(error => {
                 console.error('Error fetching collections:', error);
+            })
+            .finally(() => {
+                setLoading(false);
             });
     }, [id, verbose]);
 
@@ -201,41 +214,25 @@ const CardList = () => {
         const collectionName = e.target.value;
         setSelectedCollection(collectionName);
 
-        if (!id) {
-            console.error('User ID is undefined');
-            return;
-        }
-
-        setLoading(true);
-
         if (collectionName === 'all') {
-            // Fetch all cards if "All Cards" is selected
-            fetchCardsByUserID(id)
-                .then(data => {
-                    const { cards } = processFetchedCards(data, verbose);
-                    setCards(cards);
-                })
-                .catch(error => {
-                    console.error('Error fetching all cards:', error);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+            // Show all cards
+            const allCards = collections.flatMap(collection => 
+                collection.cards.map(card => ({
+                    ...card,
+                    collectionName: collection.collectionName
+                }))
+            );
+            setCards(allCards);
         } else {
-            // Fetch cards for the selected collection
-            fetch(`/api/collections/${id}/${collectionName}`)
-                .then(response => response.json())
-                .then(data => {
-                    const { collection } = data;
-                    const { cards } = processFetchedCards(collection, verbose);
-                    setCards(cards);
-                })
-                .catch(error => {
-                    console.error('Error fetching cards for collection:', error);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+            // Show cards for the selected collection
+            const selectedCollectionData = collections.find(c => c.collectionName === collectionName);
+            if (selectedCollectionData) {
+                const collectionCards = selectedCollectionData.cards.map(card => ({
+                    ...card,
+                    collectionName
+                }));
+                setCards(collectionCards);
+            }
         }
     };
 
@@ -257,6 +254,36 @@ const CardList = () => {
             // Handle error (e.g., show error message)
         }
     };
+
+    const handleRemoveCardFromCollection = async (userId, collectionName, cardId) => {
+        try {
+            await removeCardFromCollection(userId, collectionName, cardId);
+            
+            // Update the collections state
+            setCollections(prevCollections => 
+                prevCollections.map(collection => {
+                    if (collection.collectionName === collectionName) {
+                        return {
+                            ...collection,
+                            cards: collection.cards.filter(card => card.id !== cardId)
+                        };
+                    }
+                    return collection;
+                })
+            );
+
+            // Update the cards state
+            setCards(prevCards => prevCards.filter(card => card.id !== cardId));
+
+            // Update the cardsWithMarketPrice state
+            setCardsWithMarketPrice(prevCards => prevCards.filter(card => card.id !== cardId));
+
+        } catch (error) {
+            console.error('Failed to remove card from collection:', error);
+            // Handle error (e.g., show error message)
+        }
+    };
+    
 
     const handleDeleteCollection = async (userId, collectionName) => {
         try {
@@ -378,15 +405,22 @@ const CardList = () => {
                                             Market Price: ${card.marketPrice ? card.marketPrice.toFixed(2) : 'N/A'}
                                         </Typography>
                                     )}
-                                </CardContent>
-                                <div className="card-actions">
+                                    <div className="card-actions">
+                                    <div className="left-group">
+                                    <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveCardFromCollection(id, card.collectionName, card.id)}>
+                                            <ClearIcon />
+                                        </IconButton>
+                                    </div>
+                                    <div className="right-group">
                                     <IconButton size="small" color="primary" className="add-button" onClick={() => handleIncrementQuantity(index)}>
                                         <ArrowCircleUpTwoToneIcon />
                                     </IconButton>
                                     <IconButton size="small" color="primary" className="remove-button" onClick={() => handleDecrementQuantity(index)}>
-                                        <ArrowCircleDownTwoToneIcon />
-                                    </IconButton>
-                                </div>
+                                            <ArrowCircleDownTwoToneIcon />
+                                        </IconButton>
+                                        </div>
+                                    </div>
+                                </CardContent>
                             </Card>
                         </Grid>
                     );
