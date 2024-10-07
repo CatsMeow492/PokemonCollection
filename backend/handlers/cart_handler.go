@@ -94,8 +94,11 @@ func UpdateCartItem(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["user_id"]
 
-	var item models.CartItem
-	err := json.NewDecoder(r.Body).Decode(&item)
+	var updateRequest struct {
+		ProductID int `json:"ProductID"`
+		Quantity  int `json:"Quantity"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&updateRequest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -108,11 +111,11 @@ func UpdateCartItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i, cartItem := range cart.Items {
-		if cartItem.ProductID == item.ProductID {
-			cart.Items[i].Quantity = item.Quantity
+		if cartItem.ProductID == updateRequest.ProductID {
+			cart.Items[i].Quantity = updateRequest.Quantity
 			userCarts[userID] = cart
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(cart)
+			json.NewEncoder(w).Encode(cart.Items)
 			return
 		}
 	}
@@ -124,8 +127,10 @@ func RemoveFromCart(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["user_id"]
 
-	var item models.CartItem
-	err := json.NewDecoder(r.Body).Decode(&item)
+	var request struct {
+		ProductID int `json:"ProductID"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -138,11 +143,11 @@ func RemoveFromCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i, cartItem := range cart.Items {
-		if cartItem.ProductID == item.ProductID {
+		if cartItem.ProductID == request.ProductID {
 			cart.Items = append(cart.Items[:i], cart.Items[i+1:]...)
 			userCarts[userID] = cart
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(cart)
+			json.NewEncoder(w).Encode(cart.Items)
 			return
 		}
 	}
