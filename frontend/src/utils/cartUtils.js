@@ -5,8 +5,9 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:800
 
 export const getCart = async (userId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/cart/${userId}`);
+        const response = await fetch(`${API_BASE_URL}/api/cart/${userId}`);
         if (!response.ok) throw new Error('Failed to fetch cart');
+        if (verbose) console.log('Cart fetched successfully in cartUtils.js:', response);
         return await response.json();
     } catch (error) {
         console.error('Error fetching cart:', error);
@@ -17,7 +18,7 @@ export const getCart = async (userId) => {
 export const addToCart = async (userId, productId, quantity) => {
     if (verbose) console.log(`In CartUtils.js: Adding item to cart for user_id: ${userId} - ProductID: ${productId}, Quantity: ${quantity}`);
     try {
-        const response = await fetch(`${API_BASE_URL}/cart/${userId}/add`, {
+        const response = await fetch(`${API_BASE_URL}/api/cart/${userId}/add`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -70,7 +71,12 @@ export const updateCartItem = async (userId, item) => {
 };
 
 export const getCartTotal = (cart) => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cart.reduce((total, item) => {
+        const price = typeof item.Price === 'string' 
+            ? parseFloat(item.Price.replace('$', '')) 
+            : (typeof item.price === 'number' ? item.price : 0);
+        return total + price * (item.Quantity || item.quantity || 0);
+    }, 0).toFixed(2);
 };
 
 export const getCartCount = (cart) => {

@@ -1,11 +1,11 @@
 package models
 
 type CartItem struct {
-	ProductID int    `json:"product_id"`
-	Quantity  int    `json:"quantity"`
-	Name      string `json:"name"`
-	Price     string `json:"price"`
-	Image     string `json:"image"`
+	ProductID int    `json:"ProductID"`
+	Quantity  int    `json:"Quantity"`
+	Name      string `json:"Name"`
+	Price     string `json:"Price"`
+	Image     string `json:"Image"`
 }
 
 type Cart struct {

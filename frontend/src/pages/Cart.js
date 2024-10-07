@@ -39,9 +39,17 @@ const Cart = () => {
     if (userId) {
       const cart = await getCart(userId);
       if (verbose) console.log('Fetched cart:', cart);
-      setCartItems(cart);
-      setCartCount(getCartCount(cart));
-      setCartTotal(getCartTotal(cart));
+      // Ensure cart items are in the correct format
+      const formattedCart = cart.map(item => ({
+        id: item.ProductID,
+        name: item.Name,
+        price: parseFloat(item.Price.replace('$', '')),
+        quantity: item.Quantity,
+        image: item.Image
+      }));
+      setCartItems(formattedCart);
+      setCartCount(getCartCount(formattedCart));
+      setCartTotal(getCartTotal(formattedCart));
     }
   };
 
@@ -97,7 +105,7 @@ const Cart = () => {
                     <TableCell component="th" scope="row">
                       <Box className="product-info">
                         <img src={item.image} alt={item.name} className="product-image" />
-                        <Typography>{item.name}</Typography>
+                        <Typography style={{ color: 'black' }}>{item.name}</Typography>
                       </Box>
                     </TableCell>
                     <TableCell align="right">${formatPrice(item.price)}</TableCell>
@@ -124,7 +132,7 @@ const Cart = () => {
             </Table>
           </TableContainer>
           <Box className="cart-summary">
-            <Typography variant="h5">Total: ${calculateTotal()}</Typography>
+            <Typography variant="h5">Total: ${formatPrice(cartTotal)}</Typography>
             <Button variant="contained" color="primary" className="checkout-button">
               Proceed to Checkout
             </Button>
