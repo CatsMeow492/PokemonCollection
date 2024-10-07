@@ -1,7 +1,7 @@
 import config from '../config';
 const verbose = config;
 // Load base url from .env
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
 export const fetchMarketPrice = async (cardName, cardId, edition, grade) => {
     try {
@@ -153,21 +153,27 @@ export const fetchProductByID = async (id) => {
 };
 
 export const updateCardQuantity = async (cardId, newQuantity, collectionName, userId) => {
-    if (verbose) console.log(`Updating quantity for card with ID: ${cardId} to ${newQuantity} in collection: ${collectionName}`);
-    const response = await fetch(`/api/cards/quantity?id=${cardId}`, {
+    console.log(`Updating quantity for card with ID: ${cardId} to ${newQuantity} in collection: ${collectionName} for user: ${userId}`);
+    const response = await fetch(`${API_BASE_URL}/api/cards/quantity`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            user_id: userId, // Add user ID
-            collection_name: collectionName, // Add collection name
+            user_id: userId,
+            collection_name: collectionName,
+            card_id: cardId,
             quantity: newQuantity
         }),
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+
     if (!response.ok) {
-        throw new Error('Failed to update card quantity');
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to update card quantity: ${errorText}`);
     }
 
     return response.json();

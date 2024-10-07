@@ -178,7 +178,7 @@ const CardList = () => {
             return;
         }
         try {
-            const updatedCard = await updateCardQuantity(card.id, card.quantity + 1, selectedCollection, id); // Pass userId (id)
+            const updatedCard = await updateCardQuantity(card.id, card.quantity + 1, card.collectionName, id); // Pass userId (id)
             const updatedCards = [...cardsWithMarketPrice];
             updatedCards[index] = { ...card, ...updatedCard }; // Merge the updated card data
             setCardsWithMarketPrice(updatedCards);
@@ -196,14 +196,14 @@ const CardList = () => {
             console.log("New quantity: ", cardsWithMarketPrice[index]?.quantity - 1);
         }
         const card = cardsWithMarketPrice[index];
-        if (!card || !card.id || !selectedCollection) {
-            console.error('Card ID or collection name is undefined or card data is missing:', card);
+        if (!card || !card.id) {
+            console.error('Card ID is undefined or card data is missing:', card);
             return;
         }
         try {
-            const updatedCard = await updateCardQuantity(card.id, card.quantity - 1, selectedCollection, id); // Ensure collectionName and userId are passed
+            const updatedCard = await updateCardQuantity(card.id, card.quantity - 1, card.collectionName, id); // Pass userId (id)
             const updatedCards = [...cardsWithMarketPrice];
-            updatedCards[index] = { ...card, ...updatedCard };
+            updatedCards[index] = { ...card, ...updatedCard }; // Merge the updated card data
             setCardsWithMarketPrice(updatedCards);
         } catch (error) {
             console.error('Failed to decrement quantity: ', error);

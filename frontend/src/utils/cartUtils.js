@@ -1,7 +1,7 @@
 import config from '../config';
 const verbose = config.verbose;
 
-const API_BASE_URL = '/api'; // Adjust this if your API is hosted elsewhere
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
 export const getCart = async (userId) => {
     try {
