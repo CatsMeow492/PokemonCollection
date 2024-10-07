@@ -43,72 +43,65 @@ func GetCardsByUserIDAndCollectionName(w http.ResponseWriter, r *http.Request, u
 }
 
 func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
-	cardID := r.URL.Query().Get("id")
-	if cardID == "" {
-		http.Error(w, "Missing card ID", http.StatusBadRequest)
-		return
-	}
-
+	log.Println("UpdateCardQuantity handler called")
 	var requestBody struct {
 		UserID         string `json:"user_id"`
 		CollectionName string `json:"collection_name"`
+		CardID         string `json:"card_id"`
 		Quantity       int    `json:"quantity"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		log.Printf("Error decoding request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+	log.Printf("Received request to update card: UserID=%s, CollectionName=%s, CardID=%s, Quantity=%d",
+		requestBody.UserID, requestBody.CollectionName, requestBody.CardID, requestBody.Quantity)
 
 	// Read collection.json
-	file, err := ioutil.ReadFile("collection.json")
+	data, err := readCollectionFile()
 	if err != nil {
-		log.Fatalf("Error reading collection.json: %v", err)
+		log.Printf("Error reading collection file: %v", err)
+		http.Error(w, "Error reading collection file", http.StatusInternalServerError)
+		return
 	}
 
-	var data struct {
-		User models.User `json:"user"`
-	}
-	if err := json.Unmarshal(file, &data); err != nil {
-		log.Fatalf("Error unmarshalling collection.json: %v", err)
+	// Check if the user ID matches
+	if data.User.ID != requestBody.UserID {
+		log.Printf("User ID mismatch: %s != %s", data.User.ID, requestBody.UserID)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
 	}
 
 	var updatedCard *models.Card
 	for i, collection := range data.User.Collections {
 		if collection.CollectionName == requestBody.CollectionName {
 			for j, card := range collection.Collection {
-				if card.ID == cardID {
+				if card.ID == requestBody.CardID {
 					data.User.Collections[i].Collection[j].Quantity = requestBody.Quantity
 					updatedCard = &data.User.Collections[i].Collection[j]
+					log.Printf("Updated card quantity: %+v", updatedCard)
 					break
 				}
 			}
 		}
+		if updatedCard != nil {
+			break
+		}
 	}
 
 	if updatedCard == nil {
+		log.Printf("Card not found: UserID=%s, CollectionName=%s, CardID=%s",
+			requestBody.UserID, requestBody.CollectionName, requestBody.CardID)
 		http.Error(w, "Card not found", http.StatusNotFound)
 		return
 	}
 
-	// Check if the image is available in the cache
-	if updatedCard.Image == "" {
-		// Fetch the image using card_service
-		fetchedCard, err := services.FetchCard(os.Getenv("POKEMON_TCG_API_KEY"), updatedCard.ID)
-		if err != nil {
-			log.Printf("Error fetching card %s: %v", updatedCard.ID, err)
-			http.Error(w, "Error fetching card image", http.StatusInternalServerError)
-			return
-		}
-		updatedCard.Image = fetchedCard.Image
-	}
-
 	// Write updated collection back to file
-	updatedFile, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		log.Fatalf("Error marshalling updated collection: %v", err)
-	}
-	if err := ioutil.WriteFile("collection.json", updatedFile, 0644); err != nil {
-		log.Fatalf("Error writing updated collection to file: %v", err)
+	if err := writeCollectionFile(data); err != nil {
+		log.Printf("Error writing to collection file: %v", err)
+		http.Error(w, "Error writing to collection file", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

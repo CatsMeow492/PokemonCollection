@@ -98,7 +98,8 @@ func main() {
 		products := handlers.GetAllProducts()
 		json.NewEncoder(w).Encode(products)
 	}).Methods("GET")
-	r.HandleFunc("/api/cards/quantity", handlers.UpdateCardQuantity).Methods("PUT") // Ensure the method is specified
+	r.HandleFunc("/api/cards/quantity", handlers.UpdateCardQuantity).Methods("PUT")
+	log.Println("Registered PUT /api/cards/quantity route")
 
 	// Cart endpoints
 	r.HandleFunc("/api/cart/{user_id}", handlers.GetCart).Methods("GET")
