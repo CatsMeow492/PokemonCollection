@@ -60,6 +60,7 @@ func main() {
 			println("No user ID provided")
 		}
 	}).Methods("GET")
+	r.HandleFunc("/api/cards/remove/{user_id}/{collection_name}/{card_id}", handlers.RemoveCardFromCollectionWithUserIDAndCollection).Methods("DELETE")
 
 	// Collections
 	r.HandleFunc("/api/collections/{user_id}", handlers.GetCollectionsByUserID).Methods("GET")
