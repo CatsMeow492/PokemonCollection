@@ -1,5 +1,7 @@
 import config from '../config';
 const verbose = config;
+// Load base url from .env
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000';
 
 export const fetchMarketPrice = async (cardName, cardId, edition, grade) => {
     try {
@@ -284,12 +286,10 @@ export const deleteCollection = async (userId, collectionName) => {
 };
 
 export const removeCardFromCollection = async (userId, collectionName, cardId) => {
+    const encodedCollectionName = encodeURIComponent(collectionName);
     if (verbose) console.log(`Removing card from collection: ${userId}, ${collectionName}, ${cardId}`);
-    const response = await fetch(`/api/cards/remove/${userId}/${collectionName}/${cardId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/cards/remove/${userId}/${encodedCollectionName}/${cardId}`, {
         method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-        },
     });
 
     if (!response.ok) {

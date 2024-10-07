@@ -210,33 +210,12 @@
             "image": "https://images.pokemontcg.io/base1/12_hires.png",
             "quantity": 1,
             "id": "base1-12"
-          },
-          {
-            "name": "Bulbasaur",
-            "edition": "Base",
-            "set": "base1",
-            "grade": 10,
-            "price": 15,
-            "image": "https://images.pokemontcg.io/base1/44_hires.png",
-            "quantity": 1,
-            "id": "base1-44"
           }
         ]
       },
       {
         "collectionName": "Taylor's Collection 2",
-        "collection": [
-          {
-            "name": "Haunter",
-            "edition": "Fossil",
-            "set": "base3",
-            "grade": "10",
-            "price": 259.99,
-            "image": "https://images.pokemontcg.io/base3/6_hires.png",
-            "quantity": 1,
-            "id": "base3-6"
-          }
-        ]
+        "collection": []
       }
     ]
   }

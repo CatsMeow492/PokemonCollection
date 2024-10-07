@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 var jwtKey []byte
@@ -107,7 +108,23 @@ func main() {
 
 	// Serve images from the "images" directory
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("./images"))))
-	log.Println("Server is running on port 8000")
-	log.Println("JWT Key:", jwtKey)
-	log.Fatal(http.ListenAndServe(":8000", r))
+
+	// Add this before wrapping your router with the CORS handler
+	r.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// Create a new CORS handler
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"}, // Allow requests from your frontend
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"}, // Allow all headers
+		AllowCredentials: true,
+	})
+
+	// Wrap your router with the CORS handler
+	handler := c.Handler(r)
+
+	log.Println("Server is running on :8000")
+	log.Fatal(http.ListenAndServe(":8000", handler))
 }

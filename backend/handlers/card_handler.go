@@ -371,18 +371,13 @@ func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 }
 
 func RemoveCardFromCollectionWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["user_id"]
+	collectionName := vars["collection_name"]
+	cardID := vars["card_id"]
+
 	log.Println("removeCardFromCollectionWithUserIDAndCollection: Starting function")
-	var requestBody struct {
-		UserID         string `json:"user_id"`
-		CollectionName string `json:"collection_name"`
-		CardID         string `json:"card_id"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
-		log.Printf("removeCardFromCollectionWithUserIDAndCollection: Error decoding request body: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	log.Printf("removeCardFromCollectionWithUserIDAndCollection: Received request to remove card with ID: %s from collection: %s for user ID: %s", requestBody.CardID, requestBody.CollectionName, requestBody.UserID)
+	log.Printf("removeCardFromCollectionWithUserIDAndCollection: Received request to remove card with ID: %s from collection: %s for user ID: %s", cardID, collectionName, userID)
 
 	data, err := readCollectionFile()
 	if err != nil {
@@ -393,12 +388,12 @@ func RemoveCardFromCollectionWithUserIDAndCollection(w http.ResponseWriter, r *h
 
 	collectionFound := false
 	for i, collection := range data.User.Collections {
-		if collection.CollectionName == requestBody.CollectionName {
+		if collection.CollectionName == collectionName {
 			for j, card := range collection.Collection {
-				if card.ID == requestBody.CardID {
+				if card.ID == cardID {
 					data.User.Collections[i].Collection = append(data.User.Collections[i].Collection[:j], data.User.Collections[i].Collection[j+1:]...)
 					collectionFound = true
-					log.Printf("removeCardFromCollectionWithUserIDAndCollection: Successfully removed card with ID: %s from collection: %s", requestBody.CardID, requestBody.CollectionName)
+					log.Printf("removeCardFromCollectionWithUserIDAndCollection: Successfully removed card with ID: %s from collection: %s", cardID, collectionName)
 					break
 				}
 			}
@@ -409,7 +404,7 @@ func RemoveCardFromCollectionWithUserIDAndCollection(w http.ResponseWriter, r *h
 	}
 
 	if !collectionFound {
-		log.Printf("removeCardFromCollectionWithUserIDAndCollection: Collection not found: %s", requestBody.CollectionName)
+		log.Printf("removeCardFromCollectionWithUserIDAndCollection: Collection not found: %s", collectionName)
 		http.Error(w, "Collection not found", http.StatusNotFound)
 		return
 	}
