@@ -304,3 +304,55 @@ export const removeCardFromCollection = async (userId, collectionName, cardId) =
 
     return response.json();
 };
+
+export const addItemToCollection = async (userId, itemName, itemGrade, edition, collectionName, price) => {
+    const url = `/api/items/${userId}/${encodeURIComponent(collectionName)}`;
+    if (verbose) console.log('Sending POST request to:', url);
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            item_name: itemName, 
+            item_grade: itemGrade, 
+            edition: edition, 
+            price: price 
+        }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to add item: ${response.status} ${response.statusText}. ${errorText}`);
+    }
+
+    return response.json();
+};
+
+export const removeItemFromCollection = async (userId, collectionName, itemName) => {
+    const encodedCollectionName = encodeURIComponent(collectionName);
+    if (verbose) console.log(`Removing item from collection: ${userId}, ${collectionName}, ${itemName}`);
+    const response = await fetch(`${API_BASE_URL}/api/items/${userId}/${encodedCollectionName}/${itemName}`, {
+        method: 'DELETE',
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to remove item from collection');
+    }
+
+    return response.json();
+};
+
+export const fetchItemMarketPrice = async (itemName, itemEdition, grade) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/item-market-price?item_name=${encodeURIComponent(itemName)}&item_edition=${encodeURIComponent(itemEdition)}&grade=${encodeURIComponent(grade)}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch item market price');
+        }
+        const data = await response.json();
+        return data.market_price;
+    } catch (error) {
+        console.error('Error fetching item market price:', error);
+        return null;
+    }
+};

@@ -5,6 +5,10 @@ import (
 	"io/ioutil"
 )
 
+type CollectionData struct {
+	User User `json:"user"`
+}
+
 type Card struct {
 	Name     string      `json:"name"`
 	Edition  string      `json:"edition"`
@@ -19,6 +23,7 @@ type Card struct {
 type Collection struct {
 	CollectionName string `json:"collectionName"`
 	Collection     []Card `json:"collection"`
+	Items          []Item `json:"items"`
 }
 
 func FetchCollectionsByUserID(userID string) ([]Collection, error) {
@@ -27,9 +32,7 @@ func FetchCollectionsByUserID(userID string) ([]Collection, error) {
 		return nil, err
 	}
 
-	var data struct {
-		User User `json:"user"`
-	}
+	var data CollectionData
 	if err := json.Unmarshal(file, &data); err != nil {
 		return nil, err
 	}

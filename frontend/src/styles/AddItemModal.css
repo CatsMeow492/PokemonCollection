@@ -1,0 +1,51 @@
+.add-item-modal .MuiDialog-paper {
+    background-color: white;
+    color: #333;
+}
+
+.add-item-modal .modal-content {
+    padding: 20px;
+}
+
+.add-item-modal .modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #1976d2;
+}
+
+.add-item-modal .form-field {
+    margin-bottom: 16px;
+}
+
+.add-item-modal .submit-button {
+    margin-top: 16px;
+}
+
+/* Override Material-UI styles */
+.add-item-modal .MuiInputLabel-root,
+.add-item-modal .MuiInputBase-input,
+.add-item-modal .MuiSelect-select,
+.add-item-modal .MuiMenuItem-root {
+    color: #333 !important;
+}
+
+.add-item-modal .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 0, 0, 0.23) !important;
+}
+
+.add-item-modal .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.add-item-modal .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #1976d2 !important;
+}
+
+.add-item-modal .MuiButton-root {
+    color: #1976d2;
+}
+
+.add-item-modal .MuiButton-root:hover {
+    background-color: rgba(25, 118, 210, 0.04);
+}
