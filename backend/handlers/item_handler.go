@@ -99,10 +99,10 @@ func AddItemWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 	log.Printf("AddItemWithUserIDAndCollection: Received request to add item to collection: %s for user ID: %s", collectionName, userID)
 
 	var itemData struct {
-		ItemName  string  `json:"item_name"`
-		ItemGrade string  `json:"item_grade"`
-		Edition   string  `json:"edition"`
-		Price     float64 `json:"price"`
+		Name    string  `json:"name"`
+		Grade   string  `json:"grade"` // Changed from string to int
+		Edition string  `json:"edition"`
+		Price   float64 `json:"price"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&itemData); err != nil {
@@ -115,9 +115,9 @@ func AddItemWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 
 	item := models.Item{
 		ID:       generateUniqueID(),
-		Name:     itemData.ItemName,
+		Name:     itemData.Name,
 		Edition:  itemData.Edition,
-		Grade:    itemData.ItemGrade,
+		Grade:    itemData.Grade, // Convert int to string
 		Price:    itemData.Price,
 		Quantity: 1,
 	}
