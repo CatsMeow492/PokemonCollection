@@ -10,7 +10,11 @@ import {
     Button, 
     TextField, 
     FormControl, 
-    InputLabel, Select, MenuItem } from '@mui/material';
+    InputLabel, 
+    Select, 
+    MenuItem,
+    Badge 
+} from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import AddCardModal from '../modals/AddCardModal';
 import ManageCollectionsModal from '../modals/ManageCollectionsModal';
@@ -520,8 +524,23 @@ const CardList = () => {
             <Grid container spacing={3}>
                 {filteredItems.map((item, index) => (
                     <Grid item xs={12} sm={6} md={4} lg={2.4} key={index}>
-                        <Card className="item" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
-                            <div className="quantity-bubble">{item.quantity}</div>
+                        <Card className="item" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.2)', position: 'relative' }}>
+                            <div style={{
+                                position: 'absolute',
+                                top: '5px',
+                                right: '5px',
+                                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                color: 'white',
+                                borderRadius: '50%',
+                                width: '24px',
+                                height: '24px',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                zIndex: 1,
+                            }}>
+                                {item.quantity}
+                            </div>
                             <div className="item-placeholder">
                                 <ShoppingBagIcon style={{ fontSize: 80, color: 'rgba(255, 255, 255, 0.7)' }} />
                             </div>
