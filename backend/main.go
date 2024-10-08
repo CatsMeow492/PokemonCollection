@@ -63,6 +63,13 @@ func main() {
 	}).Methods("GET")
 	r.HandleFunc("/api/cards/remove/{user_id}/{collection_name}/{card_id}", handlers.RemoveCardFromCollectionWithUserIDAndCollection).Methods("DELETE")
 
+	// Items
+	r.HandleFunc("/api/items/{user_id}/{collection_name}", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Endpoint hit: POST /api/items/{user_id}/{collection_name}")
+		handlers.AddItemWithUserIDAndCollection(w, r)
+	}).Methods("POST")
+	r.HandleFunc("/api/items/{user_id}/{collection_name}/{item_name}", handlers.RemoveItemFromCollectionWithUserIDAndCollection).Methods("DELETE")
+
 	// Collections
 	r.HandleFunc("/api/collections/{user_id}", handlers.GetCollectionsByUserID).Methods("GET")
 	r.HandleFunc("/api/collections/{user_id}/{collection_name}", func(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +91,7 @@ func main() {
 
 	r.HandleFunc("/api/market-price", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Market price endpoint hit")
-		handlers.MarketPriceHandler(w, r)
+		handlers.GetCardMarketPrice(w, r)
 	}).Methods("GET")
 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 	r.HandleFunc("/api/pokemon-names", handlers.GetPokemonNames).Methods("GET")
@@ -125,6 +132,8 @@ func main() {
 
 	// Wrap your router with the CORS handler
 	handler := c.Handler(r)
+
+	r.HandleFunc("/api/item-market-price", handlers.GetItemMarketPrice).Methods("GET")
 
 	log.Println("Server is running on :8000")
 	log.Fatal(http.ListenAndServe(":8000", handler))

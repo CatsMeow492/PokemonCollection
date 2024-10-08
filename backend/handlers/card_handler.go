@@ -10,6 +10,7 @@ import (
 
 	"github.com/CatsMeow492/PokemonCollection/models"
 	"github.com/CatsMeow492/PokemonCollection/services"
+	"github.com/CatsMeow492/PokemonCollection/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -59,7 +60,7 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 		requestBody.UserID, requestBody.CollectionName, requestBody.CardID, requestBody.Quantity)
 
 	// Read collection.json
-	data, err := readCollectionFile()
+	data, err := utils.ReadCollectionFile()
 	if err != nil {
 		log.Printf("Error reading collection file: %v", err)
 		http.Error(w, "Error reading collection file", http.StatusInternalServerError)
@@ -98,7 +99,7 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write updated collection back to file
-	if err := writeCollectionFile(data); err != nil {
+	if err := utils.WriteCollectionFile(data); err != nil {
 		log.Printf("Error writing to collection file: %v", err)
 		http.Error(w, "Error writing to collection file", http.StatusInternalServerError)
 		return
@@ -112,28 +113,50 @@ func GetCollectionsByUserID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["user_id"]
 
-	collections, err := models.FetchCollectionsByUserID(userID)
+	log.Printf("GetCollectionsByUserID: Fetching collections for user ID: %s", userID)
+
+	// Read collection.json
+	file, err := ioutil.ReadFile("collection.json")
 	if err != nil {
-		http.Error(w, "Error fetching collections", http.StatusInternalServerError)
+		log.Printf("GetCollectionsByUserID: Error reading collection.json: %v", err)
+		http.Error(w, "Error reading collection file", http.StatusInternalServerError)
 		return
 	}
 
-	if collections == nil {
-		http.Error(w, "No collections found for user", http.StatusNotFound)
+	var data struct {
+		User models.User `json:"user"`
+	}
+	if err := json.Unmarshal(file, &data); err != nil {
+		log.Printf("GetCollectionsByUserID: Error unmarshalling collection.json: %v", err)
+		http.Error(w, "Error processing collection data", http.StatusInternalServerError)
 		return
 	}
 
-	// Prepare response with collection name, collection ID, and all cards
+	if data.User.ID != userID {
+		log.Printf("GetCollectionsByUserID: User not found, ID: %s", userID)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Prepare response with collection name, cards, and items
 	response := []map[string]interface{}{}
-	for _, collection := range collections {
-		response = append(response, map[string]interface{}{
+	for _, collection := range data.User.Collections {
+		collectionData := map[string]interface{}{
 			"collectionName": collection.CollectionName,
 			"cards":          collection.Collection,
-		})
+			"items":          collection.Items,
+		}
+		response = append(response, collectionData)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("GetCollectionsByUserID: Error encoding response: %v", err)
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("GetCollectionsByUserID: Successfully fetched collections for user ID: %s", userID)
 }
 
 func GetCollectionByUserIDandCollectionName(w http.ResponseWriter, r *http.Request, userID string, collectionName string) {
@@ -240,7 +263,7 @@ func AddCardWithUserID(w http.ResponseWriter, r *http.Request) {
 	newCard.Card.Image = fetchedCard.Image
 	// Add any other fields you want to update from the API response
 
-	data, err := readCollectionFile()
+	data, err := utils.ReadCollectionFile()
 	if err != nil {
 		log.Printf("AddCardWithUserID: Error reading collection file: %v", err)
 		http.Error(w, "Error reading collection file", http.StatusInternalServerError)
@@ -265,7 +288,7 @@ func AddCardWithUserID(w http.ResponseWriter, r *http.Request) {
 		data.User.Collections[0].Collection = append(data.User.Collections[0].Collection, newCard.Card)
 	}
 
-	if err := writeCollectionFile(data); err != nil {
+	if err := utils.WriteCollectionFile(data); err != nil {
 		log.Printf("AddCardWithUserID: Error writing to collection file: %v", err)
 		http.Error(w, "Error writing to collection file", http.StatusInternalServerError)
 		return
@@ -320,7 +343,7 @@ func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("AddCardWithUserIDAndCollection: Merged card data: %+v", mergedCard)
 
-	data, err := readCollectionFile()
+	data, err := utils.ReadCollectionFile()
 	if err != nil {
 		log.Printf("AddCardWithUserIDAndCollection: Error reading collection file: %v", err)
 		http.Error(w, "Error reading collection file", http.StatusInternalServerError)
@@ -352,7 +375,7 @@ func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 		log.Printf("AddCardWithUserIDAndCollection: Created new collection: %s", newCard.CollectionName)
 	}
 
-	if err := writeCollectionFile(data); err != nil {
+	if err := utils.WriteCollectionFile(data); err != nil {
 		log.Printf("AddCardWithUserIDAndCollection: Error writing to collection file: %v", err)
 		http.Error(w, "Error writing to collection file", http.StatusInternalServerError)
 		return
@@ -372,7 +395,7 @@ func RemoveCardFromCollectionWithUserIDAndCollection(w http.ResponseWriter, r *h
 	log.Println("removeCardFromCollectionWithUserIDAndCollection: Starting function")
 	log.Printf("removeCardFromCollectionWithUserIDAndCollection: Received request to remove card with ID: %s from collection: %s for user ID: %s", cardID, collectionName, userID)
 
-	data, err := readCollectionFile()
+	data, err := utils.ReadCollectionFile()
 	if err != nil {
 		log.Printf("removeCardFromCollectionWithUserIDAndCollection: Error reading collection file: %v", err)
 		http.Error(w, "Error reading collection file", http.StatusInternalServerError)
@@ -402,7 +425,7 @@ func RemoveCardFromCollectionWithUserIDAndCollection(w http.ResponseWriter, r *h
 		return
 	}
 
-	if err := writeCollectionFile(data); err != nil {
+	if err := utils.WriteCollectionFile(data); err != nil {
 		log.Printf("removeCardFromCollectionWithUserIDAndCollection: Error writing to collection file: %v", err)
 		http.Error(w, "Error writing to collection file", http.StatusInternalServerError)
 		return
@@ -411,44 +434,4 @@ func RemoveCardFromCollectionWithUserIDAndCollection(w http.ResponseWriter, r *h
 	log.Println("removeCardFromCollectionWithUserIDAndCollection: Successfully removed card from collection")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]bool{"success": true})
-}
-
-// Helper functions to read and write collection file
-func readCollectionFile() (struct {
-	User models.User `json:"user"`
-}, error) {
-	log.Println("readCollectionFile: Starting to read collection file")
-	var data struct {
-		User models.User `json:"user"`
-	}
-	file, err := ioutil.ReadFile("collection.json")
-	if err != nil {
-		log.Printf("readCollectionFile: Error reading file: %v", err)
-		return data, err
-	}
-	err = json.Unmarshal(file, &data)
-	if err != nil {
-		log.Printf("readCollectionFile: Error unmarshalling data: %v", err)
-	} else {
-		log.Printf("readCollectionFile: Successfully read data for user ID: %s", data.User.ID)
-	}
-	return data, err
-}
-
-func writeCollectionFile(data struct {
-	User models.User `json:"user"`
-}) error {
-	log.Println("writeCollectionFile: Starting to write collection file")
-	updatedData, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		log.Printf("writeCollectionFile: Error marshalling data: %v", err)
-		return err
-	}
-	err = ioutil.WriteFile("collection.json", updatedData, 0644)
-	if err != nil {
-		log.Printf("writeCollectionFile: Error writing file: %v", err)
-	} else {
-		log.Println("writeCollectionFile: Successfully wrote data to file")
-	}
-	return err
 }

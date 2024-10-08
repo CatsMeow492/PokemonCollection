@@ -1,0 +1,48 @@
+.add-item-form {
+    padding: 20px;
+}
+
+.add-item-form h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #1976d2;
+}
+
+.add-item-form .MuiTextField-root,
+.add-item-form .MuiFormControl-root {
+    margin-bottom: 16px;
+}
+
+.add-item-form .MuiButton-root {
+    margin-top: 16px;
+}
+
+/* Override Material-UI styles */
+.add-item-form .MuiInputLabel-root,
+.add-item-form .MuiInputBase-input,
+.add-item-form .MuiSelect-select,
+.add-item-form .MuiMenuItem-root {
+    color: #333 !important;
+}
+
+.add-item-form .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 0, 0, 0.23) !important;
+}
+
+.add-item-form .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.add-item-form .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #1976d2 !important;
+}
+
+.add-item-form .MuiButton-root {
+    color: #fff;
+    background-color: #1976d2;
+}
+
+.add-item-form .MuiButton-root:hover {
+    background-color: #1565c0;
+}

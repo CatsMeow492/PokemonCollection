@@ -27,13 +27,39 @@ func GetMarketPrice(cardName, cardId, edition, grade string) (float64, error) {
 
 	// Add new data
 	newData := data.MarketData{
-		CardID:    cardId,
+		ID:        cardId,
 		Price:     price,
 		FetchedAt: time.Now(),
 	}
 	store.AddMarketData(newData)
 
 	// Save updated market data
+	err = data.SaveMarketData(store)
+	if err != nil {
+		fmt.Printf("Error saving market data: %v\n", err)
+	}
+
+	return price, nil
+}
+
+func GetItemMarketPrice(itemName, itemGrade string) (float64, error) {
+	store, err := data.LoadMarketData()
+	if err != nil {
+		return 0, err
+	}
+
+	price, err := fetchMarketPrice(itemName, itemGrade, "", "")
+	if err != nil {
+		return 0, err
+	}
+
+	newData := data.MarketData{
+		ID:        itemName,
+		Price:     price,
+		FetchedAt: time.Now(),
+	}
+	store.AddMarketData(newData)
+
 	err = data.SaveMarketData(store)
 	if err != nil {
 		fmt.Printf("Error saving market data: %v\n", err)

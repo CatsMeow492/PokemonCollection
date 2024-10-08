@@ -2,12 +2,17 @@ package data
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"time"
 )
 
 type MarketData struct {
-	CardID    string    `json:"card_id"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Type      string    `json:"type"` // "card" or "item"
+	Edition   string    `json:"edition,omitempty"`
+	Grade     string    `json:"grade,omitempty"`
 	Price     float64   `json:"price"`
 	FetchedAt time.Time `json:"fetched_at"`
 }
@@ -42,3 +47,26 @@ func SaveMarketData(store MarketDataStore) error {
 func (store *MarketDataStore) AddMarketData(newData MarketData) {
 	store.Data = append(store.Data, newData)
 }
+
+func (store *MarketDataStore) GetLatestPrice(itemType, name, edition, grade string) (float64, error) {
+	var latestData MarketData
+	var found bool
+
+	for _, data := range store.Data {
+		if data.Type == itemType && data.Name == name &&
+			data.Edition == edition && data.Grade == grade {
+			if !found || data.FetchedAt.After(latestData.FetchedAt) {
+				latestData = data
+				found = true
+			}
+		}
+	}
+
+	if !found {
+		return 0, ErrNoDataFound
+	}
+
+	return latestData.Price, nil
+}
+
+var ErrNoDataFound = errors.New("no market data found for the specified item")
