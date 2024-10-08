@@ -68,7 +68,7 @@ func main() {
 		log.Printf("Endpoint hit: POST /api/items/{user_id}/{collection_name}")
 		handlers.AddItemWithUserIDAndCollection(w, r)
 	}).Methods("POST")
-	r.HandleFunc("/api/items/{user_id}/{collection_name}/{item_name}", handlers.RemoveItemFromCollectionWithUserIDAndCollection).Methods("DELETE")
+	r.HandleFunc("/api/items/{user_id}/{collection_name}/{item_id}", handlers.RemoveItemFromCollectionWithUserIDAndCollection).Methods("DELETE")
 
 	// Collections
 	r.HandleFunc("/api/collections/{user_id}", handlers.GetCollectionsByUserID).Methods("GET")

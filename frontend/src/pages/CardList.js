@@ -346,7 +346,14 @@ const CardList = () => {
         }
         try {
             if (verbose) console.log('Attempting to add item in CardList.js:', newItem);
-            const addedItem = await addItemToCollection(id, newItem.item_name, newItem.item_grade, newItem.edition, newItem.collectionName, newItem.price);
+            const addedItem = await addItemToCollection(
+                id, 
+                newItem.name,  // Changed from item_name
+                newItem.grade, // Changed from item_grade
+                newItem.edition,
+                newItem.collectionName,
+                newItem.price
+            );
             if (verbose) console.log('Item added successfully in CardList.js:', addedItem);
             setCards(prevCards => [...prevCards, addedItem]);
             setAddItemModalOpen(false);

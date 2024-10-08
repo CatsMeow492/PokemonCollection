@@ -305,22 +305,29 @@ export const removeCardFromCollection = async (userId, collectionName, cardId) =
     return response.json();
 };
 
-export const addItemToCollection = async (userId, itemName, itemGrade, edition, collectionName, price) => {
+export const addItemToCollection = async (userId, name, grade, edition, collectionName, price) => {
     const url = `/api/items/${userId}/${encodeURIComponent(collectionName)}`;
-    if (verbose) console.log('Sending POST request to:', url);
+    if (verbose) {
+        console.log('Sending POST request to in apiUtils:', url);
+        console.log('Sending POST request to in apiUtils:', JSON.stringify({ 
+            name: name, 
+            grade: grade, 
+            edition: edition, 
+            price: price 
+        }));
+    }
     const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-            item_name: itemName, 
-            item_grade: itemGrade, 
+            name: name, 
+            grade: grade.toString(), 
             edition: edition, 
             price: price 
         }),
     });
-
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to add item: ${response.status} ${response.statusText}. ${errorText}`);
@@ -329,10 +336,11 @@ export const addItemToCollection = async (userId, itemName, itemGrade, edition, 
     return response.json();
 };
 
-export const removeItemFromCollection = async (userId, collectionName, itemName) => {
+export const removeItemFromCollection = async (userId, collectionName, itemId) => {
     const encodedCollectionName = encodeURIComponent(collectionName);
-    if (verbose) console.log(`Removing item from collection: ${userId}, ${collectionName}, ${itemName}`);
-    const response = await fetch(`${API_BASE_URL}/api/items/${userId}/${encodedCollectionName}/${itemName}`, {
+    const encodedItemId = encodeURIComponent(itemId);
+    if (verbose) console.log(`Removing item from collection: ${userId}, ${collectionName}, ${itemId}`);
+    const response = await fetch(`${API_BASE_URL}/api/items/${userId}/${encodedCollectionName}/${encodedItemId}`, {
         method: 'DELETE',
     });
 
