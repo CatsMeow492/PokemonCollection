@@ -212,16 +212,7 @@
             "id": "base1-12"
           }
         ],
-        "items": [
-          {
-            "id": "f2481f3b-45d8-48df-ab7e-921656d3cd90",
-            "name": "Charizard Booster Pack",
-            "edition": "Base",
-            "grade": "10",
-            "price": 3.99,
-            "quantity": 1
-          }
-        ]
+        "items": []
       },
       {
         "collectionName": "Taylor's Collection 2",

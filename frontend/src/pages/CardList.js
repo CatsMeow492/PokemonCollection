@@ -1,37 +1,38 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { 
-    Container, 
-    Typography, 
-    Grid, 
-    Card, 
-    CardMedia, 
-    CardContent, 
-    IconButton, 
-    Button, 
-    TextField, 
-    FormControl, 
-    InputLabel, 
-    Select, 
+import {
+    Container,
+    Typography,
+    Grid,
+    Card,
+    CardMedia,
+    CardContent,
+    IconButton,
+    Button,
+    TextField,
+    FormControl,
+    InputLabel,
+    Select,
     MenuItem,
-    Badge 
+    Badge
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import AddCardModal from '../modals/AddCardModal';
 import ManageCollectionsModal from '../modals/ManageCollectionsModal';
 import '../styles/CardList.css';
-import { 
-    fetchMarketPrice, 
-    fetchCardsByUserID, 
-    processFetchedCards, 
-    addCard, 
-    updateCardQuantity, 
+import {
+    fetchMarketPrice,
+    fetchCardsByUserID,
+    processFetchedCards,
+    addCard,
+    updateCardQuantity,
     fetchCollectionsByUserID,
     createCollection,
     deleteCollection,
     removeCardFromCollection,
     addItemToCollection,
     removeItemFromCollection,
-    fetchItemMarketPrice
+    fetchItemMarketPrice,
+    updateItemQuantity
 } from '../utils/apiUtils';
 import ArrowCircleUpTwoToneIcon from '@mui/icons-material/ArrowCircleUpTwoTone';
 import ArrowCircleDownTwoToneIcon from '@mui/icons-material/ArrowCircleDownTwoTone';
@@ -70,23 +71,25 @@ const CardList = () => {
             .then(data => {
                 setCollections(data || []); // Set collections
                 if (verbose) console.log('Fetched collections in CardList.js:', data);
-                
+
                 // Extract all cards and items from all collections
-                const allCards = data.flatMap(collection => 
+                const allCards = data.flatMap(collection =>
                     collection.cards.map(card => ({
                         ...card,
                         collectionName: collection.collectionName,
-                        type: 'card'
+                        type: 'card' // Ensure this is correct
                     }))
                 );
-                const allItems = data.flatMap(collection => 
+                const allItems = data.flatMap(collection =>
                     collection.items.map(item => ({
                         ...item,
                         collectionName: collection.collectionName,
-                        type: 'item'
+                        type: 'item' // Ensure this is correct
                     }))
                 );
                 setCards([...allCards, ...allItems]);
+                if (verbose) console.log('All cards:', allCards);
+                if (verbose) console.log('All items:', allItems);
             })
             .catch(error => {
                 console.error('Error fetching collections:', error);
@@ -189,46 +192,54 @@ const CardList = () => {
         }
     };
 
-    const handleIncrementQuantity = async (index) => {
+    const handleIncrementQuantity = async (item) => {
         if (verbose) {
-            console.log("Incrementing quantity for card at index: ", index);
-            console.log("Card data: ", cardsWithMarketPrice[index]); // Log the entire card data
-            console.log("Card ID: ", cardsWithMarketPrice[index]?.id); // Log the card ID
-            console.log("Current quantity: ", cardsWithMarketPrice[index]?.quantity);
-            console.log("New quantity: ", cardsWithMarketPrice[index]?.quantity + 1);
+            console.log("Incrementing quantity for item: ", item);
+            console.log("Item ID: ", item?.id);
+            console.log("Current quantity: ", item?.quantity);
+            console.log("New quantity: ", item?.quantity + 1);
         }
-        const card = cardsWithMarketPrice[index];
-        if (!card || !card.id) {
-            console.error('Card ID is undefined or card data is missing:', card);
+        if (!item || !item.id) {
+            console.error('Item ID is undefined or item data is missing:', item);
             return;
         }
         try {
-            const updatedCard = await updateCardQuantity(card.id, card.quantity + 1, card.collectionName, id); // Pass userId (id)
-            const updatedCards = [...cardsWithMarketPrice];
-            updatedCards[index] = { ...card, ...updatedCard }; // Merge the updated card data
+            let updatedItem;
+            if (item.type === 'card') {
+                updatedItem = await updateCardQuantity(item.id, item.quantity + 1, item.collectionName, id);
+            } else if (item.type === 'item') {
+                updatedItem = await updateItemQuantity(item.id, item.quantity + 1, item.collectionName, id);
+            }
+            const updatedCards = cardsWithMarketPrice.map(c =>
+                c.id === item.id ? { ...item, ...updatedItem } : c
+            );
             setCardsWithMarketPrice(updatedCards);
         } catch (error) {
             console.error('Failed to increment quantity: ', error);
         }
     };
 
-    const handleDecrementQuantity = async (index) => {
+    const handleDecrementQuantity = async (item) => {
         if (verbose) {
-            console.log("Decrementing quantity for card at index: ", index);
-            console.log("Card data: ", cardsWithMarketPrice[index]); // Log the entire card data
-            console.log("Card ID: ", cardsWithMarketPrice[index]?.id); // Log the card ID
-            console.log("Current quantity: ", cardsWithMarketPrice[index]?.quantity);
-            console.log("New quantity: ", cardsWithMarketPrice[index]?.quantity - 1);
+            console.log("Decrementing quantity for item: ", item);
+            console.log("Item ID: ", item?.id);
+            console.log("Current quantity: ", item?.quantity);
+            console.log("New quantity: ", item?.quantity - 1);
         }
-        const card = cardsWithMarketPrice[index];
-        if (!card || !card.id) {
-            console.error('Card ID is undefined or card data is missing:', card);
+        if (!item || !item.id) {
+            console.error('Item ID is undefined or item data is missing:', item);
             return;
         }
         try {
-            const updatedCard = await updateCardQuantity(card.id, card.quantity - 1, card.collectionName, id); // Pass userId (id)
-            const updatedCards = [...cardsWithMarketPrice];
-            updatedCards[index] = { ...card, ...updatedCard }; // Merge the updated card data
+            let updatedItem;
+            if (item.type === 'card') {
+                updatedItem = await updateCardQuantity(item.id, item.quantity - 1, item.collectionName, id);
+            } else if (item.type === 'item') {
+                updatedItem = await updateItemQuantity(item.id, item.quantity - 1, item.collectionName, id);
+            }
+            const updatedCards = cardsWithMarketPrice.map(c =>
+                c.id === item.id ? { ...item, ...updatedItem } : c
+            );
             setCardsWithMarketPrice(updatedCards);
         } catch (error) {
             console.error('Failed to decrement quantity: ', error);
@@ -241,14 +252,14 @@ const CardList = () => {
 
         if (collectionName === 'all') {
             // Show all cards and items
-            const allCards = collections.flatMap(collection => 
+            const allCards = collections.flatMap(collection =>
                 collection.cards.map(card => ({
                     ...card,
                     collectionName: collection.collectionName,
                     type: 'card'
                 }))
             );
-            const allItems = collections.flatMap(collection => 
+            const allItems = collections.flatMap(collection =>
                 collection.items.map(item => ({
                     ...item,
                     collectionName: collection.collectionName,
@@ -297,9 +308,9 @@ const CardList = () => {
     const handleRemoveCardFromCollection = async (userId, collectionName, cardId) => {
         try {
             await removeCardFromCollection(userId, collectionName, cardId);
-            
+
             // Update the collections state
-            setCollections(prevCollections => 
+            setCollections(prevCollections =>
                 prevCollections.map(collection => {
                     if (collection.collectionName === collectionName) {
                         return {
@@ -322,7 +333,7 @@ const CardList = () => {
             // Handle error (e.g., show error message)
         }
     };
-    
+
 
     const handleDeleteCollection = async (userId, collectionName) => {
         try {
@@ -351,7 +362,7 @@ const CardList = () => {
         try {
             if (verbose) console.log('Attempting to add item in CardList.js:', newItem);
             const addedItem = await addItemToCollection(
-                id, 
+                id,
                 newItem.name,  // Changed from item_name
                 newItem.grade, // Changed from item_grade
                 newItem.edition,
@@ -385,7 +396,7 @@ const CardList = () => {
             <Typography variant="h4" component="h1" className="title" gutterBottom>
                 My Pokémon Card Collection
             </Typography>
-            
+
             <div className="card-list-toolbar">
                 <div className="toolbar-group">
                     <Button
@@ -432,10 +443,10 @@ const CardList = () => {
                 </FormControl>
             </div>
 
-            <AddCardModal 
-                open={addCardModalOpen} 
-                onClose={() => setAddCardModalOpen(false)} 
-                onAddCard={handleAddCard} 
+            <AddCardModal
+                open={addCardModalOpen}
+                onClose={() => setAddCardModalOpen(false)}
+                onAddCard={handleAddCard}
                 collections={collections}
                 selectedCollection={selectedCollection}
             />
@@ -504,10 +515,10 @@ const CardList = () => {
                                         </IconButton>
                                     </div>
                                     <div className="right-group">
-                                        <IconButton size="small" color="primary" className="add-button" onClick={() => handleIncrementQuantity(index)}>
+                                        <IconButton size="small" color="primary" className="add-button" onClick={() => handleIncrementQuantity(card)}>
                                             <ArrowCircleUpTwoToneIcon />
                                         </IconButton>
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleDecrementQuantity(index)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleDecrementQuantity(card)}>
                                             <ArrowCircleDownTwoToneIcon />
                                         </IconButton>
                                     </div>
@@ -566,16 +577,17 @@ const CardList = () => {
                                     </Typography>
                                 )}
                                 <div className="card-actions">
+
                                     <div className="left-group">
                                         <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, item.collectionName, item.id)}>
                                             <ClearIcon />
                                         </IconButton>
                                     </div>
                                     <div className="right-group">
-                                        <IconButton size="small" color="primary" className="add-button" onClick={() => handleIncrementQuantity(index)}>
+                                        <IconButton size="small" color="primary" className="add-button" onClick={() => handleIncrementQuantity(item)}>
                                             <ArrowCircleUpTwoToneIcon />
                                         </IconButton>
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleDecrementQuantity(index)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleDecrementQuantity(item)}>
                                             <ArrowCircleDownTwoToneIcon />
                                         </IconButton>
                                     </div>

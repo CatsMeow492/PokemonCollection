@@ -179,6 +179,34 @@ export const updateCardQuantity = async (cardId, newQuantity, collectionName, us
     return response.json();
 };
 
+export const updateItemQuantity = async (itemId, newQuantity, collectionName, userId) => {
+    console.log(`Updating quantity for item with ID: ${itemId} to ${newQuantity} in collection: ${collectionName} for user: ${userId}`);
+    const response = await fetch(`${API_BASE_URL}/api/items/quantity`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            user_id: userId,
+            collection_name: collectionName,
+            item_id: itemId,
+            quantity: newQuantity
+        }),
+    });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to update item quantity: ${errorText}`);
+    }
+
+    return response.json();
+};
+
+
 export const fetchPokemonNames = async () => {
     const response = await fetch('/api/pokemon-names');
     if (!response.ok) {
