@@ -69,6 +69,7 @@ func main() {
 		handlers.AddItemWithUserIDAndCollection(w, r)
 	}).Methods("POST")
 	r.HandleFunc("/api/items/{user_id}/{collection_name}/{item_id}", handlers.RemoveItemFromCollectionWithUserIDAndCollection).Methods("DELETE")
+	r.HandleFunc("/api/items/quantity", handlers.UpdateItemQuantity).Methods("PUT")
 
 	// Collections
 	r.HandleFunc("/api/collections/{user_id}", handlers.GetCollectionsByUserID).Methods("GET")
