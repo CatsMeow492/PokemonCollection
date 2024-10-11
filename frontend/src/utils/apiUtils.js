@@ -392,3 +392,18 @@ export const fetchItemMarketPrice = async (itemName, itemEdition, grade) => {
         return null;
     }
 };
+
+export const fetchCardMarketData = async (cardId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/card-market-data/${cardId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch card market data');
+        }
+        const data = await response.json();
+        if (verbose) console.log('Card market data:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching card market data:', error);
+        return null;
+    }
+};

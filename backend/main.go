@@ -42,6 +42,9 @@ func main() {
 	r.HandleFunc("/api/login", handlers.Login).Methods("POST")
 	r.HandleFunc("/api/register", handlers.Register).Methods("POST")
 
+	// Card Market Data
+	r.HandleFunc("/api/card-market-data/{cardId}", handlers.GetCardMarketData).Methods("GET")
+
 	// Cards
 	r.HandleFunc("/api/cards", handlers.AddCardWithUserID).Methods("POST")
 	r.HandleFunc("/api/cards/collection", handlers.AddCardWithUserIDAndCollection).Methods("POST")

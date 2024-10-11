@@ -9,6 +9,7 @@ import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Cart from './pages/Cart';
 import Auth from './pages/Auth';
+import CardMarketData from './pages/CardMarketData';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/card-market-data/:cardId" element={<CardMarketData />} />
               </Route>
             </Routes>
           </div>

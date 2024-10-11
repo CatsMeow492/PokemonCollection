@@ -69,4 +69,14 @@ func (store *MarketDataStore) GetLatestPrice(itemType, name, edition, grade stri
 	return latestData.Price, nil
 }
 
+func (store *MarketDataStore) GetDataByID(id string) []MarketData {
+	var result []MarketData
+	for _, item := range store.Data {
+		if item.ID == id {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
 var ErrNoDataFound = errors.New("no market data found for the specified item")
