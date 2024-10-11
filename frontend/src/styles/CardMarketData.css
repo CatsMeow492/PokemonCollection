@@ -1,0 +1,22 @@
+@import '../theme.css';
+
+.summary-box {
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.card-image {
+    max-width: 200px;
+    margin-bottom: 20px;
+}
+
+.black-text {
+    color: black;
+}
+
+.black-text h6,
+.black-text p {
+    color: black;
+}
+

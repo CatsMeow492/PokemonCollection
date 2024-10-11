@@ -15,6 +15,7 @@ import {
     MenuItem,
     Badge
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import ClearIcon from '@mui/icons-material/Clear';
 import AddCardModal from '../modals/AddCardModal';
 import ManageCollectionsModal from '../modals/ManageCollectionsModal';
@@ -44,6 +45,7 @@ import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AddItemModal from '../modals/AddItemModal';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import CardMarketData from './CardMarketData';
 
 const CardList = () => {
     const routeLoading = useRouteLoading();
@@ -59,6 +61,7 @@ const CardList = () => {
     const [selectedCollection, setSelectedCollection] = useState('');
     const [collectionName, setCollectionName] = useState('');
     const [addItemModalOpen, setAddItemModalOpen] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (!id) {
@@ -388,6 +391,10 @@ const CardList = () => {
         }
     };
 
+    const handleCardClick = (cardId, cardName, cardImage) => {
+        navigate(`/card-market-data/${cardId}`, { state: { cardName, cardImage } });
+    };
+
     const filteredCards = cardsWithMarketPrice.filter(item => item.type === 'card');
     const filteredItems = cardsWithMarketPrice.filter(item => item.type === 'item');
 
@@ -485,6 +492,7 @@ const CardList = () => {
                                 }}
                                 onMouseMove={(e) => handleMouseMove(e, index)}
                                 onMouseLeave={() => handleMouseLeave(index)}
+                                onClick={() => handleCardClick(card.id, card.name, card.image)}
                                 style={{ overflow: 'visible' }}
                             />
                             <CardContent className="card-content">
