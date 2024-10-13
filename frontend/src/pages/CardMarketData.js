@@ -58,21 +58,24 @@ const CardMarketData = () => {
 
     return (
         <Container>
-            <div className="card-header">
-                <h3>{cardName}</h3>
-                <img src={cardImage} alt={cardName} className="card-image" />
-            </div>
             <Typography variant="h4" gutterBottom>Card Market Data</Typography>
             <Grid container spacing={3}>
-                <Grid item xs={12}>
+                <Grid item xs={12} md={4}>
                     <Paper elevation={3}>
-                        <Box p={3} className="summary-box black-text">
+                        <Box p={3} className="card-info-box">
+                            <img src={cardImage} alt={cardName} className="card-image" />
+                        </Box>
+                    </Paper>
+                </Grid>
+                <Grid item xs={12} md={8}>
+                    <Paper elevation={3}>
+                        <Box p={3} className="chart-box black-text">
                             <Typography variant="h6" gutterBottom>Price Trend</Typography>
                             <Line data={chartData} />
                         </Box>
                     </Paper>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12}>
                     <Paper elevation={3}>
                         <Box p={3} className="summary-box black-text">
                             <Typography variant="h6" gutterBottom>Summary Data</Typography>
