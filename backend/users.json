@@ -1,1 +1,15 @@
-[{"id":"1","username":"Taylor","email":"taylor@email.com","password":"$2a$10$1FAdKN.Z2BMmlYnNmoni4.Dsxkt7ahP1SxEmrEgkLDVI7EoGaGGTW"}]
+[
+    {
+        "id": "1",
+        "username": "Taylor",
+        "first_name": "Taylor",
+        "last_name": "Baker",
+        "joined": "2024-01-01",
+        "last_login": "2024-01-01",
+        "is_active": true,
+        "is_admin": true,
+        "is_subscribed": true,
+        "email": "taylor@email.com",
+        "password": "$2a$10$1FAdKN.Z2BMmlYnNmoni4.Dsxkt7ahP1SxEmrEgkLDVI7EoGaGGTW"
+    }
+]

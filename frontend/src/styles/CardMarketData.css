@@ -1,22 +1,33 @@
 @import '../theme.css';
 
-.summary-box {
+.summary-box, .chart-box, .card-info-box {
     background-color: #f5f5f5;
     border-radius: 8px;
     margin-bottom: 20px;
+    height: 100%;
+}
+
+.card-info-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 .card-image {
-    max-width: 200px;
-    margin-bottom: 20px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    margin-top: 20px;
 }
 
-.black-text {
+.black-text, .black-text h6, .black-text p {
     color: black;
 }
 
-.black-text h6,
-.black-text p {
-    color: black;
+@media (min-width: 960px) {
+    .card-info-box, .chart-box {
+        height: 500px;
+    }
 }
-
