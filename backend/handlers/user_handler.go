@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/CatsMeow492/PokemonCollection/models"
-	"github.com/CatsMeow492/PokemonCollection/utils"
 
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
@@ -33,14 +33,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the username or email already exists
-	if _, err := utils.GetUserByUsername(user.Username); err == nil {
-		log.Printf("Username already exists: %s", user.Username)
-		http.Error(w, "Username already exists", http.StatusConflict)
-		return
-	}
-	if _, err := utils.GetUserByEmail(user.Email); err == nil {
-		log.Printf("Email already exists: %s", user.Email)
-		http.Error(w, "Email already exists", http.StatusConflict)
+	var existingUser models.User
+	err := database.DB.QueryRow("SELECT user_id FROM Users WHERE username = $1 OR email = $2", user.Username, user.Email).Scan(&existingUser.ID)
+	if err == nil {
+		log.Printf("Username or email already exists: %s, %s", user.Username, user.Email)
+		http.Error(w, "Username or email already exists", http.StatusConflict)
 		return
 	}
 
@@ -50,11 +47,16 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error hashing password", http.StatusInternalServerError)
 		return
 	}
-	user.Password = string(hashedPassword)
 
-	if err := utils.SaveUser(user); err != nil {
-		log.Printf("Error saving user: %v", err)
-		http.Error(w, "Error saving user", http.StatusInternalServerError)
+	// Insert the new user into the database
+	_, err = database.DB.Exec(`
+		INSERT INTO Users (username, first_name, last_name, email, password, profile_picture, joined)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`, user.Username, user.FirstName, user.LastName, user.Email, string(hashedPassword), user.ProfilePicture, time.Now())
+
+	if err != nil {
+		log.Printf("Error inserting user into database: %v", err)
+		http.Error(w, "Error registering user", http.StatusInternalServerError)
 		return
 	}
 
@@ -71,14 +73,17 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Try to get the user by username or email
-	storedUser, err := utils.GetUserByUsername(user.Username)
+	// Retrieve the user from the database
+	var storedUser models.User
+	err := database.DB.QueryRow(`
+		SELECT user_id, username, password, profile_picture
+		FROM Users
+		WHERE username = $1 OR email = $1
+	`, user.Username).Scan(&storedUser.ID, &storedUser.Username, &storedUser.Password, &storedUser.ProfilePicture)
+
 	if err != nil {
-		storedUser, err = utils.GetUserByEmail(user.Email)
-		if err != nil {
-			http.Error(w, "Invalid username/email or password", http.StatusUnauthorized)
-			return
-		}
+		http.Error(w, "Invalid username/email or password", http.StatusUnauthorized)
+		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(storedUser.Password), []byte(user.Password)); err != nil {
@@ -107,8 +112,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Expires: expirationTime,
 	})
 
+	// Update last_login in the database
+	_, err = database.DB.Exec("UPDATE Users SET last_login = $1 WHERE user_id = $2", time.Now(), storedUser.ID)
+	if err != nil {
+		log.Printf("Error updating last_login: %v", err)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	response := map[string]string{"token": tokenString, "username": storedUser.Username, "profile_picture": storedUser.ProfilePicture, "id": storedUser.ID}
-	log.Printf("Login response: %+v", response) // Add logging here
+	log.Printf("Login response: %+v", response)
 	json.NewEncoder(w).Encode(response)
 }
