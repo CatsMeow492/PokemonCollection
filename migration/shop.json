@@ -1,0 +1,34 @@
+
+{
+    "products": [
+        {
+            "id": 1,
+            "name": "Poké Ball",
+            "description": "The standard Poké Ball, used to catch Pokémon.",
+            "price": "$10",
+            "image": "images/ball.webp"
+        },
+        {
+            "id": 2,
+            "name": "Great Ball",
+            "description": "A more powerful ball that increases the likelihood of catching Pokémon.",
+            "price": "$20",
+            "image": "images/greatball.webp"
+        },
+        {
+            "id": 3,
+            "name": "Ultra Ball",
+            "description": "A more powerful ball that increases the likelihood of catching Pokémon.",
+            "price": "$30",
+            "image": "images/ultraball.webp"
+        },
+        {
+            "id": 4,
+            "name": "Master Ball",
+            "description": "The most powerful ball, guaranteed to catch any Pokémon.",
+            "price": "$50",
+            "image": "images/masterball.webp"
+        }
+    ]
+}
+
