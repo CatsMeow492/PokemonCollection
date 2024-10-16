@@ -1,6 +1,10 @@
 package models
 
-import "github.com/dgrijalva/jwt-go"
+import (
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+)
 
 type User struct {
 	ID             string       `json:"id"`
@@ -10,6 +14,11 @@ type User struct {
 	Email          string       `json:"email"`
 	Password       string       `json:"password"`
 	ProfilePicture string       `json:"profile_picture"`
+	Joined         time.Time    `json:"joined"`
+	LastLogin      time.Time    `json:"last_login"`
+	IsActive       bool         `json:"is_active"`
+	IsAdmin        bool         `json:"is_admin"`
+	IsSubscribed   bool         `json:"is_subscribed"`
 	Collections    []Collection `json:"collections"`
 }
 

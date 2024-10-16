@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/CatsMeow492/PokemonCollection/handlers"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
@@ -34,6 +35,9 @@ func main() {
 	if jwtKey == "" {
 		log.Fatalf("JWT_KEY environment variable not set")
 	}
+
+	database.InitDB()
+	defer database.CloseDB()
 
 	handlers.InitJWTKey(jwtKey)
 
