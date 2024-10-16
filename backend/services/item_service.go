@@ -1,154 +1,124 @@
 package services
 
 import (
-	"fmt"
-	"log"
-
+	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/CatsMeow492/PokemonCollection/models"
-	"github.com/CatsMeow492/PokemonCollection/utils"
 )
 
-func AddItemToCollection(userID, collectionName string, item models.Item) error {
-	log.Printf("AddItemToCollection: Adding item %+v to collection %s for user %s", item, collectionName, userID)
-
-	data, err := utils.ReadCollectionFile()
+func GetItemsByUserIDAndCollectionName(userID string, collectionName string) ([]models.Item, error) {
+	query := `
+		SELECT i.item_id, i.name, i.edition, i.grade, ui.price, ui.quantity
+		FROM UserItems ui
+		JOIN Items i ON ui.item_id = i.item_id
+		JOIN Collections c ON ui.collection_id = c.collection_id
+		WHERE c.user_id = $1 AND c.collection_name = $2
+	`
+	rows, err := database.DB.Query(query, userID, collectionName)
 	if err != nil {
-		return fmt.Errorf("error reading collection file: %v", err)
+		return nil, err
 	}
+	defer rows.Close()
 
-	if data.User.ID != userID {
-		return fmt.Errorf("user not found")
-	}
-
-	collectionFound := false
-	for i, collection := range data.User.Collections {
-		if collection.CollectionName == collectionName {
-			data.User.Collections[i].Items = append(data.User.Collections[i].Items, item)
-			collectionFound = true
-			log.Printf("Added item to existing collection: %+v", data.User.Collections[i])
-			break
+	var items []models.Item
+	for rows.Next() {
+		var item models.Item
+		err := rows.Scan(&item.ID, &item.Name, &item.Edition, &item.Grade, &item.Price, &item.Quantity)
+		if err != nil {
+			return nil, err
 		}
+		items = append(items, item)
 	}
-
-	if !collectionFound {
-		newCollection := models.Collection{
-			CollectionName: collectionName,
-			Items:          []models.Item{item},
-		}
-		data.User.Collections = append(data.User.Collections, newCollection)
-		log.Printf("Created new collection with item: %+v", newCollection)
-	}
-
-	if err := utils.WriteCollectionFile(data); err != nil {
-		return fmt.Errorf("error writing to collection file: %v", err)
-	}
-
-	log.Printf("AddItemToCollection: Successfully added item %+v to collection %s", item, collectionName)
-	return nil
+	return items, nil
 }
 
-func UpdateItemInCollection(userID, collectionName string, updatedItem models.Item) error {
-	log.Printf("UpdateItemInCollection: Updating item %s in collection %s for user %s", updatedItem.ID, collectionName, userID)
-
-	data, err := utils.ReadCollectionFile()
+func UpdateItemQuantity(userID string, collectionName string, itemID string, quantity int) (*models.Item, error) {
+	tx, err := database.DB.Begin()
 	if err != nil {
-		return fmt.Errorf("error reading collection file: %v", err)
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`
+		UPDATE UserItems
+		SET quantity = $1
+		WHERE collection_id = (SELECT collection_id FROM Collections WHERE user_id = $2 AND collection_name = $3)
+		AND item_id = $4
+	`, quantity, userID, collectionName, itemID)
+	if err != nil {
+		return nil, err
 	}
 
-	if data.User.ID != userID {
-		return fmt.Errorf("user not found")
+	var item models.Item
+	err = tx.QueryRow(`
+		SELECT i.item_id, i.name, i.edition, i.grade, ui.price, ui.quantity
+		FROM UserItems ui
+		JOIN Items i ON ui.item_id = i.item_id
+		JOIN Collections c ON ui.collection_id = c.collection_id
+		WHERE c.user_id = $1 AND c.collection_name = $2 AND i.item_id = $3
+	`, userID, collectionName, itemID).Scan(&item.ID, &item.Name, &item.Edition, &item.Grade, &item.Price, &item.Quantity)
+	if err != nil {
+		return nil, err
 	}
 
-	itemUpdated := false
-	for i, collection := range data.User.Collections {
-		if collection.CollectionName == collectionName {
-			for j, item := range collection.Items {
-				if item.ID == updatedItem.ID {
-					data.User.Collections[i].Items[j] = updatedItem
-					itemUpdated = true
-					break
-				}
-			}
-		}
-		if itemUpdated {
-			break
-		}
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
 	}
 
-	if !itemUpdated {
-		return fmt.Errorf("item not found in collection")
-	}
-
-	if err := utils.WriteCollectionFile(data); err != nil {
-		return fmt.Errorf("error writing to collection file: %v", err)
-	}
-
-	log.Printf("UpdateItemInCollection: Successfully updated item %s in collection %s", updatedItem.ID, collectionName)
-	return nil
+	return &item, nil
 }
 
-func RemoveItemFromCollection(userID, collectionName, itemID string) error {
-	log.Printf("RemoveItemFromCollection: Removing item %s from collection %s for user %s", itemID, collectionName, userID)
-
-	data, err := utils.ReadCollectionFile()
+func AddItemToCollection(userID string, collectionName string, item models.Item) error {
+	tx, err := database.DB.Begin()
 	if err != nil {
-		return fmt.Errorf("error reading collection file: %v", err)
+		return err
+	}
+	defer tx.Rollback()
+
+	var collectionID int
+	err = tx.QueryRow(`
+		INSERT INTO Collections (user_id, collection_name)
+		VALUES ($1, $2)
+		ON CONFLICT (user_id, collection_name) DO UPDATE SET collection_name = EXCLUDED.collection_name
+		RETURNING collection_id
+	`, userID, collectionName).Scan(&collectionID)
+	if err != nil {
+		return err
 	}
 
-	if data.User.ID != userID {
-		return fmt.Errorf("user not found")
+	_, err = tx.Exec(`
+		INSERT INTO Items (item_id, name, edition, grade)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (item_id) DO UPDATE SET
+			name = EXCLUDED.name,
+			edition = EXCLUDED.edition,
+			grade = EXCLUDED.grade
+	`, item.ID, item.Name, item.Edition, item.Grade)
+	if err != nil {
+		return err
 	}
 
-	itemRemoved := false
-	for i, collection := range data.User.Collections {
-		if collection.CollectionName == collectionName {
-			for j, item := range collection.Items {
-				if item.ID == itemID {
-					data.User.Collections[i].Items = append(data.User.Collections[i].Items[:j], data.User.Collections[i].Items[j+1:]...)
-					itemRemoved = true
-					break
-				}
-			}
-		}
-		if itemRemoved {
-			break
-		}
+	_, err = tx.Exec(`
+		INSERT INTO UserItems (collection_id, item_id, price, quantity)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (collection_id, item_id) DO UPDATE SET
+			price = EXCLUDED.price,
+			quantity = UserItems.quantity + EXCLUDED.quantity
+	`, collectionID, item.ID, item.Price, item.Quantity)
+	if err != nil {
+		return err
 	}
 
-	if !itemRemoved {
-		return fmt.Errorf("item not found in collection")
-	}
-
-	if err := utils.WriteCollectionFile(data); err != nil {
-		return fmt.Errorf("error writing to collection file: %v", err)
-	}
-
-	log.Printf("RemoveItemFromCollection: Successfully removed item %s from collection %s", itemID, collectionName)
-	return nil
+	return tx.Commit()
 }
 
-func GetItemFromCollection(userID, collectionName, itemID string) (*models.Item, error) {
-	log.Printf("GetItemFromCollection: Fetching item %s from collection %s for user %s", itemID, collectionName, userID)
-
-	data, err := utils.ReadCollectionFile()
-	if err != nil {
-		return nil, fmt.Errorf("error reading collection file: %v", err)
-	}
-
-	if data.User.ID != userID {
-		return nil, fmt.Errorf("user not found")
-	}
-
-	for _, collection := range data.User.Collections {
-		if collection.CollectionName == collectionName {
-			for _, item := range collection.Items {
-				if item.ID == itemID {
-					log.Printf("GetItemFromCollection: Successfully fetched item %s", itemID)
-					return &item, nil
-				}
-			}
-		}
-	}
-
-	return nil, fmt.Errorf("item not found in collection")
+func RemoveItemFromCollection(userID string, collectionName string, itemID string) error {
+	_, err := database.DB.Exec(`
+		DELETE FROM UserItems
+		WHERE collection_id = (SELECT collection_id FROM Collections WHERE user_id = $1 AND collection_name = $2)
+		AND item_id = $3
+	`, userID, collectionName, itemID)
+	return err
 }
+
+// ... (update other functions similarly)
