@@ -3,6 +3,7 @@ package services
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/CatsMeow492/PokemonCollection/models"
@@ -46,39 +47,51 @@ func GetCollectionsByUserID(userID string) ([]models.Collection, error) {
 			return nil, err
 		}
 
-		cardsQuery := `
-			SELECT i.item_id, i.name, i.edition, i.set, i.image, ui.grade, ui.price, ui.quantity
+		itemsQuery := `
+			SELECT i.item_id, i.name, i.edition, i.set, i.image, i.grade, i.price, ui.quantity, i.type
 			FROM UserItems ui
 			JOIN Items i ON ui.item_id = i.item_id
 			WHERE ui.collection_id = $1
 		`
-		cardRows, err := database.DB.Query(cardsQuery, collection.CollectionID)
+		itemRows, err := database.DB.Query(itemsQuery, collection.CollectionID)
 		if err != nil {
 			return nil, err
 		}
-		defer cardRows.Close()
+		defer itemRows.Close()
 
 		collection.Cards = []models.Card{}
-		for cardRows.Next() {
-			var card models.Card
-			var edition, set, image, grade sql.NullString
+		collection.Items = []models.Item{}
+		for itemRows.Next() {
+			var id, itemType sql.NullString
+			var name, edition, set, image, grade sql.NullString
 			var price sql.NullFloat64
-			err := cardRows.Scan(&card.ID, &card.Name, &edition, &set, &image, &grade, &price, &card.Quantity)
+			var quantity int
+
+			err := itemRows.Scan(&id, &name, &edition, &set, &image, &grade, &price, &quantity, &itemType)
 			if err != nil {
-				return nil, fmt.Errorf("error scanning card: %v", err)
+				return nil, fmt.Errorf("error scanning item: %v", err)
 			}
-			card.Edition = edition.String
-			card.Set = set.String
-			card.Image = image.String
-			if grade.Valid {
-				card.Grade = grade.String
+
+			item := models.Item{
+				ID:       id.String,
+				Name:     name.String,
+				Edition:  edition.String,
+				Set:      set.String,
+				Image:    image.String,
+				Grade:    grade.String,
+				Price:    price.Float64,
+				Quantity: quantity,
+				Type:     itemType.String,
+			}
+
+			log.Printf("Retrieved item: ID=%s, Name=%s, Price=%.2f", item.ID, item.Name, item.Price)
+
+			if item.Type == "Pokemon Card" {
+				card := models.Card(item) // Convert Item to Card
+				collection.Cards = append(collection.Cards, card)
 			} else {
-				card.Grade = "Ungraded"
+				collection.Items = append(collection.Items, item)
 			}
-			if price.Valid {
-				card.Price = price.Float64
-			}
-			collection.Cards = append(collection.Cards, card)
 		}
 
 		collections = append(collections, collection)

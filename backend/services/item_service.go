@@ -1,6 +1,8 @@
 package services
 
 import (
+	"log"
+
 	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/CatsMeow492/PokemonCollection/models"
 )
@@ -86,20 +88,29 @@ func AddItemToCollection(userID string, collectionName string, item models.Item)
 		return err
 	}
 
+	// Ensure item.Type is set correctly before inserting
+	if item.Type == "" {
+		item.Type = "Item" // Default to "Item" if not specified
+	}
+
 	_, err = tx.Exec(`
-		INSERT INTO Items (item_id, name, edition, set, image, grade, price)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO Items (item_id, name, edition, set, image, grade, price, type)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		ON CONFLICT (item_id) DO UPDATE SET
 			name = EXCLUDED.name,
 			edition = EXCLUDED.edition,
 			set = EXCLUDED.set,
 			image = EXCLUDED.image,
 			grade = EXCLUDED.grade,
-			price = EXCLUDED.price
-	`, item.ID, item.Name, item.Edition, item.Set, item.Image, item.Grade, item.Price)
+			price = EXCLUDED.price,
+			type = EXCLUDED.type
+	`, item.ID, item.Name, item.Edition, item.Set, item.Image, item.Grade, item.Price, item.Type)
 	if err != nil {
 		return err
 	}
+
+	// Log the inserted/updated item
+	log.Printf("Item inserted/updated: ID=%s, Name=%s, Price=%.2f", item.ID, item.Name, item.Price)
 
 	_, err = tx.Exec(`
 		INSERT INTO UserItems (collection_id, item_id, quantity)

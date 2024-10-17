@@ -131,17 +131,8 @@ const CardList = () => {
         const updateCardsWithMarketPrice = async () => {
             setLoading(true);
             const updatedCards = await Promise.all(displayedCards.map(async (item) => {
-                if (!item || !item.id) {
-                    console.error('Item or item ID is undefined:', item);
-                    return item;
-                }
-                let marketPrice;
-                if (item.type === 'card') {
-                    marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade);
-                } else if (item.type === 'item') {
-                    marketPrice = await fetchItemMarketPrice(item.name, item.edition, item.grade);
-                }
-                return { ...item, marketPrice };
+                const marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade, item.type);
+                return { ...item, marketPrice: marketPrice || item.price };
             }));
             setCardsWithMarketPrice(updatedCards);
             setLoading(false);

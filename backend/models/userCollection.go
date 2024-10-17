@@ -8,6 +8,7 @@ type Collection struct {
 	CollectionID   int    `json:"collection_id"`
 	CollectionName string `json:"collection_name"`
 	Cards          []Card `json:"cards"`
+	Items          []Item `json:"items"`
 }
 
 func FetchCollectionsByUserID(userID string) ([]Collection, error) {

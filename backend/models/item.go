@@ -9,4 +9,5 @@ type Item struct {
 	Grade    string  `json:"grade"`
 	Price    float64 `json:"price"`
 	Quantity int     `json:"quantity"`
+	Type     string  `json:"type"`
 }

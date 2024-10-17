@@ -2,67 +2,85 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/CatsMeow492/PokemonCollection/data"
-
+	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/PuerkitoBio/goquery"
 )
 
 func GetMarketPrice(cardName, cardId, edition, grade string) (float64, error) {
-	// Load existing market data
-	store, err := data.LoadMarketData()
-	if err != nil {
-		return 0, err
-	}
+	db := database.GetDB()
 
-	// Fetch new price
-	price, err := fetchMarketPrice(cardName, cardId, edition, grade)
-	if err != nil {
-		return 0, err
-	}
+	var price float64
+	var lastUpdated time.Time
 
-	// Add new data
-	newData := data.MarketData{
-		ID:        cardId,
-		Price:     price,
-		FetchedAt: time.Now(),
-	}
-	store.AddMarketData(newData)
+	err := db.QueryRow(`
+		SELECT price, last_updated
+		FROM marketdata
+		WHERE item_id = $1 OR (name = $2 AND edition = $3 AND grade = $4 AND type = 'Pokemon Card')
+	`, cardId, cardName, edition, grade).Scan(&price, &lastUpdated)
 
-	// Save updated market data
-	err = data.SaveMarketData(store)
-	if err != nil {
-		fmt.Printf("Error saving market data: %v\n", err)
+	if err != nil || time.Since(lastUpdated) > 24*time.Hour {
+		// If no data found or data is older than 24 hours, fetch new price
+		newPrice, err := fetchMarketPrice(cardName, cardId, edition, grade)
+		if err != nil {
+			return 0, err
+		}
+
+		// Update or insert new price in the database
+		_, err = db.Exec(`
+			INSERT INTO marketdata (item_id, name, edition, grade, type, price, last_updated)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)
+			ON CONFLICT (item_id) DO UPDATE
+			SET price = $6, last_updated = $7
+		`, cardId, cardName, edition, grade, "Pokemon Card", newPrice, time.Now())
+
+		if err != nil {
+			return 0, err
+		}
+
+		return newPrice, nil
 	}
 
 	return price, nil
 }
 
 func GetItemMarketPrice(itemName, itemGrade string) (float64, error) {
-	store, err := data.LoadMarketData()
-	if err != nil {
-		return 0, err
-	}
+	db := database.GetDB()
 
-	price, err := fetchMarketPrice(itemName, itemGrade, "", "")
-	if err != nil {
-		return 0, err
-	}
+	var price float64
+	var lastUpdated time.Time
 
-	newData := data.MarketData{
-		ID:        itemName,
-		Price:     price,
-		FetchedAt: time.Now(),
-	}
-	store.AddMarketData(newData)
+	err := db.QueryRow(`
+		SELECT price, last_updated
+		FROM marketdata
+		WHERE name = $1 AND grade = $2 AND type = 'Item'
+	`, itemName, itemGrade).Scan(&price, &lastUpdated)
 
-	err = data.SaveMarketData(store)
-	if err != nil {
-		fmt.Printf("Error saving market data: %v\n", err)
+	if err != nil || time.Since(lastUpdated) > 24*time.Hour {
+		// If no data found or data is older than 24 hours, fetch new price
+		newPrice, err := fetchMarketPrice(itemName, "", "", itemGrade)
+		if err != nil {
+			return 0, err
+		}
+
+		// Update or insert new price in the database
+		_, err = db.Exec(`
+			INSERT INTO marketdata (name, grade, type, price, last_updated)
+			VALUES ($1, $2, $3, $4, $5)
+			ON CONFLICT (name, grade, type) DO UPDATE
+			SET price = $4, last_updated = $5
+		`, itemName, itemGrade, "Item", newPrice, time.Now())
+
+		if err != nil {
+			return 0, err
+		}
+
+		return newPrice, nil
 	}
 
 	return price, nil
@@ -144,4 +162,52 @@ func calculateAveragePrice(prices []float64) float64 {
 		total += price
 	}
 	return total / float64(len(prices))
+}
+
+func FetchAndStoreMarketPrice(cardName, cardId, edition, grade string) (float64, error) {
+	db := database.GetDB()
+
+	var marketValue float64
+	var lastUpdated time.Time
+
+	err := db.QueryRow(`
+        SELECT market_value, last_updated
+        FROM marketdata
+        WHERE item_id = $1
+        ORDER BY last_updated DESC
+        LIMIT 1
+    `, cardId).Scan(&marketValue, &lastUpdated)
+
+	if err != nil {
+		log.Printf("Error querying existing market value for %s: %v", cardId, err)
+	}
+
+	if err != nil || time.Since(lastUpdated) > 24*time.Hour {
+		log.Printf("Fetching new market value for %s", cardId)
+		newMarketValue, err := fetchMarketPrice(cardName, cardId, edition, grade)
+		if err != nil {
+			log.Printf("Error fetching market value for %s: %v", cardId, err)
+			return 0, err
+		}
+
+		log.Printf("New market value for %s: %f", cardId, newMarketValue)
+
+		// Insert new market value in the database
+		_, err = db.Exec(`
+            INSERT INTO marketdata (item_id, name, edition, grade, type, market_value, last_updated)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            ON CONFLICT (item_id) DO UPDATE
+            SET market_value = $6, last_updated = $7
+        `, cardId, cardName, edition, grade, "Pokemon Card", newMarketValue, time.Now())
+
+		if err != nil {
+			log.Printf("Error inserting/updating market value for %s: %v", cardId, err)
+			return 0, err
+		}
+
+		return newMarketValue, nil
+	}
+
+	log.Printf("Using existing market value for %s: %f", cardId, marketValue)
+	return marketValue, nil
 }

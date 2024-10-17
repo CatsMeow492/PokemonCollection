@@ -3,21 +3,29 @@ const verbose = config;
 // Load base url from .env
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
-export const fetchMarketPrice = async (cardName, cardId, edition, grade) => {
+export const fetchMarketPrice = async (name, id, edition, grade, type) => {
+    const params = new URLSearchParams({
+        name: name || '',
+        id: id || '',
+        edition: edition || '',
+        grade: grade || '',
+        type: type || ''
+    });
+    
     try {
-        const url = `/api/market-price?card_name=${encodeURIComponent(cardName)}&card_id=${encodeURIComponent(cardId)}&edition=${encodeURIComponent(edition)}&grade=${encodeURIComponent(grade)}`;
-        console.log('Fetching market price from:', url);
-        const response = await fetch(url);
+        // Change this line to match your backend route
+        const response = await fetch(`/api/item-market-price?${params}`);
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Failed to fetch market price: ${response.status} ${response.statusText} - ${errorText}`);
+            throw new Error(`Failed to fetch market value: ${response.status} ${response.statusText} - ${errorText}`);
         }
         const data = await response.json();
-        if (verbose) console.log('Market price data:', data);
-        return data.market_price;
+        if (verbose) console.log('Fetched market value:', data);
+        if (verbose) console.log('Fetched market value:', data.market_price);
+        return data.market_price; // Change this to match your backend response structure
     } catch (error) {
-        console.error('Error fetching market price:', error);
-        return null;
+        console.error('Error fetching market value:', error);
+        return null; // Return null instead of throwing, so we can continue processing other items
     }
 };
 
@@ -408,6 +416,10 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
+
+
+
 
 
 

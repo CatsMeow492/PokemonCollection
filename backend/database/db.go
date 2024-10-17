@@ -34,6 +34,10 @@ func InitDB() {
 	log.Println("Successfully connected to the database")
 }
 
+func GetDB() *sql.DB {
+	return DB
+}
+
 func CloseDB() {
 	if DB != nil {
 		DB.Close()
