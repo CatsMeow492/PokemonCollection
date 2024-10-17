@@ -90,11 +90,13 @@ const AddItemForm = ({ onAddItem, collections }) => {
             value={selectedCollection}
             onChange={(e) => setSelectedCollection(e.target.value)}
           >
-            {collections.map((collection) => (
-              <MenuItem key={collection.collectionName} value={collection.collectionName}>
-                {collection.collectionName}
+
+            {collections.map((collectionName) => (
+              <MenuItem key={collectionName} value={collectionName}>
+                {collectionName}
               </MenuItem>
             ))}
+
           </Select>
         </FormControl>
         <FormControl fullWidth margin="normal">

@@ -14,7 +14,7 @@ const ManageCollectionsModal = ({
     onAddCollection, 
     onDeleteCollection, 
     userId, 
-    collections
+    collections  // This is now an array of strings
 }) => {
     const [newCollectionName, setNewCollectionName] = useState('');
 
@@ -48,11 +48,11 @@ const ManageCollectionsModal = ({
 
                 <Typography variant="subtitle1" className="modal-subtitle">Existing Collections</Typography>
                 <List className="collection-list">
-                    {collections.map((collection) => (
-                        <ListItem key={collection.collectionName} className="collection-item">
-                            <ListItemText primary={collection.collectionName} className="collection-name" />
+                    {collections.map((collectionName) => (
+                        <ListItem key={collectionName} className="collection-item">
+                            <ListItemText primary={collectionName} className="collection-name" />
                             <ListItemSecondaryAction>
-                                <IconButton edge="end" aria-label="delete" onClick={() => onDeleteCollection(userId, collection.collectionName)} className="delete-button">
+                                <IconButton edge="end" aria-label="delete" onClick={() => onDeleteCollection(userId, collectionName)} className="delete-button">
                                     <DeleteIcon />
                                 </IconButton>
                             </ListItemSecondaryAction>
