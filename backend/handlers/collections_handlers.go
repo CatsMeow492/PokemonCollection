@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
+	"github.com/CatsMeow492/PokemonCollection/models"
 	"github.com/CatsMeow492/PokemonCollection/services"
 	"github.com/gorilla/mux"
 )
@@ -14,8 +16,14 @@ func GetCollectionsByUserID(w http.ResponseWriter, r *http.Request) {
 
 	collections, err := services.GetCollectionsByUserID(userID)
 	if err != nil {
+		log.Printf("Error fetching collections: %v", err)
 		http.Error(w, "Error fetching collections", http.StatusInternalServerError)
 		return
+	}
+
+	// If no collections are found, return an empty array instead of null
+	if collections == nil {
+		collections = []models.Collection{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

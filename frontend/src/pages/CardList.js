@@ -77,17 +77,17 @@ const CardList = () => {
 
                 // Extract all cards and items from all collections
                 const allCards = data.flatMap(collection =>
-                    collection.cards.map(card => ({
+                    (collection.cards || []).map(card => ({
                         ...card,
                         collectionName: collection.collectionName,
-                        type: 'card' // Ensure this is correct
+                        type: 'card'
                     }))
                 );
                 const allItems = data.flatMap(collection =>
-                    collection.items.map(item => ({
+                    (collection.items || []).map(item => ({
                         ...item,
                         collectionName: collection.collectionName,
-                        type: 'item' // Ensure this is correct
+                        type: 'item'
                     }))
                 );
                 setCards([...allCards, ...allItems]);
@@ -256,14 +256,14 @@ const CardList = () => {
         if (collectionName === 'all') {
             // Show all cards and items
             const allCards = collections.flatMap(collection =>
-                collection.cards.map(card => ({
+                (collection.cards || []).map(card => ({
                     ...card,
                     collectionName: collection.collectionName,
                     type: 'card'
                 }))
             );
             const allItems = collections.flatMap(collection =>
-                collection.items.map(item => ({
+                (collection.items || []).map(item => ({
                     ...item,
                     collectionName: collection.collectionName,
                     type: 'item'
@@ -274,12 +274,12 @@ const CardList = () => {
             // Show cards and items for the selected collection
             const selectedCollectionData = collections.find(c => c.collectionName === collectionName);
             if (selectedCollectionData) {
-                const collectionCards = selectedCollectionData.cards.map(card => ({
+                const collectionCards = (selectedCollectionData.cards || []).map(card => ({
                     ...card,
                     collectionName,
                     type: 'card'
                 }));
-                const collectionItems = selectedCollectionData.items.map(item => ({
+                const collectionItems = (selectedCollectionData.items || []).map(item => ({
                     ...item,
                     collectionName,
                     type: 'item'
@@ -477,14 +477,14 @@ const CardList = () => {
             </Typography>
             <Grid container spacing={3}>
                 {filteredCards.map((card, index) => (
-                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={index}>
+                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={card.id || index}>
                         <Card className="card" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
                             <div className="quantity-bubble">{card.quantity}</div>
                             <CardMedia
                                 component="img"
                                 className="card-image"
-                                image={card.image}
-                                alt={card.name}
+                                image={card.image || 'https://i.pinimg.com/originals/45/84/c0/4584c0b11190ed3bd738acf8f1d24fa4.jpg'}
+                                alt={card.name || 'Unknown Card'}
                                 ref={el => cardImageRefs.current[index] = el}
                                 onError={(e) => {
                                     console.error('Error loading image:', e.target.src);
@@ -497,7 +497,7 @@ const CardList = () => {
                             />
                             <CardContent className="card-content">
                                 <Typography variant="h5" component="h2">
-                                    {card.name}
+                                    {card.name || 'Unknown Card'}
                                 </Typography>
                                 <Typography className="textSecondary">
                                     {card.edition}

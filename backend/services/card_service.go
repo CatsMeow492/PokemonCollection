@@ -152,30 +152,6 @@ func UpdateCardQuantity(userID string, collectionName string, cardID string, qua
 	return &card, nil
 }
 
-func GetCollectionsByUserID(userID string) ([]models.Collection, error) {
-	query := `
-		SELECT collection_id, collection_name
-		FROM Collections
-		WHERE user_id = $1
-	`
-	rows, err := database.DB.Query(query, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var collections []models.Collection
-	for rows.Next() {
-		var collection models.Collection
-		err := rows.Scan(&collection.CollectionID, &collection.CollectionName)
-		if err != nil {
-			return nil, err
-		}
-		collections = append(collections, collection)
-	}
-	return collections, nil
-}
-
 func GetCollectionByUserIDandCollectionName(userID string, collectionName string) (*models.Collection, error) {
 	collection := &models.Collection{}
 	err := database.DB.QueryRow(`

@@ -4,17 +4,6 @@ import (
 	"github.com/CatsMeow492/PokemonCollection/database"
 )
 
-type Card struct {
-	ID       string  `json:"id"`
-	Name     string  `json:"name"`
-	Edition  string  `json:"edition"`
-	Set      string  `json:"set"`
-	Grade    string  `json:"grade"`
-	Price    float64 `json:"price"`
-	Image    string  `json:"image"`
-	Quantity int     `json:"quantity"`
-}
-
 type Collection struct {
 	CollectionID   int    `json:"collection_id"`
 	CollectionName string `json:"collection_name"`
