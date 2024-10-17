@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -263,19 +264,23 @@ func FetchCardFromAPI(apiKey string, cardIdentifier string) (*models.Card, error
 func AddCardToCollection(userID string, collectionName string, card models.Card) error {
 	tx, err := database.DB.Begin()
 	if err != nil {
+		log.Printf("Error beginning transaction: %v", err)
 		return err
 	}
 	defer tx.Rollback()
 
-	// Check if the collection exists, if not create it
+	// Get the collection ID
 	var collectionID int
 	err = tx.QueryRow(`
-		INSERT INTO Collections (user_id, collection_name)
-		VALUES ($1, $2)
-		ON CONFLICT (user_id, collection_name) DO UPDATE SET collection_name = EXCLUDED.collection_name
-		RETURNING collection_id
+		SELECT collection_id FROM Collections 
+		WHERE user_id = $1 AND collection_name = $2
 	`, userID, collectionName).Scan(&collectionID)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("Collection not found: %s", collectionName)
+			return fmt.Errorf("collection not found: %s", collectionName)
+		}
+		log.Printf("Error fetching collection: %v", err)
 		return err
 	}
 
@@ -290,6 +295,7 @@ func AddCardToCollection(userID string, collectionName string, card models.Card)
 			image = EXCLUDED.image
 	`, card.ID, card.Name, card.Edition, card.Set, card.Image)
 	if err != nil {
+		log.Printf("Error inserting/updating item: %v", err)
 		return err
 	}
 
@@ -303,10 +309,17 @@ func AddCardToCollection(userID string, collectionName string, card models.Card)
 			quantity = UserItems.quantity + EXCLUDED.quantity
 	`, collectionID, card.ID, card.Grade, card.Price, card.Quantity)
 	if err != nil {
+		log.Printf("Error inserting/updating user item: %v", err)
 		return err
 	}
 
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Printf("Error committing transaction: %v", err)
+		return err
+	}
+
+	return nil
 }
 
 func RemoveCardFromCollection(userID string, collectionName string, cardID string) error {

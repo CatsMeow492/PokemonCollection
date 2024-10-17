@@ -6,7 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useContext } from 'react';
 import config from '../config';
 
-const AddCardForm = (props) => {
+const AddCardForm = ({ onCardAdded, setAddCardModalOpen, collections }) => {
   const { id } = useContext(AuthContext);
   const [name, setName] = useState('');
   const [edition, setEdition] = useState('');
@@ -17,7 +17,6 @@ const AddCardForm = (props) => {
   const [set, setSet] = useState('');
   const [pokemonNames, setPokemonNames] = useState([]);
   const { verbose } = config;
-  const { collections } = props;
   const [selectedCollection, setSelectedCollection] = useState('');
   useEffect(() => {
     fetchPokemonNames()
@@ -30,29 +29,34 @@ const AddCardForm = (props) => {
       });
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent default form submission
-
-    // Validate price
-    const pricePattern = /^\d+(\.\d{1,2})?$/;
-    if (!pricePattern.test(price)) {
-      setPriceError('Please enter a valid dollar amount');
-      return;
-    } else {
-      setPriceError('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const newCard = { 
+      name, 
+      edition, 
+      grade, 
+      price: parseFloat(price) || 0, 
+      image, 
+      set, 
+      collectionName: selectedCollection 
+    };
+    try {
+      const addedCard = await addCard(newCard, id, selectedCollection);
+      console.log('Card added successfully:', addedCard);
+      setAddCardModalOpen(false); // Close the modal after adding the card
+      onCardAdded(addedCard); // Update the parent component
+      // Reset form fields
+      setName('');
+      setEdition('');
+      setGrade('');
+      setPrice('');
+      setImage('');
+      setSet('');
+      setSelectedCollection('');
+    } catch (error) {
+      console.error('Failed to add card:', error);
+      // Optionally, you can set an error state here to display to the user
     }
-
-    const newCard = { name, edition, grade: grade === 'Ungraded' ? 'Ungraded' : parseInt(grade, 10), price: parseFloat(price) || 0, image, set, collectionName: selectedCollection };
-
-    addCard(newCard, id, selectedCollection);
-
-    setName('');
-    setEdition('');
-    setGrade('');
-    setPrice('');
-    setImage('');
-    setSet('');
-    setSelectedCollection('');
   };
 
   const setAndEditions = require('../data/sets_and_editions.json');
@@ -108,7 +112,7 @@ const AddCardForm = (props) => {
           <Select
             id="grade-select"
             value={grade}
-            onChange={(e) => setGrade(e.target.value)}
+            onChange={(e) => setGrade(e.target.value.toString())}
             label="Grade"
           >
             <MenuItem value="Ungraded">Ungraded</MenuItem>

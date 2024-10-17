@@ -3,14 +3,16 @@ import { Dialog, DialogContent, DialogActions, Button, Typography } from '@mui/m
 import AddCardForm from '../forms/AddCardForm';
 import '../styles/AddCardModal.css';
 
-const AddCardModal = ({ open, onClose, onAddCard, collections, selectedCollection }) => {
+const AddCardModal = ({ open, onClose, onCardAdded, collections }) => {
   return (
-    <Dialog open={open} onClose={onClose} aria-labelledby="form-dialog-title" className="add-card-modal">
-      <DialogContent className="modal-content">
-        <Typography variant="h6" className="modal-title">
-          Add New Card
-        </Typography>
-        <AddCardForm onAddCard={onAddCard} collections={collections} selectedCollection={selectedCollection} />
+    <Dialog open={open} onClose={onClose} aria-labelledby="add-card-modal-title" aria-describedby="add-card-modal-description" className="add-card-modal">
+      <DialogContent className="modal-title">
+        <Typography variant="h6" id="modal-title">Add Card</Typography>
+        <AddCardForm 
+          onCardAdded={onCardAdded}
+          setAddCardModalOpen={onClose}
+          collections={collections}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="primary">

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -107,16 +108,30 @@ func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 		CollectionName string      `json:"collection_name"`
 		Card           models.Card `json:"card"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&newCard); err != nil {
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Error reading request body: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("Raw request body: %s", string(body))
+
+	if err := json.Unmarshal(body, &newCard); err != nil {
+		log.Printf("Error decoding request body: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("Decoded request: %+v", newCard)
+	log.Printf("Card grade: %v (type: %T)", newCard.Card.Grade, newCard.Card.Grade)
 
 	// Fetch the card from the API
 	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
 	fetchedCard, err := services.FetchCardFromAPI(apiKey, fmt.Sprintf("%s-%s", newCard.Card.Set, newCard.Card.Name))
 	if err != nil {
-		http.Error(w, "Error fetching card details", http.StatusInternalServerError)
+		log.Printf("Error fetching card details: %v", err)
+		http.Error(w, fmt.Sprintf("Error fetching card details: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -132,9 +147,17 @@ func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 		Quantity: newCard.Card.Quantity,
 	}
 
+	// After fetching the card from the API
+	if fetchedCard.ID == "" {
+		fetchedCard.ID = fmt.Sprintf("%s-%s", fetchedCard.Set, fetchedCard.Name)
+	}
+
+	mergedCard.ID = fetchedCard.ID
+
 	err = services.AddCardToCollection(newCard.UserID, newCard.CollectionName, mergedCard)
 	if err != nil {
-		http.Error(w, "Error adding card to collection", http.StatusInternalServerError)
+		log.Printf("Error adding card to collection: %v", err)
+		http.Error(w, fmt.Sprintf("Error adding card to collection: %v", err), http.StatusInternalServerError)
 		return
 	}
 

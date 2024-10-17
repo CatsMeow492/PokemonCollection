@@ -107,33 +107,38 @@ export const addCardWithUserId = async (card, userId) => {
 
 // Function to add a card with userId and collectionName
 export const addCardWithCollection = async (card, userId, collectionName) => {
-    if (verbose) console.log(`Adding card to collection: ${userId}, ${JSON.stringify(card)}, ${collectionName}`);
+    const payload = {
+        user_id: userId,
+        collection_name: collectionName,
+        card: {
+            ...card,
+            grade: card.grade.toString() // Ensure grade is a string
+        }
+    };
+    console.log('Payload being sent:', JSON.stringify(payload, null, 2));
+    
     const response = await fetch('/api/cards/collection', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-            user_id: userId,
-            collection_name: collectionName,
-            card: card
-        }),
+        body: JSON.stringify(payload),
     });
 
+    const responseText = await response.text();
+    console.log('Full server response:', responseText);
+
     if (!response.ok) {
-        throw new Error('Failed to add card to collection');
+        throw new Error(`Failed to add card to collection: ${responseText}`);
     }
 
-    return response.json();
+    return JSON.parse(responseText);
 };
 
 // You can keep the original addCard function as a wrapper if you want to maintain backwards compatibility
 export const addCard = async (card, userId, collectionName) => {
-    if (collectionName) {
-        return addCardWithCollection(card, userId, collectionName);
-    } else {
-        return addCardWithUserId(card, userId);
-    }
+    const response = await addCardWithCollection(card, userId, collectionName);
+    return response; // This should be the newly added card
 };
 
 export const fetchProducts = async () => {
@@ -407,3 +412,4 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+

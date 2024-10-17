@@ -51,7 +51,10 @@ func main() {
 
 	// Cards
 	r.HandleFunc("/api/cards", handlers.AddCardWithUserID).Methods("POST")
-	r.HandleFunc("/api/cards/collection", handlers.AddCardWithUserIDAndCollection).Methods("POST")
+	r.HandleFunc("/api/cards/collection", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Endpoint hit: POST /api/cards/collection")
+		handlers.AddCardWithUserIDAndCollection(w, r)
+	}).Methods("POST")
 
 	// Cards
 	r.HandleFunc("/api/cards", func(w http.ResponseWriter, r *http.Request) {

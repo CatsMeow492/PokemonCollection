@@ -152,6 +152,15 @@ const CardList = () => {
         }
     }, [displayedCards]);
 
+    useEffect(() => {
+        // Update displayedCards when cards change
+        if (selectedCollection === 'all') {
+            setDisplayedCards(cards);
+        } else {
+            setDisplayedCards(cards.filter(card => card.collectionName === selectedCollection));
+        }
+    }, [cards, selectedCollection]);
+
     if (loading || routeLoading) {
         return (
             <div className="spinner-container">
@@ -358,7 +367,9 @@ const CardList = () => {
                 newItem.price
             );
             if (verbose) console.log('Item added successfully in CardList.js:', addedItem);
-            setCards(prevCards => [...prevCards, addedItem]);
+            const marketPrice = await fetchMarketPrice(addedItem.name, addedItem.id, addedItem.edition, addedItem.grade);
+            const updatedItem = { ...addedItem, marketPrice };
+            setCards(prevCards => [...prevCards, updatedItem]);
             setAddItemModalOpen(false);
         } catch (error) {
             console.error('Failed to add item:', error.message);
@@ -382,6 +393,11 @@ const CardList = () => {
 
     // Extract collection names
     const collectionNames = collections.map(collection => collection.collection_name);
+
+    const handleCardAdded = (newCard) => {
+        setCards(prevCards => [...prevCards, newCard]);
+        setAddCardModalOpen(false);
+    };
 
     return (
         <Container className="card-list-container">
@@ -438,9 +454,8 @@ const CardList = () => {
             <AddCardModal
                 open={addCardModalOpen}
                 onClose={() => setAddCardModalOpen(false)}
-                onAddCard={handleAddCard}
+                onCardAdded={handleCardAdded}
                 collections={collectionNames}
-                selectedCollection={selectedCollection}
             />
             <AddItemModal
                 open={addItemModalOpen}
