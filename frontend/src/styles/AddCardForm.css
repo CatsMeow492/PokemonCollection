@@ -1,0 +1,31 @@
+@import '../theme.css';
+
+.add-card-form {
+    color: var(--modal-text-color);
+    background-color: var(--modal-background-color);
+}
+
+.add-card-form-title {
+    color: var(--modal-text-color); /* Dark gray color for better contrast on white background */
+}
+
+.add-card-button {
+    background-color: var(--modal-title-color); /* Material-UI's primary blue */
+    color: white !important; /* Ensure text is white */
+}
+
+.add-card-button:hover {
+    background-color: var(--modal-title-color); /* Darker blue on hover */
+}
+
+/* Ensure all text inputs and labels have sufficient contrast */
+.add-card-form .MuiInputLabel-root,
+.add-card-form .MuiInputBase-input,
+.add-card-form .MuiMenuItem-root {
+    color: rgba(0, 0, 0, 0.87); /* Dark text for inputs and labels */
+}
+
+/* Style for the modal background if needed */
+.MuiDialog-paper {
+    background-color: white; /* Ensure modal background is white */
+}

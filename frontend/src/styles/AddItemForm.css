@@ -6,7 +6,7 @@
     font-size: 1.5rem;
     font-weight: bold;
     margin-bottom: 16px;
-    color: #1976d2;
+    color: var(--modal-title-color);
 }
 
 .add-item-form .MuiTextField-root,
@@ -23,7 +23,7 @@
 .add-item-form .MuiInputBase-input,
 .add-item-form .MuiSelect-select,
 .add-item-form .MuiMenuItem-root {
-    color: #333 !important;
+    color: var(--modal-text-color) !important;
 }
 
 .add-item-form .MuiOutlinedInput-notchedOutline {

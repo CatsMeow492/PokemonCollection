@@ -5,12 +5,13 @@ import '../styles/AddCardModal.css';
 
 const AddCardModal = ({ open, onClose, onCardAdded, collections }) => {
   return (
-    <Dialog open={open} onClose={onClose} aria-labelledby="add-card-modal-title" aria-describedby="add-card-modal-description" className="add-card-modal">
-      <DialogContent className="modal-title">
-        <Typography variant="h6" id="modal-title">Add Card</Typography>
+    <Dialog open={open} onClose={onClose} aria-labelledby="form-dialog-title" className="add-card-modal">
+      <DialogContent className="modal-content">
+        <Typography variant="h6" className="modal-title">
+          Add New Card
+        </Typography>
         <AddCardForm 
           onCardAdded={onCardAdded}
-          setAddCardModalOpen={onClose}
           collections={collections}
         />
       </DialogContent>

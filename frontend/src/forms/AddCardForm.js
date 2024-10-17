@@ -65,9 +65,6 @@ const AddCardForm = ({ onCardAdded, setAddCardModalOpen, collections }) => {
 
   return (
     <Container className="add-card-form">
-      <Typography variant="h5" component="h2" gutterBottom>
-        Add New Card
-      </Typography>
       <form onSubmit={handleSubmit}>
         <Autocomplete
           id="pokemon-name-select"
@@ -132,7 +129,13 @@ const AddCardForm = ({ onCardAdded, setAddCardModalOpen, collections }) => {
           error={!!priceError}
           helperText={priceError}
         />
-        <Button type="submit" variant="contained" color="primary" style={{ margin: '1rem' }}>
+        <Button 
+          type="submit" 
+          variant="contained" 
+          color="primary" 
+          className="add-card-button"
+          style={{ margin: '1rem' }}
+        >
           Add Card
         </Button>
       </form>
