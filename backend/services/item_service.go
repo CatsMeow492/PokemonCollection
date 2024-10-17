@@ -87,24 +87,26 @@ func AddItemToCollection(userID string, collectionName string, item models.Item)
 	}
 
 	_, err = tx.Exec(`
-		INSERT INTO Items (item_id, name, edition, grade)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO Items (item_id, name, edition, set, image, grade, price)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (item_id) DO UPDATE SET
 			name = EXCLUDED.name,
 			edition = EXCLUDED.edition,
-			grade = EXCLUDED.grade
-	`, item.ID, item.Name, item.Edition, item.Grade)
+			set = EXCLUDED.set,
+			image = EXCLUDED.image,
+			grade = EXCLUDED.grade,
+			price = EXCLUDED.price
+	`, item.ID, item.Name, item.Edition, item.Set, item.Image, item.Grade, item.Price)
 	if err != nil {
 		return err
 	}
 
 	_, err = tx.Exec(`
-		INSERT INTO UserItems (collection_id, item_id, price, quantity)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO UserItems (collection_id, item_id, quantity)
+		VALUES ($1, $2, $3)
 		ON CONFLICT (collection_id, item_id) DO UPDATE SET
-			price = EXCLUDED.price,
 			quantity = UserItems.quantity + EXCLUDED.quantity
-	`, collectionID, item.ID, item.Price, item.Quantity)
+	`, collectionID, item.ID, item.Quantity)
 	if err != nil {
 		return err
 	}

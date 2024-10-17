@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -74,7 +75,7 @@ func AddItemWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 	err := services.AddItemToCollection(userID, collectionName, itemData)
 	if err != nil {
 		log.Printf("Error adding item to collection: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error adding item to collection: %v", err), http.StatusInternalServerError)
 		return
 	}
 

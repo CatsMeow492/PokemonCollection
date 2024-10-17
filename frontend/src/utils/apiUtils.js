@@ -340,29 +340,25 @@ export const removeCardFromCollection = async (userId, collectionName, cardId) =
 
 export const addItemToCollection = async (userId, name, grade, edition, collectionName, price) => {
     const url = `/api/items/${userId}/${encodeURIComponent(collectionName)}`;
-    if (verbose) {
-        console.log('Sending POST request to in apiUtils:', url);
-        console.log('Sending POST request to in apiUtils:', JSON.stringify({ 
-            name: name, 
-            grade: grade, 
-            edition: edition, 
-            price: price 
-        }));
-    }
     const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-            name: name, 
+            name, 
             grade: grade.toString(), 
-            edition: edition, 
-            price: price 
+            edition, 
+            price: parseFloat(price),
+            set: '', // Add this if needed
+            image: '', // Add this if needed
+            quantity: 1 // Add this if needed
         }),
     });
+
     if (!response.ok) {
         const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error(`Failed to add item: ${response.status} ${response.statusText}. ${errorText}`);
     }
 
@@ -412,4 +408,6 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
+
 
