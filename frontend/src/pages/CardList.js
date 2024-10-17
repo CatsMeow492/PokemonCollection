@@ -63,6 +63,44 @@ const CardList = () => {
     const [addItemModalOpen, setAddItemModalOpen] = useState(false);
     const navigate = useNavigate();
 
+    const handleCollectionChange = (e) => {
+        const collectionName = e.target.value;
+        setSelectedCollection(collectionName);
+
+        if (collectionName === 'all') {
+            const allCards = collections.flatMap(collection =>
+                (collection.cards || []).map(card => ({
+                    ...card,
+                    collectionName: collection.collection_name,
+                    type: 'card'
+                }))
+            );
+            const allItems = collections.flatMap(collection =>
+                (collection.items || []).map(item => ({
+                    ...item,
+                    collectionName: collection.collection_name,
+                    type: 'item'
+                }))
+            );
+            setDisplayedCards([...allCards, ...allItems]);
+        } else {
+            const selectedCollectionData = collections.find(c => c.collection_name === collectionName);
+            if (selectedCollectionData) {
+                const collectionCards = (selectedCollectionData.cards || []).map(card => ({
+                    ...card,
+                    collectionName,
+                    type: 'card'
+                }));
+                const collectionItems = (selectedCollectionData.items || []).map(item => ({
+                    ...item,
+                    collectionName,
+                    type: 'item'
+                }));
+                setDisplayedCards([...collectionCards, ...collectionItems]);
+            }
+        }
+    };
+
     useEffect(() => {
         if (!id) {
             console.error('User ID is undefined');
@@ -89,56 +127,13 @@ const CardList = () => {
         }
     }, [collections]);
 
-    const handleCollectionChange = (e) => {
-        const collectionName = e.target.value;
-        setSelectedCollection(collectionName);
-
-        if (collectionName === 'all') {
-            // Show all cards and items
-            const allCards = collections.flatMap(collection =>
-                (collection.cards || []).map(card => ({
-                    ...card,
-                    collectionName: collection.collection_name,
-                    type: 'card'
-                }))
-            );
-            const allItems = collections.flatMap(collection =>
-                (collection.items || []).map(item => ({
-                    ...item,
-                    collectionName: collection.collection_name,
-                    type: 'item'
-                }))
-            );
-            setDisplayedCards([...allCards, ...allItems]);
-        } else {
-            // Show cards and items for the selected collection
-            const selectedCollectionData = collections.find(c => c.collection_name === collectionName);
-            if (selectedCollectionData) {
-                const collectionCards = (selectedCollectionData.cards || []).map(card => ({
-                    ...card,
-                    collectionName,
-                    type: 'card'
-                }));
-                const collectionItems = (selectedCollectionData.items || []).map(item => ({
-                    ...item,
-                    collectionName,
-                    type: 'item'
-                }));
-                setDisplayedCards([...collectionCards, ...collectionItems]);
-            }
-        }
-    };
-
-    // Extract collection names
-    const collectionNames = collections.map(collection => collection.collection_name);
-
     useEffect(() => {
         const updateCardsWithMarketPrice = async () => {
             setLoading(true);
-            const updatedCards = await Promise.all(cards.map(async (item) => {
+            const updatedCards = await Promise.all(displayedCards.map(async (item) => {
                 if (!item || !item.id) {
                     console.error('Item or item ID is undefined:', item);
-                    return item; // Return the item as is if it's undefined or has no ID
+                    return item;
                 }
                 let marketPrice;
                 if (item.type === 'card') {
@@ -152,10 +147,10 @@ const CardList = () => {
             setLoading(false);
         };
 
-        if (cards.length > 0) {
+        if (displayedCards.length > 0) {
             updateCardsWithMarketPrice();
         }
-    }, [cards]);
+    }, [displayedCards]);
 
     if (loading || routeLoading) {
         return (
@@ -385,8 +380,8 @@ const CardList = () => {
         navigate(`/card-market-data/${cardId}`, { state: { cardName, cardImage } });
     };
 
-    const filteredCards = cardsWithMarketPrice.filter(item => item.type === 'card');
-    const filteredItems = cardsWithMarketPrice.filter(item => item.type === 'item');
+    // Extract collection names
+    const collectionNames = collections.map(collection => collection.collection_name);
 
     return (
         <Container className="card-list-container">
@@ -466,15 +461,15 @@ const CardList = () => {
                 Cards
             </Typography>
             <Grid container spacing={3}>
-                {displayedCards.map((item, index) => (
-                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={item.id || index}>
+                {cardsWithMarketPrice.filter(item => item.type === 'card').map((card, index) => (
+                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={card.id || index}>
                         <Card className="card" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
-                            <div className="quantity-bubble">{item.quantity}</div>
+                            <div className="quantity-bubble">{card.quantity}</div>
                             <CardMedia
                                 component="img"
                                 className="card-image"
-                                image={item.image || 'https://i.pinimg.com/originals/45/84/c0/4584c0b11190ed3bd738acf8f1d24fa4.jpg'}
-                                alt={item.name || 'Unknown Card'}
+                                image={card.image || 'https://i.pinimg.com/originals/45/84/c0/4584c0b11190ed3bd738acf8f1d24fa4.jpg'}
+                                alt={card.name || 'Unknown Card'}
                                 ref={el => cardImageRefs.current[index] = el}
                                 onError={(e) => {
                                     console.error('Error loading image:', e.target.src);
@@ -482,41 +477,39 @@ const CardList = () => {
                                 }}
                                 onMouseMove={(e) => handleMouseMove(e, index)}
                                 onMouseLeave={() => handleMouseLeave(index)}
-                                onClick={() => handleCardClick(item.id, item.name, item.image)}
+                                onClick={() => handleCardClick(card.id, card.name, card.image)}
                                 style={{ overflow: 'visible' }}
                             />
                             <CardContent className="card-content">
                                 <Typography variant="h5" component="h2">
-                                    {item.name || 'Unknown Card'}
+                                    {card.name || 'Unknown Card'}
                                 </Typography>
                                 <Typography className="textSecondary">
-                                    {item.edition}
+                                    {card.edition}
                                 </Typography>
                                 <Typography variant="caption" component="p" style={{ fontSize: '0.7rem', color: '#999' }}>
-                                    Collection: {item.collectionName || 'N/A'}
+                                    Collection: {card.collectionName || 'N/A'}
                                 </Typography>
                                 <Typography variant="body2" component="p">
-                                    Grade: {item.grade}
+                                    Grade: {card.grade}
                                 </Typography>
                                 <Typography variant="body2" component="p">
-                                    Cost: {item.price}
+                                    Cost: {card.price}
                                 </Typography>
-                                {item.marketPrice !== undefined && (
-                                    <Typography variant="body2" component="p" className="market-price">
-                                        Market Price: ${item.marketPrice ? item.marketPrice.toFixed(2) : 'N/A'}
-                                    </Typography>
-                                )}
+                                <Typography variant="body2" component="p" className="market-price">
+                                    Market Price: ${card.marketPrice ? card.marketPrice.toFixed(2) : 'N/A'}
+                                </Typography>
                                 <div className="card-actions">
                                     <div className="left-group">
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, item.collectionName, item.id)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, card.collectionName, card.id)}>
                                             <ClearIcon />
                                         </IconButton>
                                     </div>
                                     <div className="right-group">
-                                        <IconButton size="small" color="primary" className="add-button" onClick={() => handleIncrementQuantity(item)}>
+                                        <IconButton size="small" color="primary" className="add-button" onClick={() => handleIncrementQuantity(card)}>
                                             <ArrowCircleUpTwoToneIcon />
                                         </IconButton>
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleDecrementQuantity(item)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleDecrementQuantity(card)}>
                                             <ArrowCircleDownTwoToneIcon />
                                         </IconButton>
                                     </div>
@@ -531,8 +524,8 @@ const CardList = () => {
                 Items
             </Typography>
             <Grid container spacing={3}>
-                {filteredItems.map((item, index) => (
-                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={index}>
+                {cardsWithMarketPrice.filter(item => item.type === 'item').map((item, index) => (
+                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={item.id || index}>
                         <Card className="item" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.2)', position: 'relative' }}>
                             <div style={{
                                 position: 'absolute',
@@ -569,13 +562,10 @@ const CardList = () => {
                                 <Typography variant="body2" component="p">
                                     Cost: {item.price}
                                 </Typography>
-                                {item.marketPrice !== undefined && (
-                                    <Typography variant="body2" component="p" className="market-price">
-                                        Market Price: ${item.marketPrice ? item.marketPrice.toFixed(2) : 'N/A'}
-                                    </Typography>
-                                )}
+                                <Typography variant="body2" component="p" className="market-price">
+                                    Market Price: ${item.marketPrice ? item.marketPrice.toFixed(2) : 'N/A'}
+                                </Typography>
                                 <div className="card-actions">
-
                                     <div className="left-group">
                                         <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, item.collectionName, item.id)}>
                                             <ClearIcon />
