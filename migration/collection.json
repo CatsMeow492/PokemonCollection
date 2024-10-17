@@ -216,7 +216,28 @@
       },
       {
         "collectionName": "Taylor's Collection 2",
-        "collection": [],
+        "collection": [
+          {
+            "name": "Snorlax",
+            "edition": "1999 Fossil 1st Edition",
+            "set": "base2",
+            "grade": "Ungraded",
+            "price": 0,
+            "image": "https://images.pokemontcg.io/base2/11_hires.png",
+            "quantity": 1,
+            "id": "base2-11"
+          },
+          {
+            "name": "Ninetales",
+            "edition": "Jungle",
+            "set": "base1",
+            "grade": "Ungraded",
+            "price": 0,
+            "image": "https://images.pokemontcg.io/base1/12_hires.png",
+            "quantity": 1,
+            "id": "base1-12"
+          }
+        ],
         "items": [
           {
             "id": "f2481f3b-45d8-48df-ab7e-921656d3cd90",

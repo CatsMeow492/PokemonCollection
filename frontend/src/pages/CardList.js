@@ -59,7 +59,7 @@ const CardList = () => {
     const [loading, setLoading] = useState(true);
     const [collections, setCollections] = useState([]); // Initialize as an empty array
     const [selectedCollection, setSelectedCollection] = useState('');
-    const [collectionName, setCollectionName] = useState('');
+    const [collectionNames, setCollectionNames] = useState('');
     const [addItemModalOpen, setAddItemModalOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -73,7 +73,9 @@ const CardList = () => {
         fetchCollectionsByUserID(id)
             .then(data => {
                 setCollections(data || []); // Set collections
-                if (verbose) console.log('Fetched collections in CardList.js:', data);
+                const names = data.map(collection => collection.collection_name);
+                setCollectionNames(names);
+                if (verbose) console.log('Set Collections to: ', data);
 
                 // Extract all cards and items from all collections
                 const allCards = data.flatMap(collection =>
@@ -90,6 +92,8 @@ const CardList = () => {
                         type: 'item'
                     }))
                 );
+  
+                if (verbose) console.log('Collection names:', names);
                 setCards([...allCards, ...allItems]);
                 if (verbose) console.log('All cards:', allCards);
                 if (verbose) console.log('All items:', allItems);
@@ -442,8 +446,8 @@ const CardList = () => {
                     >
                         <MenuItem value="all">All Cards</MenuItem>
                         {collections && collections.map((collection) => (
-                            <MenuItem key={collection.collectionName} value={collection.collectionName}>
-                                {collection.collectionName}
+                            <MenuItem key={collection.collection_id} value={collection.collection_name}>
+                                {collection.collection_name}
                             </MenuItem>
                         ))}
                     </Select>
@@ -454,14 +458,14 @@ const CardList = () => {
                 open={addCardModalOpen}
                 onClose={() => setAddCardModalOpen(false)}
                 onAddCard={handleAddCard}
-                collections={collections}
+                collections={collectionNames}
                 selectedCollection={selectedCollection}
             />
             <AddItemModal
                 open={addItemModalOpen}
                 onClose={() => setAddItemModalOpen(false)}
                 onAddItem={handleAddItem}
-                collections={collections}
+                collections={collectionNames}
             />
             <ManageCollectionsModal
                 open={manageCollectionsModalOpen}
@@ -469,7 +473,7 @@ const CardList = () => {
                 onAddCollection={handleAddCollection}
                 onDeleteCollection={handleDeleteCollection}
                 userId={id}
-                collections={collections}
+                collections={collectionNames}
             />
 
             <Typography variant="h5" component="h2" className="section-title">
