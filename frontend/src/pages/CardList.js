@@ -111,7 +111,16 @@ const CardList = () => {
         fetchCollectionsByUserID(id)
             .then(data => {
                 setCollections(data || []);
-                if (verbose) console.log('Set Collections to: ', data);
+                if (verbose) {
+                    console.log('Set Collections to: ', data);
+                    // Log the price of each card in each collection
+                    data.forEach((collection, index) => {
+                        console.log(`Collection ${index + 1}:`);
+                        collection.cards.forEach(card => {
+                            console.log(`Card: ${card.name}, Price: ${card.purchase_price}`);
+                        });
+                    });
+                }
             })
             .catch(error => {
                 console.error('Error fetching collections:', error);
@@ -130,11 +139,23 @@ const CardList = () => {
     useEffect(() => {
         const updateCardsWithMarketPrice = async () => {
             setLoading(true);
+            if (verbose) {
+                console.log('Cards before fetching market price:');
+                displayedCards.forEach(card => {
+                    console.log(`Card: ${card.name}, Price: ${card.purchase_price}`);
+                });
+            }
             const updatedCards = await Promise.all(displayedCards.map(async (item) => {
                 const marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade, item.type);
-                return { ...item, marketPrice: marketPrice || item.price };
+                return { ...item, marketPrice: marketPrice || item.purchase_price };
             }));
             setCardsWithMarketPrice(updatedCards);
+            if (verbose) {
+                console.log('Cards after fetching market price:');
+                updatedCards.forEach(card => {
+                    console.log(`Card: ${card.name}, Price: ${card.purchase_price}, Market Price: ${card.marketPrice}`);
+                });
+            }
             setLoading(false);
         };
 
@@ -145,10 +166,19 @@ const CardList = () => {
 
     useEffect(() => {
         // Update displayedCards when cards change
+        let newDisplayedCards;
         if (selectedCollection === 'all') {
-            setDisplayedCards(cards);
+            newDisplayedCards = cards;
         } else {
-            setDisplayedCards(cards.filter(card => card.collectionName === selectedCollection));
+            newDisplayedCards = cards.filter(card => card.collectionName === selectedCollection);
+        }
+        setDisplayedCards(newDisplayedCards);
+        
+        if (verbose) {
+            console.log('Updated displayedCards:');
+            newDisplayedCards.forEach(card => {
+                console.log(`Card: ${card.name}, Price: ${card.purchase_price}`);
+            });
         }
     }, [cards, selectedCollection]);
 
@@ -355,13 +385,15 @@ const CardList = () => {
                 newItem.grade, // Changed from item_grade
                 newItem.edition,
                 newItem.collectionName,
-                newItem.price
+                newItem.purchasePrice,
+                newItem.type
             );
             if (verbose) console.log('Item added successfully in CardList.js:', addedItem);
             const marketPrice = await fetchMarketPrice(addedItem.name, addedItem.id, addedItem.edition, addedItem.grade);
             const updatedItem = { ...addedItem, marketPrice };
             setCards(prevCards => [...prevCards, updatedItem]);
             setAddItemModalOpen(false);
+            setAddCardModalOpen(false);
         } catch (error) {
             console.error('Failed to add item:', error.message);
             // Optionally, you can set an error state here to display to the user
@@ -386,7 +418,12 @@ const CardList = () => {
     const collectionNames = collections.map(collection => collection.collection_name);
 
     const handleCardAdded = (newCard) => {
-        setCards(prevCards => [...prevCards, newCard]);
+        console.log('handleCardAdded called with:', newCard);
+        setCards(prevCards => {
+            const updatedCards = [...prevCards, newCard];
+            console.log('Updated cards:', updatedCards);
+            return updatedCards;
+        });
         setAddCardModalOpen(false);
     };
 
@@ -500,7 +537,7 @@ const CardList = () => {
                                     Grade: {card.grade}
                                 </Typography>
                                 <Typography variant="body2" component="p">
-                                    Cost: {card.price}
+                                    Cost: {card.purchase_price}
                                 </Typography>
                                 <Typography variant="body2" component="p" className="market-price">
                                     Market Price: ${card.marketPrice ? card.marketPrice.toFixed(2) : 'N/A'}
@@ -566,7 +603,7 @@ const CardList = () => {
                                     Grade: {item.grade}
                                 </Typography>
                                 <Typography variant="body2" component="p">
-                                    Cost: {item.price}
+                                    Cost: {item.purchase_price}
                                 </Typography>
                                 <Typography variant="body2" component="p" className="market-price">
                                     Market Price: ${item.marketPrice ? item.marketPrice.toFixed(2) : 'N/A'}

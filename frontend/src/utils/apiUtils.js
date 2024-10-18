@@ -46,7 +46,7 @@ export const fetchCardsByUserID = async (userID) => {
 };
 
 export const fetchCollectionsByUserID = async (userID) => {
-    const verbose = config.verbose; // Ensure verbose is defined
+    const verbose = config.verbose;
     if (verbose) console.log(`Fetching collections for user ID: ${userID}`);
     
     try {
@@ -55,13 +55,21 @@ export const fetchCollectionsByUserID = async (userID) => {
             throw new Error('Failed to fetch collections');
         }
         
-        // Ensure response.json() is called only once
         const data = await response.json();
-        if (verbose) console.log('Collections fetched:', data);
+        if (verbose) {
+            console.log('Collections fetched:', data);
+            // Log the price of each card in each collection
+            data.forEach((collection, index) => {
+                console.log(`Collection ${index + 1}:`);
+                collection.cards.forEach(card => {
+                    console.log(`Card: ${card.name}, Price: ${card.price}`);
+                });
+            });
+        }
         return data;
     } catch (error) {
         console.error('Error fetching collections:', error);
-        throw error; // Re-throw the error to handle it in the calling function
+        throw error;
     }
 };
 
@@ -115,15 +123,23 @@ export const addCardWithUserId = async (card, userId) => {
 
 // Function to add a card with userId and collectionName
 export const addCardWithCollection = async (card, userId, collectionName) => {
+    if (verbose) console.log('Adding card with collection:', card, userId, collectionName);
     const payload = {
         user_id: userId,
         collection_name: collectionName,
         card: {
             ...card,
+            purchase_price: card.price || card.purchase_price, // Use price if available, otherwise use purchase_price
             grade: card.grade.toString() // Ensure grade is a string
         }
     };
-    console.log('Payload being sent:', JSON.stringify(payload, null, 2));
+    
+    // Remove the 'price' field if it exists
+    if (payload.card.price) {
+        delete payload.card.price;
+    }
+    
+    if (verbose) console.log('Payload being sent:', JSON.stringify(payload, null, 2));
     
     const response = await fetch('/api/cards/collection', {
         method: 'POST',
@@ -134,7 +150,7 @@ export const addCardWithCollection = async (card, userId, collectionName) => {
     });
 
     const responseText = await response.text();
-    console.log('Full server response:', responseText);
+    if (verbose) console.log('Full server response:', responseText);
 
     if (!response.ok) {
         throw new Error(`Failed to add card to collection: ${responseText}`);
@@ -346,22 +362,27 @@ export const removeCardFromCollection = async (userId, collectionName, cardId) =
     return response.json();
 };
 
-export const addItemToCollection = async (userId, name, grade, edition, collectionName, price) => {
+export const addItemToCollection = async (userId, name, grade, edition, collectionName, purchasePrice) => {
     const url = `/api/items/${userId}/${encodeURIComponent(collectionName)}`;
+    const payload = {
+        name,
+        grade: grade.toString(),
+        edition,
+        purchase_price: parseFloat(purchasePrice) || 0, // Changed from purchasePrice to price to match backend expectation
+        set: '',
+        image: '',
+        quantity: 1,
+        type: 'Item'
+    };
+    
+    if (verbose) console.log('Payload being sent to backend:', payload);
+
     const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-            name, 
-            grade: grade.toString(), 
-            edition, 
-            price: parseFloat(price),
-            set: '', // Add this if needed
-            image: '', // Add this if needed
-            quantity: 1 // Add this if needed
-        }),
+        body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -369,8 +390,10 @@ export const addItemToCollection = async (userId, name, grade, edition, collecti
         console.error('Error response:', errorText);
         throw new Error(`Failed to add item: ${response.status} ${response.statusText}. ${errorText}`);
     }
-
-    return response.json();
+    
+    const responseData = await response.json();
+    if (verbose) console.log('Item added (response from backend):', responseData);
+    return responseData;
 };
 
 export const removeItemFromCollection = async (userId, collectionName, itemId) => {
@@ -416,6 +439,8 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
+
 
 
 

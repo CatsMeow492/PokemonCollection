@@ -15,6 +15,7 @@ const AddCardForm = ({ onCardAdded, setAddCardModalOpen, collections }) => {
   const [image, setImage] = useState('');
   const [priceError, setPriceError] = useState('');
   const [set, setSet] = useState('');
+  const type = 'Pokemon Card';
   const [pokemonNames, setPokemonNames] = useState([]);
   const { verbose } = config;
   const [selectedCollection, setSelectedCollection] = useState('');
@@ -38,13 +39,19 @@ const AddCardForm = ({ onCardAdded, setAddCardModalOpen, collections }) => {
       price: parseFloat(price) || 0, 
       image, 
       set, 
+      type,
       collectionName: selectedCollection 
     };
     try {
       const addedCard = await addCard(newCard, id, selectedCollection);
-      console.log('Card added successfully:', addedCard);
-      setAddCardModalOpen(false); // Close the modal after adding the card
-      onCardAdded(addedCard); // Update the parent component
+      console.log('Card added successfully in AddCardForm.js: ', addedCard);
+      
+      // Call onCardAdded with the new card
+      onCardAdded(addedCard);
+      
+      // Close the modal
+      setAddCardModalOpen(false);
+      
       // Reset form fields
       setName('');
       setEdition('');
@@ -55,7 +62,6 @@ const AddCardForm = ({ onCardAdded, setAddCardModalOpen, collections }) => {
       setSelectedCollection('');
     } catch (error) {
       console.error('Failed to add card:', error);
-      // Optionally, you can set an error state here to display to the user
     }
   };
 

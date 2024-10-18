@@ -15,14 +15,28 @@ import (
 )
 
 func GetCardsByUserIDAndCollectionName(w http.ResponseWriter, r *http.Request, userID string, collectionName string) {
+	log.Printf("GetCardsByUserIDAndCollectionName handler called with userID: %s, collectionName: %s", userID, collectionName)
+
 	cards, err := services.GetCardsByUserIDAndCollectionName(userID, collectionName)
 	if err != nil {
+		log.Printf("Error fetching cards: %v", err)
 		http.Error(w, "Error fetching cards", http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("Retrieved %d cards", len(cards))
+	for _, card := range cards {
+		log.Printf("Card to be sent to client: ID=%s, Name=%s, Price=%.2f", card.ID, card.Name, card.PurchasePrice)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(cards)
+	err = json.NewEncoder(w).Encode(cards)
+	if err != nil {
+		log.Printf("Error encoding cards to JSON: %v", err)
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
+	log.Println("Successfully sent cards to client")
 }
 
 func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
@@ -137,14 +151,15 @@ func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 
 	// Merge fetched card data with user-provided data
 	mergedCard := models.Card{
-		ID:       fetchedCard.ID,
-		Name:     fetchedCard.Name,
-		Edition:  fetchedCard.Edition,
-		Set:      fetchedCard.Set,
-		Image:    fetchedCard.Image,
-		Grade:    newCard.Card.Grade,
-		Price:    newCard.Card.Price,
-		Quantity: newCard.Card.Quantity,
+		ID:            fetchedCard.ID,
+		Name:          fetchedCard.Name,
+		Edition:       fetchedCard.Edition,
+		Set:           fetchedCard.Set,
+		Image:         fetchedCard.Image,
+		Grade:         newCard.Card.Grade,
+		PurchasePrice: newCard.Card.PurchasePrice,
+		Quantity:      newCard.Card.Quantity,
+		Type:          "Pokemon Card", // Add this line
 	}
 
 	// After fetching the card from the API

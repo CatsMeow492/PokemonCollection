@@ -72,13 +72,13 @@ func FetchCard(apiKey, cardIdentifier string) (*models.Card, error) {
 	imageURL := cardData["images"].(map[string]interface{})["large"].(string)
 
 	card := &models.Card{
-		ID:      cardData["id"].(string),
-		Name:    cardData["name"].(string),
-		Edition: cardData["set"].(map[string]interface{})["name"].(string),
-		Set:     cardData["set"].(map[string]interface{})["id"].(string),
-		Grade:   "N/A", // This is now valid as Grade is an interface{}
-		Price:   0.00,  // Price is not provided by the API
-		Image:   imageURL,
+		ID:            cardData["id"].(string),
+		Name:          cardData["name"].(string),
+		Edition:       cardData["set"].(map[string]interface{})["name"].(string),
+		Set:           cardData["set"].(map[string]interface{})["id"].(string),
+		Grade:         "N/A", // This is now valid as Grade is an interface{}
+		PurchasePrice: 0.00,  // Price is not provided by the API
+		Image:         imageURL,
 	}
 
 	log.Printf("FetchCard: Successfully fetched card: %+v", card)
@@ -90,7 +90,7 @@ func FetchCard(apiKey, cardIdentifier string) (*models.Card, error) {
 
 func GetCardsByUserIDAndCollectionName(userID string, collectionName string) ([]models.Card, error) {
 	query := `
-		SELECT i.item_id, i.name, i.edition, i.set, i.image, ui.grade, ui.price, ui.quantity
+		SELECT i.item_id, i.name, i.edition, i.set, i.image, i.type, ui.grade, ui.purchase_price, ui.quantity
 		FROM UserItems ui
 		JOIN Items i ON ui.item_id = i.item_id
 		JOIN Collections c ON ui.collection_id = c.collection_id
@@ -105,7 +105,7 @@ func GetCardsByUserIDAndCollectionName(userID string, collectionName string) ([]
 	var cards []models.Card
 	for rows.Next() {
 		var card models.Card
-		err := rows.Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Grade, &card.Price, &card.Quantity)
+		err := rows.Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Type, &card.Grade, &card.PurchasePrice, &card.Quantity)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +140,7 @@ func UpdateCardQuantity(userID string, collectionName string, cardID string, qua
 		JOIN Items i ON ui.item_id = i.item_id
 		JOIN Collections c ON ui.collection_id = c.collection_id
 		WHERE c.user_id = $1 AND c.collection_name = $2 AND i.item_id = $3
-	`, userID, collectionName, cardID).Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Grade, &card.Price, &card.Quantity)
+	`, userID, collectionName, cardID).Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Grade, &card.PurchasePrice, &card.Quantity)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func GetAllCardsByUserID(userID string) ([]models.Card, error) {
 	var cards []models.Card
 	for rows.Next() {
 		var card models.Card
-		err := rows.Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Grade, &card.Price, &card.Quantity)
+		err := rows.Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Grade, &card.PurchasePrice, &card.Quantity)
 		if err != nil {
 			return nil, err
 		}
@@ -247,13 +247,13 @@ func FetchCardFromAPI(apiKey string, cardIdentifier string) (*models.Card, error
 	imageURL := cardData["images"].(map[string]interface{})["large"].(string)
 
 	card := &models.Card{
-		ID:      cardData["id"].(string),
-		Name:    cardData["name"].(string),
-		Edition: cardData["set"].(map[string]interface{})["name"].(string),
-		Set:     cardData["set"].(map[string]interface{})["id"].(string),
-		Grade:   "N/A", // This is now valid as Grade is an interface{}
-		Price:   0.00,  // Price is not provided by the API
-		Image:   imageURL,
+		ID:            cardData["id"].(string),
+		Name:          cardData["name"].(string),
+		Edition:       cardData["set"].(map[string]interface{})["name"].(string),
+		Set:           cardData["set"].(map[string]interface{})["id"].(string),
+		Grade:         "N/A", // This is now valid as Grade is an interface{}
+		PurchasePrice: 0.00,  // Price is not provided by the API
+		Image:         imageURL,
 	}
 
 	log.Printf("FetchCardFromAPI: Successfully fetched card: %+v", card)
@@ -286,37 +286,50 @@ func AddCardToCollection(userID string, collectionName string, card models.Card)
 
 	// Insert or update the Items table
 	_, err = tx.Exec(`
-		INSERT INTO Items (item_id, name, edition, set, image, type)
-		VALUES ($1, $2, $3, $4, $5, 'Pokemon Card')
+		INSERT INTO Items (item_id, name, edition, set, image, type, grade)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (item_id) DO UPDATE SET
 			name = EXCLUDED.name,
 			edition = EXCLUDED.edition,
 			set = EXCLUDED.set,
-			image = EXCLUDED.image
-	`, card.ID, card.Name, card.Edition, card.Set, card.Image)
+			image = EXCLUDED.image,
+			type = EXCLUDED.type,
+			grade = EXCLUDED.grade
+	`, card.ID, card.Name, card.Edition, card.Set, card.Image, card.Type, card.Grade)
 	if err != nil {
 		log.Printf("Error inserting/updating item: %v", err)
 		return err
 	}
 
-	// Insert or update the UserItems table
-	_, err = tx.Exec(`
-		INSERT INTO UserItems (collection_id, item_id, grade, price, quantity)
+	// Insert or update the UserItems table (with purchase_price)
+	result, err := tx.Exec(`
+		INSERT INTO UserItems (collection_id, item_id, grade, purchase_price, quantity)
 		VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (collection_id, item_id) DO UPDATE SET
 			grade = EXCLUDED.grade,
-			price = EXCLUDED.price,
+			purchase_price = EXCLUDED.purchase_price,
 			quantity = UserItems.quantity + EXCLUDED.quantity
-	`, collectionID, card.ID, card.Grade, card.Price, card.Quantity)
+	`, collectionID, card.ID, card.Grade, card.PurchasePrice, card.Quantity)
 	if err != nil {
 		log.Printf("Error inserting/updating user item: %v", err)
 		return err
 	}
+	rowsAffected, _ := result.RowsAffected()
+	log.Printf("Rows affected in UserItems: %d", rowsAffected)
 
 	err = tx.Commit()
 	if err != nil {
 		log.Printf("Error committing transaction: %v", err)
 		return err
+	}
+
+	// After tx.Commit()
+	var storedPrice float64
+	err = database.DB.QueryRow("SELECT purchase_price FROM UserItems WHERE collection_id = $1 AND item_id = $2", collectionID, card.ID).Scan(&storedPrice)
+	if err != nil {
+		log.Printf("Error fetching stored price: %v", err)
+	} else {
+		log.Printf("Stored price for card %s in collection %d: %.2f", card.ID, collectionID, storedPrice)
 	}
 
 	return nil
@@ -329,4 +342,74 @@ func RemoveCardFromCollection(userID string, collectionName string, cardID strin
 		AND item_id = $3
 	`, userID, collectionName, cardID)
 	return err
+}
+
+func DebugPrintCardPrices(userID string, collectionName string) {
+	query := `
+		SELECT i.name, ui.price
+		FROM UserItems ui
+		JOIN Items i ON ui.item_id = i.item_id
+		JOIN Collections c ON ui.collection_id = c.collection_id
+		WHERE c.user_id = $1 AND c.collection_name = $2
+	`
+	rows, err := database.DB.Query(query, userID, collectionName)
+	if err != nil {
+		log.Printf("Debug: Error querying card prices: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	log.Println("Debug: Card prices from database:")
+	for rows.Next() {
+		var name string
+		var price float64
+		if err := rows.Scan(&name, &price); err != nil {
+			log.Printf("Debug: Error scanning row: %v", err)
+			continue
+		}
+		log.Printf("Debug: Card: %s, Price: %.2f", name, price)
+	}
+}
+
+func DebugPrintUserItemPrices(userID string) {
+	query := `
+		SELECT i.name, ui.price
+		FROM UserItems ui
+		JOIN Items i ON ui.item_id = i.item_id
+		JOIN Collections c ON ui.collection_id = c.collection_id
+		WHERE c.user_id = $1
+	`
+	rows, err := database.DB.Query(query, userID)
+	if err != nil {
+		log.Printf("Debug: Error querying user item prices: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	log.Println("Debug: User item prices from database:")
+	for rows.Next() {
+		var name string
+		var price float64
+		if err := rows.Scan(&name, &price); err != nil {
+			log.Printf("Debug: Error scanning row: %v", err)
+			continue
+		}
+		log.Printf("Debug: Card: %s, Price: %.2f", name, price)
+	}
+}
+
+func GetUserItemPrice(userID, collectionName, itemID string) (float64, error) {
+	query := `
+		SELECT ui.price
+		FROM UserItems ui
+		JOIN Collections c ON ui.collection_id = c.collection_id
+		WHERE c.user_id = $1 AND c.collection_name = $2 AND ui.item_id = $3
+	`
+	var price float64
+	err := database.DB.QueryRow(query, userID, collectionName, itemID).Scan(&price)
+	if err != nil {
+		return 0, fmt.Errorf("error querying UserItems: %w", err)
+	}
+	log.Printf("Price for item %s in collection %s for user %s: %.2f", itemID, collectionName, userID, price)
+	return price, nil
 }
