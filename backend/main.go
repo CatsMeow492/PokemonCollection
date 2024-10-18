@@ -157,7 +157,10 @@ func main() {
 	// Wrap your router with the CORS handler
 	handler := c.Handler(r)
 
-	r.HandleFunc("/api/item-market-price", handlers.GetMarketPriceHandler).Methods("GET")
+	r.HandleFunc("/api/item-market-price", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Endpoint hit: GET /api/item-market-price")
+		handlers.GetMarketPriceHandler(w, r)
+	}).Methods("GET")
 
 	log.Println("Server is running on :8000")
 	log.Fatal(http.ListenAndServe(":8000", handler))

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -27,12 +28,12 @@ func GetMarketPriceHandler(w http.ResponseWriter, r *http.Request) {
 	marketValue, err := services.FetchAndStoreMarketPrice(cardName, cardId, edition, grade)
 	if err != nil {
 		log.Printf("Error in GetMarketPriceHandler: %v", err)
-		sendJSONResponse(w, 0, err.Error())
+		http.Error(w, fmt.Sprintf("Error fetching market price: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	log.Printf("Sending market value response for %s: %f", cardId, marketValue)
-	sendJSONResponse(w, marketValue, "")
+	json.NewEncoder(w).Encode(map[string]float64{"market_price": marketValue})
 }
 
 func sendJSONResponse(w http.ResponseWriter, price float64, errMsg string) {

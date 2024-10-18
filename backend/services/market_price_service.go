@@ -1,6 +1,7 @@
 package services
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/PuerkitoBio/goquery"
+	_ "github.com/lib/pq"
 )
 
 func GetMarketPrice(cardName, cardId, edition, grade string) (float64, error) {
@@ -170,44 +172,41 @@ func FetchAndStoreMarketPrice(cardName, cardId, edition, grade string) (float64,
 	var marketValue float64
 	var lastUpdated time.Time
 
+	// Fetch the most recent market value
 	err := db.QueryRow(`
-        SELECT market_value, last_updated
-        FROM marketdata
-        WHERE item_id = $1
-        ORDER BY last_updated DESC
-        LIMIT 1
-    `, cardId).Scan(&marketValue, &lastUpdated)
+		SELECT market_value, last_updated
+		FROM marketdata
+		WHERE item_id = $1
+		ORDER BY last_updated DESC
+		LIMIT 1
+	`, cardId).Scan(&marketValue, &lastUpdated)
 
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		log.Printf("Error querying existing market value for %s: %v", cardId, err)
+		return 0, err
 	}
 
-	if err != nil || time.Since(lastUpdated) > 24*time.Hour {
-		log.Printf("Fetching new market value for %s", cardId)
+	if err == sql.ErrNoRows || time.Since(lastUpdated) > 24*time.Hour {
+		// Fetch new market value
 		newMarketValue, err := fetchMarketPrice(cardName, cardId, edition, grade)
 		if err != nil {
 			log.Printf("Error fetching market value for %s: %v", cardId, err)
 			return 0, err
 		}
 
-		log.Printf("New market value for %s: %f", cardId, newMarketValue)
-
-		// Insert new market value in the database
+		// Insert new record
 		_, err = db.Exec(`
-            INSERT INTO marketdata (item_id, name, edition, grade, type, market_value, last_updated)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-            ON CONFLICT (item_id) DO UPDATE
-            SET market_value = $6, last_updated = $7
-        `, cardId, cardName, edition, grade, "Pokemon Card", newMarketValue, time.Now())
+			INSERT INTO marketdata (item_id, name, edition, grade, type, market_value, last_updated)
+				VALUES ($1, $2, $3, $4, $5, $6, $7)
+		`, cardId, cardName, edition, grade, "Pokemon Card", newMarketValue, time.Now())
 
 		if err != nil {
-			log.Printf("Error inserting/updating market value for %s: %v", cardId, err)
+			log.Printf("Error inserting new market value for %s: %v", cardId, err)
 			return 0, err
 		}
 
 		return newMarketValue, nil
 	}
 
-	log.Printf("Using existing market value for %s: %f", cardId, marketValue)
 	return marketValue, nil
 }
