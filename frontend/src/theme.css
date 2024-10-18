@@ -9,4 +9,7 @@
   --border-radius: 8px;
   --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   --spacing-unit: 8px;
+  --modal-background-color: white;
+  --modal-text-color: #333;
+  --modal-title-color: #1976d2;
 }

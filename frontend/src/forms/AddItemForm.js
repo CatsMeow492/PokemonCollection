@@ -22,9 +22,9 @@ const AddItemForm = ({ onAddItem, collections }) => {
   const [itemName, setItemName] = useState('');
   const [edition, setEdition] = useState('');
   const [grade, setGrade] = useState('');
-  const [price, setPrice] = useState('');
+  const [purchasePrice, setPurchasePrice] = useState('');
   const [selectedCollection, setSelectedCollection] = useState('');
-  const [priceError, setPriceError] = useState('');
+  const [purchasePriceError, setPurchasePriceError] = useState('');
   const [sets, setSets] = useState(Array.from(setAndEditions).map((set) => ({ label: set.name, value: set.id })));
   const [editions, setEditions] = useState(Array.from(setAndEditions).map((edition) => ({ label: edition.name, value: edition.id })));
   const [set, setSet] = useState('');
@@ -32,20 +32,20 @@ const AddItemForm = ({ onAddItem, collections }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validate price
+    // Validate purchasePrice
     const pricePattern = /^\d+(\.\d{1,2})?$/;
-    if (!pricePattern.test(price)) {
-      setPriceError('Please enter a valid dollar amount');
+    if (!pricePattern.test(purchasePrice)) {
+      setPurchasePriceError('Please enter a valid dollar amount');
       return;
     } else {
-      setPriceError('');
+      setPurchasePriceError('');
     }
 
     const newItem = {
       name: itemName,
       edition,
       grade: grade === 'Ungraded' ? 'Ungraded' : parseInt(grade, 10),
-      price: parseFloat(price) || 0,
+      purchasePrice: parseFloat(purchasePrice) || 0,
       collectionName: selectedCollection
     };
 
@@ -55,7 +55,7 @@ const AddItemForm = ({ onAddItem, collections }) => {
     setItemName('');
     setEdition('');
     setGrade('');
-    setPrice('');
+    setPurchasePrice('');
     setSelectedCollection('');
     if (verbose) console.log('Form submitted in AddItemForm.js with newItem:', newItem);
   };
@@ -90,13 +90,11 @@ const AddItemForm = ({ onAddItem, collections }) => {
             value={selectedCollection}
             onChange={(e) => setSelectedCollection(e.target.value)}
           >
-
             {collections.map((collectionName) => (
               <MenuItem key={collectionName} value={collectionName}>
                 {collectionName}
               </MenuItem>
             ))}
-
           </Select>
         </FormControl>
         <FormControl fullWidth margin="normal">
@@ -114,13 +112,13 @@ const AddItemForm = ({ onAddItem, collections }) => {
           </Select>
         </FormControl>
         <TextField
-          label="Price"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          label="Purchase Price"
+          value={purchasePrice}
+          onChange={(e) => setPurchasePrice(e.target.value)}
           fullWidth
           margin="normal"
-          error={!!priceError}
-          helperText={priceError}
+          error={!!purchasePriceError}
+          helperText={purchasePriceError}
           required
         />
         <Button type="submit" variant="contained" color="primary" style={{ margin: '1rem 0' }}>

@@ -8,6 +8,7 @@ type Collection struct {
 	CollectionID   int    `json:"collection_id"`
 	CollectionName string `json:"collection_name"`
 	Cards          []Card `json:"cards"`
+	Items          []Item `json:"items"`
 }
 
 func FetchCollectionsByUserID(userID string) ([]Collection, error) {
@@ -43,7 +44,7 @@ func FetchCollectionsByUserID(userID string) ([]Collection, error) {
 
 		for cardRows.Next() {
 			var card Card
-			err := cardRows.Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Grade, &card.Price, &card.Quantity)
+			err := cardRows.Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Grade, &card.PurchasePrice, &card.Quantity)
 			if err != nil {
 				return nil, err
 			}

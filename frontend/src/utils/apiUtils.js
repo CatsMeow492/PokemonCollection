@@ -3,21 +3,29 @@ const verbose = config;
 // Load base url from .env
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
 
-export const fetchMarketPrice = async (cardName, cardId, edition, grade) => {
+export const fetchMarketPrice = async (name, id, edition, grade, type) => {
+    const params = new URLSearchParams({
+        name: name || '',
+        id: id || '',
+        edition: edition || '',
+        grade: grade || '',
+        type: type || ''
+    });
+    
     try {
-        const url = `/api/market-price?card_name=${encodeURIComponent(cardName)}&card_id=${encodeURIComponent(cardId)}&edition=${encodeURIComponent(edition)}&grade=${encodeURIComponent(grade)}`;
-        console.log('Fetching market price from:', url);
-        const response = await fetch(url);
+        // Change this line to match your backend route
+        const response = await fetch(`/api/item-market-price?${params}`);
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Failed to fetch market price: ${response.status} ${response.statusText} - ${errorText}`);
+            throw new Error(`Failed to fetch market value: ${response.status} ${response.statusText} - ${errorText}`);
         }
         const data = await response.json();
-        if (verbose) console.log('Market price data:', data);
-        return data.market_price;
+        if (verbose) console.log('Fetched market value:', data);
+        if (verbose) console.log('Fetched market value:', data.market_price);
+        return data.market_price; // Change this to match your backend response structure
     } catch (error) {
-        console.error('Error fetching market price:', error);
-        return null;
+        console.error('Error fetching market value:', error);
+        return null; // Return null instead of throwing, so we can continue processing other items
     }
 };
 
@@ -38,7 +46,7 @@ export const fetchCardsByUserID = async (userID) => {
 };
 
 export const fetchCollectionsByUserID = async (userID) => {
-    const verbose = config.verbose; // Ensure verbose is defined
+    const verbose = config.verbose;
     if (verbose) console.log(`Fetching collections for user ID: ${userID}`);
     
     try {
@@ -47,13 +55,21 @@ export const fetchCollectionsByUserID = async (userID) => {
             throw new Error('Failed to fetch collections');
         }
         
-        // Ensure response.json() is called only once
         const data = await response.json();
-        if (verbose) console.log('Collections fetched:', data);
+        if (verbose) {
+            console.log('Collections fetched:', data);
+            // Log the price of each card in each collection
+            data.forEach((collection, index) => {
+                console.log(`Collection ${index + 1}:`);
+                collection.cards.forEach(card => {
+                    console.log(`Card: ${card.name}, Price: ${card.price}`);
+                });
+            });
+        }
         return data;
     } catch (error) {
         console.error('Error fetching collections:', error);
-        throw error; // Re-throw the error to handle it in the calling function
+        throw error;
     }
 };
 
@@ -107,33 +123,46 @@ export const addCardWithUserId = async (card, userId) => {
 
 // Function to add a card with userId and collectionName
 export const addCardWithCollection = async (card, userId, collectionName) => {
-    if (verbose) console.log(`Adding card to collection: ${userId}, ${JSON.stringify(card)}, ${collectionName}`);
+    if (verbose) console.log('Adding card with collection:', card, userId, collectionName);
+    const payload = {
+        user_id: userId,
+        collection_name: collectionName,
+        card: {
+            ...card,
+            purchase_price: card.price || card.purchase_price, // Use price if available, otherwise use purchase_price
+            grade: card.grade.toString() // Ensure grade is a string
+        }
+    };
+    
+    // Remove the 'price' field if it exists
+    if (payload.card.price) {
+        delete payload.card.price;
+    }
+    
+    if (verbose) console.log('Payload being sent:', JSON.stringify(payload, null, 2));
+    
     const response = await fetch('/api/cards/collection', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-            user_id: userId,
-            collection_name: collectionName,
-            card: card
-        }),
+        body: JSON.stringify(payload),
     });
 
+    const responseText = await response.text();
+    if (verbose) console.log('Full server response:', responseText);
+
     if (!response.ok) {
-        throw new Error('Failed to add card to collection');
+        throw new Error(`Failed to add card to collection: ${responseText}`);
     }
 
-    return response.json();
+    return JSON.parse(responseText);
 };
 
 // You can keep the original addCard function as a wrapper if you want to maintain backwards compatibility
 export const addCard = async (card, userId, collectionName) => {
-    if (collectionName) {
-        return addCardWithCollection(card, userId, collectionName);
-    } else {
-        return addCardWithUserId(card, userId);
-    }
+    const response = await addCardWithCollection(card, userId, collectionName);
+    return response; // This should be the newly added card
 };
 
 export const fetchProducts = async () => {
@@ -333,35 +362,38 @@ export const removeCardFromCollection = async (userId, collectionName, cardId) =
     return response.json();
 };
 
-export const addItemToCollection = async (userId, name, grade, edition, collectionName, price) => {
+export const addItemToCollection = async (userId, name, grade, edition, collectionName, purchasePrice) => {
     const url = `/api/items/${userId}/${encodeURIComponent(collectionName)}`;
-    if (verbose) {
-        console.log('Sending POST request to in apiUtils:', url);
-        console.log('Sending POST request to in apiUtils:', JSON.stringify({ 
-            name: name, 
-            grade: grade, 
-            edition: edition, 
-            price: price 
-        }));
-    }
+    const payload = {
+        name,
+        grade: grade.toString(),
+        edition,
+        purchase_price: parseFloat(purchasePrice) || 0, // Changed from purchasePrice to price to match backend expectation
+        set: '',
+        image: '',
+        quantity: 1,
+        type: 'Item'
+    };
+    
+    if (verbose) console.log('Payload being sent to backend:', payload);
+
     const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-            name: name, 
-            grade: grade.toString(), 
-            edition: edition, 
-            price: price 
-        }),
+        body: JSON.stringify(payload),
     });
+
     if (!response.ok) {
         const errorText = await response.text();
+        console.error('Error response:', errorText);
         throw new Error(`Failed to add item: ${response.status} ${response.statusText}. ${errorText}`);
     }
-
-    return response.json();
+    
+    const responseData = await response.json();
+    if (verbose) console.log('Item added (response from backend):', responseData);
+    return responseData;
 };
 
 export const removeItemFromCollection = async (userId, collectionName, itemId) => {
@@ -407,3 +439,12 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
+
+
+
+
+
+
+
+

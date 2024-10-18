@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -61,23 +63,33 @@ func AddItemWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 	log.Printf("AddItemWithUserIDAndCollection: Received request to add item to collection: %s for user ID: %s", collectionName, userID)
 
 	var itemData models.Item
-	if err := json.NewDecoder(r.Body).Decode(&itemData); err != nil {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Error reading request body: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	log.Printf("Raw request body: %s", string(body))
+
+	if err := json.Unmarshal(body, &itemData); err != nil {
 		log.Printf("Error decoding request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("Received item data: %+v", itemData)
+	log.Printf("Parsed item data: %+v", itemData)
 
 	itemData.ID = generateUniqueID()
+	itemData.PurchasePrice = itemData.PurchasePrice // Ensure this is set correctly
 
-	err := services.AddItemToCollection(userID, collectionName, itemData)
+	err = services.AddItemToCollection(userID, collectionName, itemData)
 	if err != nil {
 		log.Printf("Error adding item to collection: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error adding item to collection: %v", err), http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(itemData)
 }

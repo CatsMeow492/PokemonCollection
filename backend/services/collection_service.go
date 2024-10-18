@@ -3,6 +3,7 @@ package services
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/CatsMeow492/PokemonCollection/models"
@@ -35,6 +36,7 @@ func GetCollectionsByUserID(userID string) ([]models.Collection, error) {
 	`
 	rows, err := database.DB.Query(query, userID)
 	if err != nil {
+		log.Printf("Error querying collections: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -43,42 +45,61 @@ func GetCollectionsByUserID(userID string) ([]models.Collection, error) {
 		var collection models.Collection
 		err := rows.Scan(&collection.CollectionID, &collection.CollectionName)
 		if err != nil {
+			log.Printf("Error scanning collection: %v", err)
 			return nil, err
 		}
 
-		cardsQuery := `
-			SELECT i.item_id, i.name, i.edition, i.set, i.image, ui.grade, ui.price, ui.quantity
-			FROM UserItems ui
-			JOIN Items i ON ui.item_id = i.item_id
-			WHERE ui.collection_id = $1
+		itemsQuery := `
+			SELECT i.item_id, i.name, i.edition, i.set, i.image, 
+				COALESCE(ui.grade, i.grade) as grade, 
+				ui.purchase_price, 
+				ui.quantity, i.type
+			FROM Items i
+			LEFT JOIN UserItems ui ON i.item_id = ui.item_id AND ui.collection_id = $1
+			WHERE ui.collection_id = $1 OR i.item_id IN (SELECT item_id FROM UserItems WHERE collection_id = $1)
 		`
-		cardRows, err := database.DB.Query(cardsQuery, collection.CollectionID)
+		itemRows, err := database.DB.Query(itemsQuery, collection.CollectionID)
 		if err != nil {
+			log.Printf("Error querying items for collection %d: %v", collection.CollectionID, err)
 			return nil, err
 		}
-		defer cardRows.Close()
+		defer itemRows.Close()
 
 		collection.Cards = []models.Card{}
-		for cardRows.Next() {
-			var card models.Card
-			var edition, set, image, grade sql.NullString
-			var price sql.NullFloat64
-			err := cardRows.Scan(&card.ID, &card.Name, &edition, &set, &image, &grade, &price, &card.Quantity)
+		collection.Items = []models.Item{}
+		for itemRows.Next() {
+			var id, itemType sql.NullString
+			var name, edition, set, image, grade sql.NullString
+			var purchasePrice sql.NullFloat64
+			var quantity int
+
+			err := itemRows.Scan(&id, &name, &edition, &set, &image, &grade, &purchasePrice, &quantity, &itemType)
 			if err != nil {
-				return nil, fmt.Errorf("error scanning card: %v", err)
+				log.Printf("Error scanning item: %v", err)
+				return nil, fmt.Errorf("error scanning item: %v", err)
 			}
-			card.Edition = edition.String
-			card.Set = set.String
-			card.Image = image.String
-			if grade.Valid {
-				card.Grade = grade.String
+
+			item := models.Item{
+				ID:            id.String,
+				Name:          name.String,
+				Edition:       edition.String,
+				Set:           set.String,
+				Image:         image.String,
+				Grade:         grade.String,
+				PurchasePrice: purchasePrice.Float64,
+				Quantity:      quantity,
+				Type:          itemType.String,
+			}
+
+			log.Printf("Retrieved item: ID=%s, Name=%s, PurchasePrice=%.2f, Grade=%s, Quantity=%d, Type=%s",
+				item.ID, item.Name, item.PurchasePrice, item.Grade, item.Quantity, item.Type)
+
+			if item.Type == "Pokemon Card" {
+				card := models.Card(item) // Convert Item to Card
+				collection.Cards = append(collection.Cards, card)
 			} else {
-				card.Grade = "Ungraded"
+				collection.Items = append(collection.Items, item)
 			}
-			if price.Valid {
-				card.Price = price.Float64
-			}
-			collection.Cards = append(collection.Cards, card)
 		}
 
 		collections = append(collections, collection)

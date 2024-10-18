@@ -1,13 +1,15 @@
 package services
 
 import (
+	"log"
+
 	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/CatsMeow492/PokemonCollection/models"
 )
 
 func GetItemsByUserIDAndCollectionName(userID string, collectionName string) ([]models.Item, error) {
 	query := `
-		SELECT i.item_id, i.name, i.edition, i.grade, ui.price, ui.quantity
+		SELECT i.item_id, i.name, i.edition, i.grade, ui.purchase_price, ui.quantity
 		FROM UserItems ui
 		JOIN Items i ON ui.item_id = i.item_id
 		JOIN Collections c ON ui.collection_id = c.collection_id
@@ -22,7 +24,7 @@ func GetItemsByUserIDAndCollectionName(userID string, collectionName string) ([]
 	var items []models.Item
 	for rows.Next() {
 		var item models.Item
-		err := rows.Scan(&item.ID, &item.Name, &item.Edition, &item.Grade, &item.Price, &item.Quantity)
+		err := rows.Scan(&item.ID, &item.Name, &item.Edition, &item.Grade, &item.PurchasePrice, &item.Quantity)
 		if err != nil {
 			return nil, err
 		}
@@ -50,12 +52,12 @@ func UpdateItemQuantity(userID string, collectionName string, itemID string, qua
 
 	var item models.Item
 	err = tx.QueryRow(`
-		SELECT i.item_id, i.name, i.edition, i.grade, ui.price, ui.quantity
+		SELECT i.item_id, i.name, i.edition, i.grade, ui.purchase_price, ui.quantity
 		FROM UserItems ui
 		JOIN Items i ON ui.item_id = i.item_id
 		JOIN Collections c ON ui.collection_id = c.collection_id
 		WHERE c.user_id = $1 AND c.collection_name = $2 AND i.item_id = $3
-	`, userID, collectionName, itemID).Scan(&item.ID, &item.Name, &item.Edition, &item.Grade, &item.Price, &item.Quantity)
+	`, userID, collectionName, itemID).Scan(&item.ID, &item.Name, &item.Edition, &item.Grade, &item.PurchasePrice, &item.Quantity)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +71,8 @@ func UpdateItemQuantity(userID string, collectionName string, itemID string, qua
 }
 
 func AddItemToCollection(userID string, collectionName string, item models.Item) error {
+	log.Printf("Adding item to collection: %+v", item)
+
 	tx, err := database.DB.Begin()
 	if err != nil {
 		return err
@@ -86,28 +90,41 @@ func AddItemToCollection(userID string, collectionName string, item models.Item)
 		return err
 	}
 
+	// Ensure item.Type is set correctly before inserting
+	if item.Type == "" {
+		item.Type = "Item" // Default to "Item" if not specified
+	}
+
 	_, err = tx.Exec(`
-		INSERT INTO Items (item_id, name, edition, grade)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO Items (item_id, name, edition, set, image, grade, type)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (item_id) DO UPDATE SET
 			name = EXCLUDED.name,
 			edition = EXCLUDED.edition,
-			grade = EXCLUDED.grade
-	`, item.ID, item.Name, item.Edition, item.Grade)
+			set = EXCLUDED.set,
+			image = EXCLUDED.image,
+			grade = EXCLUDED.grade,
+			type = EXCLUDED.type
+	`, item.ID, item.Name, item.Edition, item.Set, item.Image, item.Grade, item.Type)
 	if err != nil {
 		return err
 	}
 
+	// Log the inserted/updated item
+	log.Printf("Item inserted/updated: ID=%s, Name=%s, PurchasePrice=%.2f", item.ID, item.Name, item.PurchasePrice)
+
 	_, err = tx.Exec(`
-		INSERT INTO UserItems (collection_id, item_id, price, quantity)
+		INSERT INTO UserItems (collection_id, item_id, quantity, purchase_price)
 		VALUES ($1, $2, $3, $4)
 		ON CONFLICT (collection_id, item_id) DO UPDATE SET
-			price = EXCLUDED.price,
-			quantity = UserItems.quantity + EXCLUDED.quantity
-	`, collectionID, item.ID, item.Price, item.Quantity)
+			quantity = UserItems.quantity + EXCLUDED.quantity,
+			purchase_price = EXCLUDED.purchase_price
+	`, collectionID, item.ID, item.Quantity, item.PurchasePrice)
 	if err != nil {
 		return err
 	}
+
+	log.Printf("Item inserted/updated: ID=%s, Name=%s, PurchasePrice=%.2f", item.ID, item.Name, item.PurchasePrice)
 
 	return tx.Commit()
 }

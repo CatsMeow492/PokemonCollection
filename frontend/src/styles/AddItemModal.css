@@ -43,9 +43,10 @@
 }
 
 .add-item-modal .MuiButton-root {
-    color: #1976d2;
+    color: #ffffff;
+    background-color: #1976d2;
 }
 
 .add-item-modal .MuiButton-root:hover {
-    background-color: rgba(25, 118, 210, 0.04);
+    background-color: #1565c0;
 }

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -51,7 +53,10 @@ func main() {
 
 	// Cards
 	r.HandleFunc("/api/cards", handlers.AddCardWithUserID).Methods("POST")
-	r.HandleFunc("/api/cards/collection", handlers.AddCardWithUserIDAndCollection).Methods("POST")
+	r.HandleFunc("/api/cards/collection", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Endpoint hit: POST /api/cards/collection")
+		handlers.AddCardWithUserIDAndCollection(w, r)
+	}).Methods("POST")
 
 	// Cards
 	r.HandleFunc("/api/cards", func(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +78,18 @@ func main() {
 	// Items
 	r.HandleFunc("/api/items/{user_id}/{collection_name}", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Endpoint hit: POST /api/items/{user_id}/{collection_name}")
+
+		// Log the body of the request
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("Error reading request body: %v", err)
+		} else {
+			log.Printf("Request body: %s", string(body))
+		}
+
+		// Restore the body for the handler to read
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
 		handlers.AddItemWithUserIDAndCollection(w, r)
 	}).Methods("POST")
 	r.HandleFunc("/api/items/{user_id}/{collection_name}/{item_id}", handlers.RemoveItemFromCollectionWithUserIDAndCollection).Methods("DELETE")
@@ -97,10 +114,6 @@ func main() {
 		handlers.CreateCollectionByUserIDandCollectionName(w, r)
 	}).Methods("POST")
 
-	r.HandleFunc("/api/market-price", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Market price endpoint hit")
-		handlers.GetCardMarketPrice(w, r)
-	}).Methods("GET")
 	r.HandleFunc("/api/health", handlers.HealthCheck).Methods("GET")
 	r.HandleFunc("/api/pokemon-names", handlers.GetPokemonNames).Methods("GET")
 	r.HandleFunc("/api/product/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -141,7 +154,7 @@ func main() {
 	// Wrap your router with the CORS handler
 	handler := c.Handler(r)
 
-	r.HandleFunc("/api/item-market-price", handlers.GetItemMarketPrice).Methods("GET")
+	r.HandleFunc("/api/item-market-price", handlers.GetMarketPriceHandler).Methods("GET")
 
 	log.Println("Server is running on :8000")
 	log.Fatal(http.ListenAndServe(":8000", handler))

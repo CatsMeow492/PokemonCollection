@@ -57,11 +57,49 @@ const CardList = () => {
     const [addCardModalOpen, setAddCardModalOpen] = useState(false);
     const [manageCollectionsModalOpen, setManageCollectionsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [collections, setCollections] = useState([]); // Initialize as an empty array
-    const [selectedCollection, setSelectedCollection] = useState('');
-    const [collectionNames, setCollectionNames] = useState('');
+    const [collections, setCollections] = useState([]);
+    const [selectedCollection, setSelectedCollection] = useState('all');
+    const [displayedCards, setDisplayedCards] = useState([]);
     const [addItemModalOpen, setAddItemModalOpen] = useState(false);
     const navigate = useNavigate();
+
+    const handleCollectionChange = (e) => {
+        const collectionName = e.target.value;
+        setSelectedCollection(collectionName);
+
+        if (collectionName === 'all') {
+            const allCards = collections.flatMap(collection =>
+                (collection.cards || []).map(card => ({
+                    ...card,
+                    collectionName: collection.collection_name,
+                    type: 'card'
+                }))
+            );
+            const allItems = collections.flatMap(collection =>
+                (collection.items || []).map(item => ({
+                    ...item,
+                    collectionName: collection.collection_name,
+                    type: 'item'
+                }))
+            );
+            setDisplayedCards([...allCards, ...allItems]);
+        } else {
+            const selectedCollectionData = collections.find(c => c.collection_name === collectionName);
+            if (selectedCollectionData) {
+                const collectionCards = (selectedCollectionData.cards || []).map(card => ({
+                    ...card,
+                    collectionName,
+                    type: 'card'
+                }));
+                const collectionItems = (selectedCollectionData.items || []).map(item => ({
+                    ...item,
+                    collectionName,
+                    type: 'item'
+                }));
+                setDisplayedCards([...collectionCards, ...collectionItems]);
+            }
+        }
+    };
 
     useEffect(() => {
         if (!id) {
@@ -72,31 +110,17 @@ const CardList = () => {
         setLoading(true);
         fetchCollectionsByUserID(id)
             .then(data => {
-                setCollections(data || []); // Set collections
-                const names = data.map(collection => collection.collection_name);
-                setCollectionNames(names);
-                if (verbose) console.log('Set Collections to: ', data);
-
-                // Extract all cards and items from all collections
-                const allCards = data.flatMap(collection =>
-                    (collection.cards || []).map(card => ({
-                        ...card,
-                        collectionName: collection.collectionName,
-                        type: 'card'
-                    }))
-                );
-                const allItems = data.flatMap(collection =>
-                    (collection.items || []).map(item => ({
-                        ...item,
-                        collectionName: collection.collectionName,
-                        type: 'item'
-                    }))
-                );
-  
-                if (verbose) console.log('Collection names:', names);
-                setCards([...allCards, ...allItems]);
-                if (verbose) console.log('All cards:', allCards);
-                if (verbose) console.log('All items:', allItems);
+                setCollections(data || []);
+                if (verbose) {
+                    console.log('Set Collections to: ', data);
+                    // Log the price of each card in each collection
+                    data.forEach((collection, index) => {
+                        console.log(`Collection ${index + 1}:`);
+                        collection.cards.forEach(card => {
+                            console.log(`Card: ${card.name}, Price: ${card.purchase_price}`);
+                        });
+                    });
+                }
             })
             .catch(error => {
                 console.error('Error fetching collections:', error);
@@ -107,29 +131,56 @@ const CardList = () => {
     }, [id, verbose]);
 
     useEffect(() => {
+        if (collections.length > 0) {
+            handleCollectionChange({ target: { value: selectedCollection } });
+        }
+    }, [collections]);
+
+    useEffect(() => {
         const updateCardsWithMarketPrice = async () => {
             setLoading(true);
-            const updatedCards = await Promise.all(cards.map(async (item) => {
-                if (!item || !item.id) {
-                    console.error('Item or item ID is undefined:', item);
-                    return item; // Return the item as is if it's undefined or has no ID
-                }
-                let marketPrice;
-                if (item.type === 'card') {
-                    marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade);
-                } else if (item.type === 'item') {
-                    marketPrice = await fetchItemMarketPrice(item.name, item.edition, item.grade);
-                }
-                return { ...item, marketPrice };
+            if (verbose) {
+                console.log('Cards before fetching market price:');
+                displayedCards.forEach(card => {
+                    console.log(`Card: ${card.name}, Price: ${card.purchase_price}`);
+                });
+            }
+            const updatedCards = await Promise.all(displayedCards.map(async (item) => {
+                const marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade, item.type);
+                return { ...item, marketPrice: marketPrice || item.purchase_price };
             }));
             setCardsWithMarketPrice(updatedCards);
+            if (verbose) {
+                console.log('Cards after fetching market price:');
+                updatedCards.forEach(card => {
+                    console.log(`Card: ${card.name}, Price: ${card.purchase_price}, Market Price: ${card.marketPrice}`);
+                });
+            }
             setLoading(false);
         };
 
-        if (cards.length > 0) {
+        if (displayedCards.length > 0) {
             updateCardsWithMarketPrice();
         }
-    }, [cards]);
+    }, [displayedCards]);
+
+    useEffect(() => {
+        // Update displayedCards when cards change
+        let newDisplayedCards;
+        if (selectedCollection === 'all') {
+            newDisplayedCards = cards;
+        } else {
+            newDisplayedCards = cards.filter(card => card.collectionName === selectedCollection);
+        }
+        setDisplayedCards(newDisplayedCards);
+        
+        if (verbose) {
+            console.log('Updated displayedCards:');
+            newDisplayedCards.forEach(card => {
+                console.log(`Card: ${card.name}, Price: ${card.purchase_price}`);
+            });
+        }
+    }, [cards, selectedCollection]);
 
     if (loading || routeLoading) {
         return (
@@ -253,46 +304,6 @@ const CardList = () => {
         }
     };
 
-    const handleCollectionChange = (e) => {
-        const collectionName = e.target.value;
-        setSelectedCollection(collectionName);
-
-        if (collectionName === 'all') {
-            // Show all cards and items
-            const allCards = collections.flatMap(collection =>
-                (collection.cards || []).map(card => ({
-                    ...card,
-                    collectionName: collection.collectionName,
-                    type: 'card'
-                }))
-            );
-            const allItems = collections.flatMap(collection =>
-                (collection.items || []).map(item => ({
-                    ...item,
-                    collectionName: collection.collectionName,
-                    type: 'item'
-                }))
-            );
-            setCards([...allCards, ...allItems]);
-        } else {
-            // Show cards and items for the selected collection
-            const selectedCollectionData = collections.find(c => c.collectionName === collectionName);
-            if (selectedCollectionData) {
-                const collectionCards = (selectedCollectionData.cards || []).map(card => ({
-                    ...card,
-                    collectionName,
-                    type: 'card'
-                }));
-                const collectionItems = (selectedCollectionData.items || []).map(item => ({
-                    ...item,
-                    collectionName,
-                    type: 'item'
-                }));
-                setCards([...collectionCards, ...collectionItems]);
-            }
-        }
-    };
-
     const handleAddCollection = async (userId, collectionName) => {
         try {
             await createCollection(userId, collectionName);
@@ -374,11 +385,15 @@ const CardList = () => {
                 newItem.grade, // Changed from item_grade
                 newItem.edition,
                 newItem.collectionName,
-                newItem.price
+                newItem.purchasePrice,
+                newItem.type
             );
             if (verbose) console.log('Item added successfully in CardList.js:', addedItem);
-            setCards(prevCards => [...prevCards, addedItem]);
+            const marketPrice = await fetchMarketPrice(addedItem.name, addedItem.id, addedItem.edition, addedItem.grade);
+            const updatedItem = { ...addedItem, marketPrice };
+            setCards(prevCards => [...prevCards, updatedItem]);
             setAddItemModalOpen(false);
+            setAddCardModalOpen(false);
         } catch (error) {
             console.error('Failed to add item:', error.message);
             // Optionally, you can set an error state here to display to the user
@@ -399,8 +414,18 @@ const CardList = () => {
         navigate(`/card-market-data/${cardId}`, { state: { cardName, cardImage } });
     };
 
-    const filteredCards = cardsWithMarketPrice.filter(item => item.type === 'card');
-    const filteredItems = cardsWithMarketPrice.filter(item => item.type === 'item');
+    // Extract collection names
+    const collectionNames = collections.map(collection => collection.collection_name);
+
+    const handleCardAdded = (newCard) => {
+        console.log('handleCardAdded called with:', newCard);
+        setCards(prevCards => {
+            const updatedCards = [...prevCards, newCard];
+            console.log('Updated cards:', updatedCards);
+            return updatedCards;
+        });
+        setAddCardModalOpen(false);
+    };
 
     return (
         <Container className="card-list-container">
@@ -445,7 +470,7 @@ const CardList = () => {
                         label="Select Collection"
                     >
                         <MenuItem value="all">All Cards</MenuItem>
-                        {collections && collections.map((collection) => (
+                        {collections.map((collection) => (
                             <MenuItem key={collection.collection_id} value={collection.collection_name}>
                                 {collection.collection_name}
                             </MenuItem>
@@ -457,9 +482,8 @@ const CardList = () => {
             <AddCardModal
                 open={addCardModalOpen}
                 onClose={() => setAddCardModalOpen(false)}
-                onAddCard={handleAddCard}
+                onCardAdded={handleCardAdded}
                 collections={collectionNames}
-                selectedCollection={selectedCollection}
             />
             <AddItemModal
                 open={addItemModalOpen}
@@ -480,7 +504,7 @@ const CardList = () => {
                 Cards
             </Typography>
             <Grid container spacing={3}>
-                {filteredCards.map((card, index) => (
+                {cardsWithMarketPrice.filter(item => item.type === 'card').map((card, index) => (
                     <Grid item xs={12} sm={6} md={4} lg={2.4} key={card.id || index}>
                         <Card className="card" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
                             <div className="quantity-bubble">{card.quantity}</div>
@@ -513,13 +537,11 @@ const CardList = () => {
                                     Grade: {card.grade}
                                 </Typography>
                                 <Typography variant="body2" component="p">
-                                    Cost: {card.price}
+                                    Cost: {card.purchase_price}
                                 </Typography>
-                                {card.marketPrice !== undefined && (
-                                    <Typography variant="body2" component="p" className="market-price">
-                                        Market Price: ${card.marketPrice ? card.marketPrice.toFixed(2) : 'N/A'}
-                                    </Typography>
-                                )}
+                                <Typography variant="body2" component="p" className="market-price">
+                                    Market Price: ${card.marketPrice ? card.marketPrice.toFixed(2) : 'N/A'}
+                                </Typography>
                                 <div className="card-actions">
                                     <div className="left-group">
                                         <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, card.collectionName, card.id)}>
@@ -545,8 +567,8 @@ const CardList = () => {
                 Items
             </Typography>
             <Grid container spacing={3}>
-                {filteredItems.map((item, index) => (
-                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={index}>
+                {cardsWithMarketPrice.filter(item => item.type === 'item').map((item, index) => (
+                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={item.id || index}>
                         <Card className="item" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.2)', position: 'relative' }}>
                             <div style={{
                                 position: 'absolute',
@@ -581,15 +603,12 @@ const CardList = () => {
                                     Grade: {item.grade}
                                 </Typography>
                                 <Typography variant="body2" component="p">
-                                    Cost: {item.price}
+                                    Cost: {item.purchase_price}
                                 </Typography>
-                                {item.marketPrice !== undefined && (
-                                    <Typography variant="body2" component="p" className="market-price">
-                                        Market Price: ${item.marketPrice ? item.marketPrice.toFixed(2) : 'N/A'}
-                                    </Typography>
-                                )}
+                                <Typography variant="body2" component="p" className="market-price">
+                                    Market Price: ${item.marketPrice ? item.marketPrice.toFixed(2) : 'N/A'}
+                                </Typography>
                                 <div className="card-actions">
-
                                     <div className="left-group">
                                         <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, item.collectionName, item.id)}>
                                             <ClearIcon />
