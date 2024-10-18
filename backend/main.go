@@ -126,7 +126,10 @@ func main() {
 		products := handlers.GetAllProducts()
 		json.NewEncoder(w).Encode(products)
 	}).Methods("GET")
-	r.HandleFunc("/api/cards/quantity", handlers.UpdateCardQuantity).Methods("PUT")
+	r.HandleFunc("/api/cards/quantity", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Endpoint hit: PUT /api/cards/quantity")
+		handlers.UpdateCardQuantity(w, r)
+	}).Methods("PUT")
 	log.Println("Registered PUT /api/cards/quantity route")
 
 	// Cart endpoints

@@ -47,13 +47,17 @@ func UpdateCardQuantity(w http.ResponseWriter, r *http.Request) {
 		Quantity       int    `json:"quantity"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		log.Printf("Error decoding request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
+	log.Printf("Received request to update card quantity: %+v", requestBody)
+
 	updatedCard, err := services.UpdateCardQuantity(requestBody.UserID, requestBody.CollectionName, requestBody.CardID, requestBody.Quantity)
 	if err != nil {
-		http.Error(w, "Error updating card quantity", http.StatusInternalServerError)
+		log.Printf("Error updating card quantity: %v", err)
+		http.Error(w, fmt.Sprintf("Error updating card quantity: %v", err), http.StatusInternalServerError)
 		return
 	}
 

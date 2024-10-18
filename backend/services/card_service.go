@@ -115,41 +115,60 @@ func GetCardsByUserIDAndCollectionName(userID string, collectionName string) ([]
 }
 
 func UpdateCardQuantity(userID string, collectionName string, cardID string, quantity int) (*models.Card, error) {
+	log.Printf("UpdateCardQuantity called with userID: %s, collectionName: %s, cardID: %s, quantity: %d", userID, collectionName, cardID, quantity)
+
 	tx, err := database.DB.Begin()
 	if err != nil {
+		log.Printf("Error beginning transaction: %v", err)
 		return nil, err
 	}
 	defer tx.Rollback()
 
 	// Update the quantity
-	_, err = tx.Exec(`
+	result, err := tx.Exec(`
 		UPDATE UserItems
 		SET quantity = $1
 		WHERE collection_id = (SELECT collection_id FROM Collections WHERE user_id = $2 AND collection_name = $3)
 		AND item_id = $4
 	`, quantity, userID, collectionName, cardID)
 	if err != nil {
+		log.Printf("Error updating quantity: %v", err)
 		return nil, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Printf("Error getting rows affected: %v", err)
+		return nil, err
+	}
+	log.Printf("Rows affected by update: %d", rowsAffected)
+
+	if rowsAffected == 0 {
+		log.Printf("No rows were updated. Card might not exist in the collection.")
+		return nil, fmt.Errorf("card not found in the collection")
 	}
 
 	// Fetch the updated card
 	var card models.Card
 	err = tx.QueryRow(`
-		SELECT i.item_id, i.name, i.edition, i.set, i.image, ui.grade, ui.price, ui.quantity
+		SELECT i.item_id, i.name, i.edition, i.set, i.image, ui.grade, ui.purchase_price, ui.quantity
 		FROM UserItems ui
 		JOIN Items i ON ui.item_id = i.item_id
 		JOIN Collections c ON ui.collection_id = c.collection_id
 		WHERE c.user_id = $1 AND c.collection_name = $2 AND i.item_id = $3
 	`, userID, collectionName, cardID).Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Grade, &card.PurchasePrice, &card.Quantity)
 	if err != nil {
+		log.Printf("Error fetching updated card: %v", err)
 		return nil, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
+		log.Printf("Error committing transaction: %v", err)
 		return nil, err
 	}
 
+	log.Printf("Successfully updated card: %+v", card)
 	return &card, nil
 }
 
