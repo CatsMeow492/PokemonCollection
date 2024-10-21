@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useMemo } from 'react';
 import {
     Container,
     Typography,
@@ -52,173 +52,70 @@ import {
     handleRemoveItemFromCollection,
     updateCardsWithMarketPrice
 } from '../handlers/CardHandlers';
+const verbose = config;
+
 
 const CardList = () => {
-    const routeLoading = useRouteLoading();
-    const { id } = useContext(AuthContext); // Access id from AuthContext
-    const [cards, setCards] = useState([]);
-    const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
+    const { id } = useContext(AuthContext);  // Get user ID from AuthContext
+    const [cards, setCards] = useState([]);  // State for holding all cards
+    const [collections, setCollections] = useState([]);  // State for holding collections
+    const [selectedCollection, setSelectedCollection] = useState('all');  // Selected collection state
+    const [loading, setLoading] = useState(true);  // Loading state
+    const [addCardModalOpen, setAddCardModalOpen] = useState(false);  // Modal open state for adding cards
+    const [manageCollectionsModalOpen, setManageCollectionsModalOpen] = useState(false);  // Modal open state for managing collections
+    const [addItemModalOpen, setAddItemModalOpen] = useState(false);  // Modal open state for adding items
+    const navigate = useNavigate();  // React Router's navigate function
     const cardImageRefs = useRef([]);
-    const { verbose } = config;
-    const [addCardModalOpen, setAddCardModalOpen] = useState(false);
-    const [manageCollectionsModalOpen, setManageCollectionsModalOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [collections, setCollections] = useState([]);
-    const [selectedCollection, setSelectedCollection] = useState('all');
-    const [displayedCards, setDisplayedCards] = useState([]);
-    const [addItemModalOpen, setAddItemModalOpen] = useState(false);
-    const navigate = useNavigate();
-
-    const handleCollectionChange = (e) => {
-        const collectionName = e.target.value;
-        setSelectedCollection(collectionName);
-
-        if (collectionName === 'all') {
-            const allCards = collections.flatMap(collection =>
-                (collection.cards || []).map(card => ({
-                    ...card,
-                    collectionName: collection.collection_name,
-                    type: 'card'
-                }))
-            );
-            const allItems = collections.flatMap(collection =>
-                (collection.items || []).map(item => ({
-                    ...item,
-                    collectionName: collection.collection_name,
-                    type: 'item'
-                }))
-            );
-            setDisplayedCards([...allCards, ...allItems]);
-        } else {
-            const selectedCollectionData = collections.find(c => c.collection_name === collectionName);
-            if (selectedCollectionData) {
-                const collectionCards = (selectedCollectionData.cards || []).map(card => ({
-                    ...card,
-                    collectionName,
-                    type: 'card'
-                }));
-                const collectionItems = (selectedCollectionData.items || []).map(item => ({
-                    ...item,
-                    collectionName,
-                    type: 'item'
-                }));
-                setDisplayedCards([...collectionCards, ...collectionItems]);
-            }
-        }
-    };
+    const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
 
     useEffect(() => {
-        if (!id) {
-            console.error('User ID is undefined');
-            return;
-        }
+        if (!id) return;
 
-        setLoading(true);
-        fetchCollectionsByUserID(id)
-            .then(data => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const data = await fetchCollectionsByUserID(id);
                 setCollections(data || []);
-                if (verbose) {
-                    console.log('Set Collections to: ', data);
-                    // Log the price of each card in each collection
-                    data.forEach((collection, index) => {
-                        console.log(`Collection ${index + 1}:`);
-                        collection.cards.forEach(card => {
-                            console.log(`Card: ${card.name}, Price: ${card.purchase_price}`);
-                        });
-                    });
-                }
-            })
-            .catch(error => {
+                
+                // Process the cards from all collections and set them in state
+                const allCards = data.flatMap(collection => 
+                    collection.cards.map(card => ({
+                        ...card,
+                        collectionName: collection.collection_name
+                    }))
+                );
+                setCards(allCards);  // Set all cards from all collections
+                
+                const allItems = data.flatMap(collection => [
+                    ...(collection.cards || []).map(card => ({ ...card, type: 'card', collectionName: collection.collection_name })),
+                    ...(collection.items || []).map(item => ({ ...item, type: 'item', collectionName: collection.collection_name }))
+                ]);
+                
+                const itemsWithMarketPrice = await Promise.all(allItems.map(async (item) => {
+                    const marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade, item.type);
+                    return { ...item, marketPrice: marketPrice || item.purchase_price };
+                }));
+                
+                setCards(itemsWithMarketPrice);
+                console.log("Cards with market price set:", itemsWithMarketPrice); // Add this line
+            } catch (error) {
                 console.error('Error fetching collections:', error);
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            });
-    }, [id, verbose]);
+            }
+        };
 
-    useEffect(() => {
-        if (collections.length > 0) {
-            handleCollectionChange({ target: { value: selectedCollection } });
-        }
-    }, [collections]);
+        fetchData();
+    }, [id]);
 
-    useEffect(() => {
-        if (displayedCards.length > 0) {
-            updateCardsWithMarketPrice(displayedCards, setCardsWithMarketPrice, setLoading, verbose);
-        }
-    }, [displayedCards]);
-
-    useEffect(() => {
-        // Update displayedCards when cards change
-        let newDisplayedCards;
-        if (selectedCollection === 'all') {
-            newDisplayedCards = cards;
-        } else {
-            newDisplayedCards = cards.filter(card => card.collectionName === selectedCollection);
-        }
-        setDisplayedCards(newDisplayedCards);
-        
-        if (verbose) {
-            console.log('Updated displayedCards:');
-            newDisplayedCards.forEach(card => {
-                console.log(`Card: ${card.name}, Price: ${card.purchase_price}`);
-            });
-        }
-    }, [cards, selectedCollection]);
-
-    if (loading || routeLoading) {
-        return (
-            <div className="spinner-container">
-                <ClipLoader color="#ffffff" loading={true} size={150} />
-            </div>
-        );
-    }
-
-    const handleAddCollection = async (userId, collectionName) => {
-        try {
-            await createCollection(userId, collectionName);
-            // Handle successful creation (e.g., update state, show message)
-            setManageCollectionsModalOpen(false);
-            // Refresh collections list
-            fetchCollectionsByUserID(id)
-                .then(data => {
-                    setCollections(data || []);
-                })
-                .catch(error => {
-                    console.error('Error fetching collections:', error);
-                });
-        } catch (error) {
-            console.error('Failed to create collection:', error);
-            // Handle error (e.g., show error message)
-        }
+    // Handler for collection change
+    const handleCollectionChange = (e) => {
+        setSelectedCollection(e.target.value);
     };
 
-    const handleDeleteCollection = async (userId, collectionName) => {
-        try {
-            await deleteCollection(userId, collectionName);
-            // Handle successful deletion (e.g., update state, show message)
-            setManageCollectionsModalOpen(false);
-            // Refresh collections list
-            fetchCollectionsByUserID(id)
-                .then(data => {
-                    setCollections(data || []);
-                })
-                .catch(error => {
-                    console.error('Error fetching collections:', error);
-                });
-        } catch (error) {
-            console.error('Failed to delete collection:', error);
-            // Handle error (e.g., show error message)
-        }
-    };
-
+    // Add Item handler
     const handleAddItem = async (newItem) => {
-        if (!id) {
-            console.error('User ID is not available');
-            return;
-        }
         try {
-            if (verbose) console.log('Attempting to add item in CardList.js:', newItem);
             const addedItem = await addItemToCollection(
                 id,
                 newItem.name,
@@ -228,37 +125,55 @@ const CardList = () => {
                 newItem.purchasePrice,
                 newItem.type
             );
-            if (verbose) console.log('Item added successfully in CardList.js:', addedItem);
-            const marketPrice = await fetchMarketPrice(addedItem.name, addedItem.id, addedItem.edition, addedItem.grade);
-            const updatedItem = { ...addedItem, marketPrice, type: 'item' };
-            setCardsWithMarketPrice(prevCards => [...prevCards, updatedItem]);
+            setCards((prevCards) => [...prevCards, { ...addedItem, type: 'item' }]);
             setAddItemModalOpen(false);
         } catch (error) {
-            console.error('Failed to add item:', error.message);
+            console.error('Failed to add item:', error);
         }
     };
 
+    // Filter cards based on the selected collection
+    const filteredCards = selectedCollection === 'all'
+        ? cards  // Show all cards if 'all' is selected
+        : cards.filter(card => card.collectionName === selectedCollection);  // Filter by collection name
+
+    // Handler for card click to navigate to the card's market data
     const handleCardClick = (cardId, cardName, cardImage) => {
         navigate(`/card-market-data/${cardId}`, { state: { cardName, cardImage } });
     };
 
-    // Extract collection names
-    const collectionNames = collections.map(collection => collection.collection_name);
+    // Loading state display
+    if (loading) {
+        return (
+            <div className="spinner-container">
+                <ClipLoader color="#ffffff" loading={true} size={150} />
+            </div>
+        );
+    }
 
-    const handleCardAdded = (newCard) => {
-        console.log('handleCardAdded called with:', newCard);
-        setCards(prevCards => {
-            const updatedCards = [...prevCards, newCard];
-            console.log('Updated cards:', updatedCards);
-            return updatedCards;
+    const updateMarketPrices = async () => {
+        setCardsWithMarketPrice(prevCards => {
+            return Promise.all(prevCards.map(async (item) => {
+                const marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade, item.type);
+                return { ...item, marketPrice: marketPrice || item.purchase_price };
+            }));
         });
-        setAddCardModalOpen(false);
     };
 
-    // Use the imported handlers
-    const onIncrementQuantity = (item) => handleIncrementQuantity(item, id, setCardsWithMarketPrice, verbose);
-    const onDecrementQuantity = (item) => handleDecrementQuantity(item, id, setCardsWithMarketPrice, verbose);
-    const onRemoveItemFromCollection = (collectionName, itemId) => handleRemoveItemFromCollection(id, collectionName, itemId, setCardsWithMarketPrice);
+    const handleQuantityChange = async (card, increment) => {
+        const newQuantity = Math.max(0, card.quantity + (increment ? 1 : -1));
+        try {
+            await updateCardQuantity(card.id, newQuantity, card.collectionName, id);
+            console.log("Cards before update:", cards);
+            setCards(prevCards => {
+                const updatedCards = prevCards.map(c => c.id === card.id ? { ...c, quantity: newQuantity } : c);
+                console.log("Cards after update:", updatedCards);
+                return updatedCards;
+            });
+        } catch (error) {
+            console.error('Failed to update quantity:', error);
+        }
+    };
 
     return (
         <Container className="card-list-container">
@@ -315,29 +230,27 @@ const CardList = () => {
             <AddCardModal
                 open={addCardModalOpen}
                 onClose={() => setAddCardModalOpen(false)}
-                onCardAdded={handleCardAdded}
-                collections={collectionNames}
+                onCardAdded={handleAddItem}
+                collections={collections.map(c => c.collection_name)}
             />
             <AddItemModal
                 open={addItemModalOpen}
                 onClose={() => setAddItemModalOpen(false)}
                 onAddItem={handleAddItem}
-                collections={collectionNames}
+                collections={collections.map(c => c.collection_name)}
             />
             <ManageCollectionsModal
                 open={manageCollectionsModalOpen}
                 onClose={() => setManageCollectionsModalOpen(false)}
-                onAddCollection={handleAddCollection}
-                onDeleteCollection={handleDeleteCollection}
                 userId={id}
-                collections={collectionNames}
+                collections={collections.map(c => c.collection_name)}
             />
 
             <Typography variant="h5" component="h2" className="section-title">
                 Cards
             </Typography>
             <Grid container spacing={3}>
-                {cardsWithMarketPrice.filter(item => item.type === 'card').map((card, index) => (
+                {filteredCards.filter(item => item.type === 'card').map((card, index) => (
                     <Grid item xs={12} sm={6} md={4} lg={2.4} key={card.id || index}>
                         <Card className="card" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
                             <div className="quantity-bubble">{card.quantity}</div>
@@ -352,7 +265,7 @@ const CardList = () => {
                                     e.target.src = 'https://i.pinimg.com/originals/45/84/c0/4584c0b11190ed3bd738acf8f1d24fa4.jpg';
                                 }}
                                 onMouseMove={(e) => handleMouseMove(e, index, cardImageRefs.current[index])}
-                                onMouseLeave={() => handleMouseLeave(index)}
+                                onMouseLeave={() => handleMouseLeave(index, cardImageRefs.current[index])}
                                 onClick={() => handleCardClick(card.id, card.name, card.image)}
                                 style={{ overflow: 'visible' }}
                             />
@@ -377,15 +290,25 @@ const CardList = () => {
                                 </Typography>
                                 <div className="card-actions">
                                     <div className="left-group">
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => onRemoveItemFromCollection(card.collectionName, card.id)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, card.collectionName, card.id, cards, setCards)}>
                                             <ClearIcon />
                                         </IconButton>
                                     </div>
                                     <div className="right-group">
-                                        <IconButton size="small" color="primary" className="add-button" onClick={() => onIncrementQuantity(card)}>
+                                        <IconButton 
+                                            size="small" 
+                                            color="primary" 
+                                            className="add-button" 
+                                            onClick={() => handleQuantityChange(card, true)}
+                                        >
                                             <ArrowCircleUpTwoToneIcon />
                                         </IconButton>
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => onDecrementQuantity(card)}>
+                                        <IconButton 
+                                            size="small" 
+                                            color="primary" 
+                                            className="remove-button" 
+                                            onClick={() => handleQuantityChange(card, false)}
+                                        >
                                             <ArrowCircleDownTwoToneIcon />
                                         </IconButton>
                                     </div>
@@ -400,7 +323,7 @@ const CardList = () => {
                 Items
             </Typography>
             <Grid container spacing={3}>
-                {cardsWithMarketPrice.filter(item => item.type === 'item').map((item, index) => (
+                {filteredCards.filter(item => item.type === 'item').map((item, index) => (
                     <Grid item xs={12} sm={6} md={4} lg={2.4} key={item.id || index}>
                         <Card className="item" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.2)', position: 'relative' }}>
                             <div style={{
@@ -443,15 +366,15 @@ const CardList = () => {
                                 </Typography>
                                 <div className="card-actions">
                                     <div className="left-group">
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => onRemoveItemFromCollection(item.collectionName, item.id)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(item.collectionName, item.id)}>
                                             <ClearIcon />
                                         </IconButton>
                                     </div>
                                     <div className="right-group">
-                                        <IconButton size="small" color="primary" className="add-button" onClick={() => onIncrementQuantity(item)}>
+                                        <IconButton size="small" color="primary" className="add-button" onClick={() => handleQuantityChange(item, true)}>
                                             <ArrowCircleUpTwoToneIcon />
                                         </IconButton>
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => onDecrementQuantity(item)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleQuantityChange(item, false)}>
                                             <ArrowCircleDownTwoToneIcon />
                                         </IconButton>
                                     </div>
