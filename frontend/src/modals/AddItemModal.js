@@ -10,7 +10,7 @@ const AddItemModal = ({ open, onClose, onAddItem, collections }) => {
         <Typography variant="h6" className="modal-title">
           Add New Item
         </Typography>
-        <AddItemForm onAddItem={onAddItem} collections={collections} />
+        <AddItemForm onAddItem={onAddItem} collections={collections} onClose={onClose} />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="primary">

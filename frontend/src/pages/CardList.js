@@ -122,13 +122,24 @@ const CardList = () => {
                 newItem.grade,
                 newItem.edition,
                 newItem.collectionName,
-                newItem.purchasePrice,
-                newItem.type
+                newItem.price,
+                newItem.type,
+                newItem.image,
+                newItem.set
             );
-            setCards((prevCards) => [...prevCards, { ...addedItem, type: 'item' }]);
+            
+            // Update the state with the new item
+            setCards(prevCards => [...prevCards, addedItem]);
+            
+            // Close the modal
+            setAddCardModalOpen(false);
             setAddItemModalOpen(false);
+            
+            // Optionally, you can show a success message
+            console.log('Item added successfully:', addedItem);
         } catch (error) {
             console.error('Failed to add item:', error);
+            // Optionally, you can show an error message to the user
         }
     };
 
