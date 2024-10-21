@@ -290,7 +290,7 @@ const CardList = () => {
                                 </Typography>
                                 <div className="card-actions">
                                     <div className="left-group">
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(card.collectionName, card.id)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, card.collectionName, card.id, cards, setCards)}>
                                             <ClearIcon />
                                         </IconButton>
                                     </div>

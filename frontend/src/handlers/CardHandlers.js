@@ -57,24 +57,39 @@ export const handleDecrementQuantity = async (item, userId, cardsWithMarketPrice
     }
 };
 
-export const handleRemoveItemFromCollection = async (userId, collectionName, itemId) => {
+export const handleRemoveItemFromCollection = async (userId, collectionName, itemId, cards, setCards) => {
     try {
         await removeItemFromCollection(userId, collectionName, itemId);
-        updateCardsWithMarketPrice(prevCards => prevCards.filter(item => item.id !== itemId));
+        // Remove item from cards
+        setCards(prevCards => prevCards.filter(item => item.id !== itemId));        
     } catch (error) {
         console.error('Failed to remove item from collection:', error);
     }
 };
 
-export const updateCardsWithMarketPrice = async (displayedCards, setCardsWithMarketPrice) => {
+export const updateCardsWithMarketPrice = async (cardsWithMarketPrice = [], setCardsWithMarketPrice) => {
     if (verbose) {
-        console.log('Cards before fetching market price:', displayedCards);
+        console.log('Cards before fetching market price:', cardsWithMarketPrice);
     }
-    const updatedCards = await Promise.all(displayedCards.map(async (item) => {
-        const marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade, item.type);
-        return { ...item, marketPrice: marketPrice || item.purchase_price };
+
+    // Ensure cardsWithMarketPrice is an array before mapping over it
+    if (!Array.isArray(cardsWithMarketPrice)) {
+        console.error('cardsWithMarketPrice is not an array:', cardsWithMarketPrice);
+        return;
+    }
+
+    const updatedCards = await Promise.all(cardsWithMarketPrice.map(async (item) => {
+        try {
+            const marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade, item.type);
+            return { ...item, marketPrice: marketPrice };
+        } catch (error) {
+            console.error('Failed to fetch market price for item:', item);
+            return { ...item, marketPrice: null };  // Handle error by keeping the item with no marketPrice
+        }
     }));
+
     setCardsWithMarketPrice(updatedCards);
+
     if (verbose) {
         console.log('Cards after fetching market price:', updatedCards);
     }
