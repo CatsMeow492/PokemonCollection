@@ -48,7 +48,7 @@ const ManageCollectionsModal = ({
 
                 <Typography variant="subtitle1" className="modal-subtitle">Existing Collections</Typography>
                 <List className="collection-list">
-                    {collections.map((collectionName) => (
+                    {collections?.map((collectionName) => (
                         <ListItem key={collectionName} className="collection-item">
                             <ListItemText primary={collectionName} className="collection-name" />
                             <ListItemSecondaryAction>
