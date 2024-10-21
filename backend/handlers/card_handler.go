@@ -121,28 +121,39 @@ func AddCardWithUserID(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
+	log.Println("AddCardWithUserIDAndCollection: Handler started")
+
+	// Read the entire body
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Error reading body: %v", err)
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		return
+	}
+
+	// Log the received body
+	log.Printf("Received body: %s", string(body))
+
 	var newCard struct {
 		UserID         string      `json:"user_id"`
 		CollectionName string      `json:"collection_name"`
 		Card           models.Card `json:"card"`
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Printf("Error reading request body: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	log.Printf("Raw request body: %s", string(body))
-
 	if err := json.Unmarshal(body, &newCard); err != nil {
-		log.Printf("Error decoding request body: %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("Error unmarshaling JSON: %v", err)
+		http.Error(w, fmt.Sprintf("Invalid JSON: %v", err), http.StatusBadRequest)
 		return
 	}
 
 	log.Printf("Decoded request: %+v", newCard)
-	log.Printf("Card grade: %v (type: %T)", newCard.Card.Grade, newCard.Card.Grade)
+
+	// Validate required fields
+	if newCard.UserID == "" || newCard.CollectionName == "" || newCard.Card.Name == "" || newCard.Card.Set == "" {
+		log.Println("Missing required fields")
+		http.Error(w, "Invalid or incomplete data provided", http.StatusBadRequest)
+		return
+	}
 
 	// Fetch the card from the API
 	apiKey := os.Getenv("POKEMON_TCG_API_KEY")
@@ -156,23 +167,19 @@ func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 	// Merge fetched card data with user-provided data
 	mergedCard := models.Card{
 		ID:            fetchedCard.ID,
-		Name:          fetchedCard.Name,
-		Edition:       fetchedCard.Edition,
-		Set:           fetchedCard.Set,
+		Name:          newCard.Card.Name,
+		Edition:       newCard.Card.Edition,
+		Set:           newCard.Card.Set,
 		Image:         fetchedCard.Image,
 		Grade:         newCard.Card.Grade,
 		PurchasePrice: newCard.Card.PurchasePrice,
 		Quantity:      newCard.Card.Quantity,
-		Type:          "Pokemon Card", // Add this line
+		Type:          "Pokemon Card",
 	}
 
-	// After fetching the card from the API
-	if fetchedCard.ID == "" {
-		fetchedCard.ID = fmt.Sprintf("%s-%s", fetchedCard.Set, fetchedCard.Name)
-	}
+	log.Printf("Merged card data: %+v", mergedCard)
 
-	mergedCard.ID = fetchedCard.ID
-
+	// Add the card to the collection
 	err = services.AddCardToCollection(newCard.UserID, newCard.CollectionName, mergedCard)
 	if err != nil {
 		log.Printf("Error adding card to collection: %v", err)
@@ -180,7 +187,8 @@ func AddCardWithUserIDAndCollection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	// Send back the complete card data
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(mergedCard)
 }
 

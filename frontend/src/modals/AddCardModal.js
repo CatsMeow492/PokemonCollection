@@ -13,6 +13,7 @@ const AddCardModal = ({ open, onClose, onCardAdded, collections }) => {
         <AddCardForm 
           onCardAdded={onCardAdded}
           collections={collections}
+          onClose={onClose}
         />
       </DialogContent>
       <DialogActions>

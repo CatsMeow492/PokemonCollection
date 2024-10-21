@@ -11,6 +11,8 @@ export const fetchMarketPrice = async (name, id, edition, grade, type) => {
         grade: grade || '',
         type: type || ''
     });
+
+    if (verbose) console.log(`Fetching market price for: ${params}`);
     
     try {
         // Change this line to match your backend route
@@ -359,38 +361,53 @@ export const removeCardFromCollection = async (userId, collectionName, cardId) =
     return response.json();
 };
 
-export const addItemToCollection = async (userId, name, grade, edition, collectionName, purchasePrice) => {
-    const url = `/api/items/${userId}/${encodeURIComponent(collectionName)}`;
-    const payload = {
-        name,
-        grade: grade.toString(),
-        edition,
-        purchase_price: parseFloat(purchasePrice) || 0, // Changed from purchasePrice to price to match backend expectation
-        set: '',
-        image: '',
-        quantity: 1,
-        type: 'Item'
-    };
-    
-    if (verbose) console.log('Payload being sent to backend:', payload);
+export const addItemToCollection = async (userId, name, grade, edition, collectionName, purchasePrice, type, image, set) => {
+  let url;
+  if (type === 'Pokemon Card') {
+    url = `/api/cards/collection`; // Use the existing card endpoint
+  } else {
+    url = `/api/items/${userId}/${encodeURIComponent(collectionName)}`;
+  }
 
+  const payload = {
+    user_id: userId,
+    collection_name: collectionName,
+    card: {
+      name,
+      grade: grade.toString(),
+      edition,
+      purchase_price: parseFloat(purchasePrice) || 0,
+      set,
+      image,
+      quantity: 1,
+      type
+    }
+  };
+
+  const payloadString = JSON.stringify(payload);
+  console.log('Payload being sent to server:', payloadString);
+
+  try {
     const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Content-Length': payloadString.length.toString()
+      },
+      body: payloadString,
     });
 
     if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error(`Failed to add item: ${response.status} ${response.statusText}. ${errorText}`);
+      const errorText = await response.text();
+      console.error('Server response:', errorText);
+      throw new Error(`Failed to add item: ${response.status} ${response.statusText}. ${errorText}`);
     }
-    
-    const responseData = await response.json();
-    if (verbose) console.log('Item added (response from backend):', responseData);
-    return responseData;
+
+    return response.json(); // This should return the added item data
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
+  }
 };
 
 export const removeItemFromCollection = async (userId, collectionName, itemId) => {
@@ -436,6 +453,11 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
+
+
+
+
 
 
 

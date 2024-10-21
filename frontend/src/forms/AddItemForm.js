@@ -18,7 +18,7 @@ const setAndEditions = require('../data/sets_and_editions.json');
 const sets = Array.from(setAndEditions).map((set) => ({ label: set.name, value: set.id }));
 const editions = Array.from(setAndEditions).map((edition) => ({ label: edition.name, value: edition.id }));
 
-const AddItemForm = ({ onAddItem, collections }) => {
+const AddItemForm = ({ onAddItem, collections, onClose }) => {
   const [itemName, setItemName] = useState('');
   const [edition, setEdition] = useState('');
   const [grade, setGrade] = useState('');
@@ -46,10 +46,16 @@ const AddItemForm = ({ onAddItem, collections }) => {
       edition,
       grade: grade === 'Ungraded' ? 'Ungraded' : parseInt(grade, 10),
       purchasePrice: parseFloat(purchasePrice) || 0,
-      collectionName: selectedCollection
+      collectionName: selectedCollection,
+      type: 'Item'
     };
 
-    onAddItem(newItem);
+    try {
+      onAddItem(newItem);
+      onClose(true);
+    } catch (error) {
+      console.error('Failed to add item:', error);
+    }
 
     // Reset form
     setItemName('');

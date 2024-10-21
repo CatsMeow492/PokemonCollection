@@ -11,3 +11,5 @@ type Item struct {
 	Quantity      int         `json:"quantity"`
 	Type          string      `json:"type"`
 }
+
+type Card Item

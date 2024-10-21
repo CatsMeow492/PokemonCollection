@@ -6,7 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useContext } from 'react';
 import config from '../config';
 
-const AddCardForm = ({ onCardAdded, setAddCardModalOpen, collections }) => {
+const AddCardForm = ({ onCardAdded, onClose, collections }) => {
   const { id } = useContext(AuthContext);
   const [name, setName] = useState('');
   const [edition, setEdition] = useState('');
@@ -19,6 +19,7 @@ const AddCardForm = ({ onCardAdded, setAddCardModalOpen, collections }) => {
   const [pokemonNames, setPokemonNames] = useState([]);
   const { verbose } = config;
   const [selectedCollection, setSelectedCollection] = useState('');
+  
   useEffect(() => {
     fetchPokemonNames()
       .then(data => {
@@ -39,18 +40,14 @@ const AddCardForm = ({ onCardAdded, setAddCardModalOpen, collections }) => {
       price: parseFloat(price) || 0, 
       image, 
       set, 
-      type,
+      type: 'Pokemon Card', // Ensure the correct type is set
       collectionName: selectedCollection 
     };
+
+    if (verbose) console.log(`Card data being submitted (AddCardForm.js): ${JSON.stringify(newCard, null, 2)}`);
     try {
-      const addedCard = await addCard(newCard, id, selectedCollection);
-      console.log('Card added successfully in AddCardForm.js: ', addedCard);
-      
-      // Call onCardAdded with the new card
-      onCardAdded(addedCard);
-      
-      // Close the modal
-      setAddCardModalOpen(false);
+      await onCardAdded(newCard);
+      onClose(false);
       
       // Reset form fields
       setName('');
