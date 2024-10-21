@@ -192,12 +192,9 @@ export const updateCardQuantity = async (cardId, newQuantity, collectionName, us
             user_id: userId,
             collection_name: collectionName,
             card_id: cardId,
-            quantity: newQuantity
+            quantity: parseInt(newQuantity, 10) // Ensure it's an integer
         }),
     });
-
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
 
     if (!response.ok) {
         const errorText = await response.text();
@@ -219,7 +216,7 @@ export const updateItemQuantity = async (itemId, newQuantity, collectionName, us
             user_id: userId,
             collection_name: collectionName,
             item_id: itemId,
-            quantity: newQuantity
+            quantity: parseInt(newQuantity, 10) // Ensure it's an integer
         }),
     });
 
@@ -439,6 +436,7 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
 
 
 
