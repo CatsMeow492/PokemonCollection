@@ -265,7 +265,7 @@ const CardList = () => {
                                     e.target.src = 'https://i.pinimg.com/originals/45/84/c0/4584c0b11190ed3bd738acf8f1d24fa4.jpg';
                                 }}
                                 onMouseMove={(e) => handleMouseMove(e, index, cardImageRefs.current[index])}
-                                onMouseLeave={() => handleMouseLeave(index)}
+                                onMouseLeave={() => handleMouseLeave(index, cardImageRefs.current[index])}
                                 onClick={() => handleCardClick(card.id, card.name, card.image)}
                                 style={{ overflow: 'visible' }}
                             />
