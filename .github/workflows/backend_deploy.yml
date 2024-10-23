@@ -20,10 +20,10 @@ jobs:
 
       - name: Build application
         run: |
-          go build -o CardVault ./backend
-
-      - name: Zip application for deployment
-        run: zip -r application.zip CardVault
+          cd backend
+          go build -o CardVault
+          cd ..
+          zip -r application.zip backend/CardVault
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
