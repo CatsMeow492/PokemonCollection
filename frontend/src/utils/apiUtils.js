@@ -384,28 +384,23 @@ export const addItemToCollection = async (userId, name, grade, edition, collecti
     }
   };
 
-  const payloadString = JSON.stringify(payload);
-  console.log('Payload being sent to server:', payloadString);
-
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Content-Length': payloadString.length.toString()
-      },
-      body: payloadString,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Server response:', errorText);
       throw new Error(`Failed to add item: ${response.status} ${response.statusText}. ${errorText}`);
     }
 
-    return response.json(); // This should return the added item data
+    const responseData = await response.json();
+    if (verbose) console.log('Item added to collection by apiUtils:', responseData);
+    return responseData;
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error('Error in addItemToCollection:', error);
     throw error;
   }
 };
@@ -453,6 +448,8 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
+
 
 
 
