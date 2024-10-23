@@ -46,9 +46,9 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import AddItemModal from '../modals/AddItemModal';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import { handleMouseMove, handleMouseLeave } from '../handlers/CardLiftEffect';
-import { 
-    handleIncrementQuantity, 
-    handleDecrementQuantity, 
+import {
+    handleIncrementQuantity,
+    handleDecrementQuantity,
     handleRemoveItemFromCollection,
     updateCardsWithMarketPrice
 } from '../handlers/CardHandlers';
@@ -67,37 +67,31 @@ const CardList = () => {
     const navigate = useNavigate();  // React Router's navigate function
     const cardImageRefs = useRef([]);
     const [cardsWithMarketPrice, setCardsWithMarketPrice] = useState([]);
-
+    const [forceUpdate, setForceUpdate] = useState(false);
     useEffect(() => {
         if (!id) return;
 
+        // In your data fetching useEffect
         const fetchData = async () => {
             try {
                 setLoading(true);
                 const data = await fetchCollectionsByUserID(id);
                 setCollections(data || []);
-                
-                // Process the cards from all collections and set them in state
-                const allCards = data.flatMap(collection => 
-                    collection.cards.map(card => ({
-                        ...card,
-                        collectionName: collection.collection_name
-                    }))
-                );
-                setCards(allCards);  // Set all cards from all collections
-                
+
+                // Combine cards and items without overriding 'type'
                 const allItems = data.flatMap(collection => [
-                    ...(collection.cards || []).map(card => ({ ...card, type: 'card', collectionName: collection.collection_name })),
-                    ...(collection.items || []).map(item => ({ ...item, type: 'item', collectionName: collection.collection_name }))
+                    ...(collection.cards || []).map(card => ({ ...card, collectionName: collection.collection_name })),
+                    ...(collection.items || []).map(item => ({ ...item, collectionName: collection.collection_name }))
                 ]);
-                
+
+                // Fetch market prices as before
                 const itemsWithMarketPrice = await Promise.all(allItems.map(async (item) => {
                     const marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade, item.type);
                     return { ...item, marketPrice: marketPrice || item.purchase_price };
                 }));
-                
+
                 setCards(itemsWithMarketPrice);
-                console.log("Cards with market price set:", itemsWithMarketPrice); // Add this line
+                console.log("Cards with market price set:", itemsWithMarketPrice);
             } catch (error) {
                 console.error('Error fetching collections:', error);
             } finally {
@@ -107,6 +101,10 @@ const CardList = () => {
 
         fetchData();
     }, [id]);
+
+    useEffect(() => {
+        console.log('Cards state updated in CardList:', cards);
+    }, [cards]);
 
     // Handler for collection change
     const handleCollectionChange = (e) => {
@@ -127,26 +125,35 @@ const CardList = () => {
                 newItem.image,
                 newItem.set
             );
-            
-            // Update the state with the new item
-            setCards(prevCards => [...prevCards, addedItem]);
-            
-            // Close the modal
+    
+            // No need to override 'type'; just include 'collectionName'
+            const newItemWithProps = {
+                ...addedItem,
+                collectionName: newItem.collectionName,
+            };
+    
+            // Update cards state
+            setCards(prevCards => [...prevCards, newItemWithProps]);
+    
+            // Close modals
             setAddCardModalOpen(false);
             setAddItemModalOpen(false);
-            
-            // Optionally, you can show a success message
-            console.log('Item added successfully:', addedItem);
+    
+            console.log('Item added successfully:', newItemWithProps);
         } catch (error) {
             console.error('Failed to add item:', error);
-            // Optionally, you can show an error message to the user
         }
     };
 
     // Filter cards based on the selected collection
-    const filteredCards = selectedCollection === 'all'
-        ? cards  // Show all cards if 'all' is selected
-        : cards.filter(card => card.collectionName === selectedCollection);  // Filter by collection name
+    const filteredCards = useMemo(() => {
+        console.log('Recalculating filteredCards');
+        const filtered = selectedCollection === 'all'
+            ? cards
+            : cards.filter(card => card.collectionName === selectedCollection);
+        console.log('filteredCards updated:', filtered);
+        return filtered;
+    }, [cards, selectedCollection]);
 
     // Handler for card click to navigate to the card's market data
     const handleCardClick = (cardId, cardName, cardImage) => {
@@ -260,8 +267,8 @@ const CardList = () => {
             <Typography variant="h5" component="h2" className="section-title">
                 Cards
             </Typography>
-            <Grid container spacing={3}>
-                {filteredCards.filter(item => item.type === 'card').map((card, index) => (
+            <Grid container spacing={3} key={cards.length}>
+                {filteredCards.filter(item => item.type === 'Pokemon Card').map((card, index) => (
                     <Grid item xs={12} sm={6} md={4} lg={2.4} key={card.id || index}>
                         <Card className="card" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
                             <div className="quantity-bubble">{card.quantity}</div>
@@ -306,18 +313,18 @@ const CardList = () => {
                                         </IconButton>
                                     </div>
                                     <div className="right-group">
-                                        <IconButton 
-                                            size="small" 
-                                            color="primary" 
-                                            className="add-button" 
+                                        <IconButton
+                                            size="small"
+                                            color="primary"
+                                            className="add-button"
                                             onClick={() => handleQuantityChange(card, true)}
                                         >
                                             <ArrowCircleUpTwoToneIcon />
                                         </IconButton>
-                                        <IconButton 
-                                            size="small" 
-                                            color="primary" 
-                                            className="remove-button" 
+                                        <IconButton
+                                            size="small"
+                                            color="primary"
+                                            className="remove-button"
                                             onClick={() => handleQuantityChange(card, false)}
                                         >
                                             <ArrowCircleDownTwoToneIcon />
@@ -334,7 +341,7 @@ const CardList = () => {
                 Items
             </Typography>
             <Grid container spacing={3}>
-                {filteredCards.filter(item => item.type === 'item').map((item, index) => (
+                {filteredCards.filter(item => item.type === 'Item').map((item, index) => (
                     <Grid item xs={12} sm={6} md={4} lg={2.4} key={item.id || index}>
                         <Card className="item" style={{ overflow: 'visible', backgroundColor: 'rgba(0, 0, 0, 0.2)', position: 'relative' }}>
                             <div style={{
