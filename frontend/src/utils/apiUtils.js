@@ -414,7 +414,9 @@ export const removeItemFromCollection = async (userId, collectionName, itemId) =
     });
 
     if (!response.ok) {
-        throw new Error('Failed to remove item from collection');
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to remove item from collection: ${errorText}`);
     }
 
     return response.json();

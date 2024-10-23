@@ -125,20 +125,20 @@ const CardList = () => {
                 newItem.image,
                 newItem.set
             );
-    
+
             // No need to override 'type'; just include 'collectionName'
             const newItemWithProps = {
                 ...addedItem,
                 collectionName: newItem.collectionName,
             };
-    
+
             // Update cards state
             setCards(prevCards => [...prevCards, newItemWithProps]);
-    
+
             // Close modals
             setAddCardModalOpen(false);
             setAddItemModalOpen(false);
-    
+
             console.log('Item added successfully:', newItemWithProps);
         } catch (error) {
             console.error('Failed to add item:', error);
@@ -308,7 +308,7 @@ const CardList = () => {
                                 </Typography>
                                 <div className="card-actions">
                                     <div className="left-group">
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, card.collectionName, card.id, cards, setCards)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, card.collectionName, card.id, setCards)}>
                                             <ClearIcon />
                                         </IconButton>
                                     </div>
@@ -384,7 +384,7 @@ const CardList = () => {
                                 </Typography>
                                 <div className="card-actions">
                                     <div className="left-group">
-                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(item.collectionName, item.id)}>
+                                        <IconButton size="small" color="primary" className="remove-button" onClick={() => handleRemoveItemFromCollection(id, item.collectionName, item.id, setCards)}>
                                             <ClearIcon />
                                         </IconButton>
                                     </div>
