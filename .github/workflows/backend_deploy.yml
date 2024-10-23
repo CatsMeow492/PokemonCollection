@@ -38,6 +38,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Upload to S3
+        run: |
+          aws s3 cp application.zip s3://${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket/application-${{ github.run_number }}.zip
+
       - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk create-application-version --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
