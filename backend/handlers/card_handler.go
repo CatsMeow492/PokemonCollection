@@ -77,14 +77,21 @@ func GetCollectionByUserIDandCollectionName(w http.ResponseWriter, r *http.Reque
 }
 
 func GetAllCardsByUserID(w http.ResponseWriter, r *http.Request, userID string) {
+	log.Printf("Fetching cards for user ID: %s", userID)
 	cards, err := services.GetAllCardsByUserID(userID)
 	if err != nil {
-		http.Error(w, "Error fetching cards", http.StatusInternalServerError)
+		log.Printf("Error fetching cards for user ID %s: %v", userID, err)
+		http.Error(w, fmt.Sprintf("Error fetching cards: %v", err), http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("Successfully fetched %d cards for user ID: %s", len(cards), userID)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(cards)
+	if err := json.NewEncoder(w).Encode(cards); err != nil {
+		log.Printf("Error encoding cards to JSON for user ID %s: %v", userID, err)
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
 }
 
 func AddCardWithUserID(w http.ResponseWriter, r *http.Request) {

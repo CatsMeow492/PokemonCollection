@@ -31,19 +31,33 @@ export const fetchMarketPrice = async (name, id, edition, grade, type) => {
     }
 };
 
-export const fetchCardsByUserID = async (userID) => {
-    if (verbose) console.log(`Fetching cards for user ID: ${userID}`);
+export const fetchCardsByUserID = async (userId, collectionName = null) => {
     try {
-        const response = await fetch(`/api/cards?user_id=${userID}`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch cards');
+        let url = `${API_BASE_URL}/api/cards?user_id=${encodeURIComponent(userId)}`;
+        if (collectionName) {
+            url += `&collection_name=${encodeURIComponent(collectionName)}`;
         }
+        console.log(`Fetching cards from URL: ${url}`);
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Error response: ${errorText}`);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
+
         const data = await response.json();
-        if (verbose) console.log('Fetched cards:', data);
-        return data || []; // Return an empty array if data is null or undefined
+        console.log(`Fetched ${data.length} cards successfully`);
+        return data;
     } catch (error) {
         console.error('Error fetching cards:', error);
-        return []; // Return an empty array on error
+        throw error;
     }
 };
 
@@ -457,6 +471,8 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
+
 
 
 

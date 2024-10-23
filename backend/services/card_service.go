@@ -15,6 +15,7 @@ import (
 	"github.com/CatsMeow492/PokemonCollection/database"
 	"github.com/CatsMeow492/PokemonCollection/models"
 	"github.com/patrickmn/go-cache"
+	"gorm.io/gorm"
 )
 
 var cardCache *cache.Cache
@@ -193,28 +194,22 @@ func GetCollectionByUserIDandCollectionName(userID string, collectionName string
 }
 
 func GetAllCardsByUserID(userID string) ([]models.Card, error) {
-	query := `
-		SELECT i.item_id, i.name, i.edition, i.set, i.image, ui.grade, ui.price, ui.quantity
-		FROM UserItems ui
-		JOIN Items i ON ui.item_id = i.item_id
-		JOIN Collections c ON ui.collection_id = c.collection_id
-		WHERE c.user_id = $1
-	`
-	rows, err := database.DB.Query(query, userID)
+	log.Printf("Service: Fetching all cards for user ID: %s", userID)
+	var cards []models.Card
+	query := database.DB.Model(&models.Card{}).Where("user_id = ?", userID)
+
+	// Print the generated SQL
+	sql := query.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		return tx.Find(&cards)
+	})
+	log.Printf("Generated SQL: %s", sql)
+
+	err := query.Find(&cards).Error
 	if err != nil {
+		log.Printf("Service: Error fetching cards for user ID %s: %v", userID, err)
 		return nil, err
 	}
-	defer rows.Close()
-
-	var cards []models.Card
-	for rows.Next() {
-		var card models.Card
-		err := rows.Scan(&card.ID, &card.Name, &card.Edition, &card.Set, &card.Image, &card.Grade, &card.PurchasePrice, &card.Quantity)
-		if err != nil {
-			return nil, err
-		}
-		cards = append(cards, card)
-	}
+	log.Printf("Service: Successfully fetched %d cards for user ID: %s", len(cards), userID)
 	return cards, nil
 }
 

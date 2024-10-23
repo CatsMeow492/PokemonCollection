@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Grid, CircularProgress, Card, CardContent, Divider } from '@mui/material';
-import { fetchCardsByUserID, processFetchedCards, fetchMarketPrice } from '../utils/apiUtils';
+import { fetchCollectionsByUserID, fetchMarketPrice } from '../utils/apiUtils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import config from '../config';
 import '../styles/Reports.css';
@@ -27,43 +27,48 @@ const Reports = () => {
     };
 
     useEffect(() => {
+        if (!id) return;
+
         const fetchReportData = async () => {
             try {
                 setLoading(true);
-                const cardsData = await fetchCardsByUserID(id);
-                const { totalCostSum, cards } = processFetchedCards(cardsData, verbose);
-
-                let cardsWithMarketPrice = await Promise.all(cards.map(async (card) => {
-                    const marketPrice = await fetchMarketPrice(card.name, card.id, card.edition, card.grade);
-                    return { ...card, marketPrice: parseFloat(marketPrice) || 0 };
-                }));
-                if (verbose) console.log('In Reports.js, cardsWithMarketPrice:', cardsWithMarketPrice);
-                const totalMarketPrice = cardsWithMarketPrice.reduce((sum, card) => sum + card.marketPrice, 0);
-                const totalProfit = totalMarketPrice - totalCostSum;
-                const sets = cardsWithMarketPrice.map(card => card.edition);
-                const uniqueSets = [...new Set(sets)];
-                const gradeTenCount = cardsWithMarketPrice.filter(card => card.grade == 10).length;
+                const data = await fetchCollectionsByUserID(id);
                 
-                const cardsWithMarketPriceAndPrice = cardsWithMarketPrice
-                    .filter(card => card.price != null)
-                    .map(card => ({
-                        ...card,
-                        price: parseFloat(card.price) || 0
-                    }));
-                const cardsProfit = cardsWithMarketPriceAndPrice.map(card => ({ ...card, profit: card.marketPrice - card.price }));
-                if (verbose) console.log('Cards Profit:', cardsProfit);
+                // Combine cards and items without overriding 'type'
+                const allItems = data.flatMap(collection => [
+                    ...(collection.cards || []).map(card => ({ ...card, collectionName: collection.collection_name })),
+                    ...(collection.items || []).map(item => ({ ...item, collectionName: collection.collection_name }))
+                ]);
+
+                // Fetch market prices
+                const itemsWithMarketPrice = await Promise.all(allItems.map(async (item) => {
+                    const marketPrice = await fetchMarketPrice(item.name, item.id, item.edition, item.grade, item.type);
+                    return { ...item, marketPrice: marketPrice || item.purchase_price };
+                }));
+
+                if (verbose) console.log("Items with market price:", itemsWithMarketPrice);
+
+                // Process the data for reports
+                const totalCost = itemsWithMarketPrice.reduce((sum, item) => sum + (parseFloat(item.purchase_price) * item.quantity), 0);
+                const totalMarketPrice = itemsWithMarketPrice.reduce((sum, item) => sum + (parseFloat(item.marketPrice) * item.quantity), 0);
+                const totalProfit = totalMarketPrice - totalCost;
+                const sets = [...new Set(itemsWithMarketPrice.map(item => item.edition))];
+                const gradeTenCount = itemsWithMarketPrice.filter(item => item.grade == 10).length;
 
                 setReportData({
-                    totalCost: totalCostSum,
-                    cardsCount: cards.length,
-                    averageCardPrice: cards.length > 0 ? (totalCostSum / cards.length) : 0,
-                    top5ExpensiveCards: cardsWithMarketPrice.sort((a, b) => b.marketPrice - a.marketPrice).slice(0, 5),
+                    totalCost: totalCost,
+                    itemsCount: itemsWithMarketPrice.length,
+                    averageItemPrice: itemsWithMarketPrice.length > 0 ? (totalCost / itemsWithMarketPrice.length) : 0,
+                    top5ExpensiveItems: itemsWithMarketPrice.sort((a, b) => b.marketPrice - a.marketPrice).slice(0, 5),
                     totalMarketPrice: totalMarketPrice,
                     totalProfit: totalProfit,
-                    cardsWithMarketPrice: cardsWithMarketPrice,
-                    sets: uniqueSets,
+                    itemsWithMarketPrice: itemsWithMarketPrice,
+                    sets: sets,
                     gradeTenCount: gradeTenCount,
-                    cardsProfit: cardsProfit
+                    itemsProfit: itemsWithMarketPrice.map(item => ({ 
+                        ...item, 
+                        profit: (parseFloat(item.marketPrice) - parseFloat(item.purchase_price)) * item.quantity 
+                    }))
                 });
             } catch (err) {
                 console.error('Error fetching report data:', err);
@@ -74,7 +79,7 @@ const Reports = () => {
         };
 
         fetchReportData();
-    }, [verbose]);
+    }, [id, verbose]);
 
     if (loading) {
         return (
@@ -96,7 +101,7 @@ const Reports = () => {
         return null;
     }
 
-    const { totalCost, cardsCount, averageCardPrice, top5ExpensiveCards, totalMarketPrice, totalProfit, sets, gradeTenCount, cardsProfit } = reportData;
+    const { totalCost, itemsCount, averageItemPrice, top5ExpensiveItems, totalMarketPrice, totalProfit, sets, gradeTenCount, itemsProfit } = reportData;
 
     const pieChartData = [
         { name: 'Investment', value: totalCost },
@@ -115,8 +120,8 @@ const Reports = () => {
                     <Grid item xs={12} md={4}>
                         <Card className="summary-card">
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>Total Cards</Typography>
-                                <Typography variant="h3">{cardsCount}</Typography>
+                                <Typography variant="h6" gutterBottom>Total Items</Typography>
+                                <Typography variant="h3">{itemsCount}</Typography>
                                 <CreditCardIcon className="card-icon" />
                             </CardContent>
                         </Card>
@@ -146,7 +151,7 @@ const Reports = () => {
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>Collection Details</Typography>
                                 <Divider className="card-divider" />
-                                <Typography>Average Card Price: ${averageCardPrice.toFixed(2)}</Typography>
+                                <Typography>Average Item Price: ${averageItemPrice.toFixed(2)}</Typography>
                                 <Typography>Total Market Price: ${totalMarketPrice.toFixed(2)}</Typography>
                                 <Typography>Number of Sets: {sets.length}</Typography>
                                 <Typography>Number of Grade Tens: {gradeTenCount}</Typography>
@@ -156,11 +161,11 @@ const Reports = () => {
                     <Grid item xs={12} md={6}>
                         <Card className="detail-card">
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>5 Most Valuable Cards</Typography>
+                                <Typography variant="h6" gutterBottom>5 Most Valuable Items</Typography>
                                 <Divider className="card-divider" />
-                                {top5ExpensiveCards.map((card, index) => (
-                                    <Typography key={index} className="top-card-item">
-                                        {card.name} - ${card.marketPrice.toFixed(2)}
+                                {top5ExpensiveItems.map((item, index) => (
+                                    <Typography key={index} className="top-item-item">
+                                        {item.name} - ${item.marketPrice.toFixed(2)}
                                     </Typography>
                                 ))}
                             </CardContent>
@@ -169,14 +174,14 @@ const Reports = () => {
                     <Grid item xs={12} md={6}>
                         <Card className="detail-card">
                             <CardContent className="scrollable-container">
-                                <Typography variant="h6" gutterBottom>Most Profitable Cards</Typography>
+                                <Typography variant="h6" gutterBottom>Most Profitable Items</Typography>
                                 <Divider className="card-divider" />
-                                {cardsProfit
-                                    .filter(card => card.profit > 0)
+                                {itemsProfit
+                                    .filter(item => item.profit > 0)
                                     .sort((a, b) => b.profit - a.profit)
-                                    .map((card, index) => (
-                                        <Typography key={index} className="top-card-item">
-                                            {card.name} - ${card.profit.toFixed(2)}
+                                    .map((item, index) => (
+                                        <Typography key={index} className="top-item-item">
+                                            {item.name} - ${item.profit.toFixed(2)}
                                         </Typography>
                                     ))}
                             </CardContent>
