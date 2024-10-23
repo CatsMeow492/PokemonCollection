@@ -1,0 +1,41 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main  # Change this to your deployment branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.20'  # Use your Go version
+
+      - name: Build application
+        run: |
+          go build -o CardVault ./backend
+
+      - name: Zip application for deployment
+        run: zip -r application.zip CardVault
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk create-application-version --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+            --version-label "${{ github.run_number }}" --source-bundle S3Bucket="${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket",S3Key="application-${{ github.run_number }}.zip"
+
+          aws elasticbeanstalk update-environment --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+            --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --version-label "${{ github.run_number }}"
