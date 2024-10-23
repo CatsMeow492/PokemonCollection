@@ -1,39 +1,41 @@
-import { createCollection, deleteCollection, fetchCollectionsByUserID } from '../services/collectionService';
+import { createCollection, deleteCollection, fetchCollectionsByUserID } from '../utils/apiUtils';
 
-export const handleAddCollection = async (userId, collectionName) => {
+export const handleAddCollection = async (userId, collectionName, setCollections) => {
     try {
-        await createCollection(userId, collectionName);
-        // Handle successful creation (e.g., update state, show message)
-        setManageCollectionsModalOpen(false);
-        // Refresh collections list
-        fetchCollectionsByUserID(id)
-            .then(data => {
-                setCollections(data || []);
-            })
-            .catch(error => {
-                console.error('Error fetching collections:', error);
-            });
+        const result = await createCollection(userId, collectionName);
+        if (result.success) {
+            console.log('Collection created successfully');
+            // Refresh collections list immediately after creation
+            await refreshCollections(userId, setCollections);
+        }
     } catch (error) {
         console.error('Failed to create collection:', error);
-        // Handle error (e.g., show error message)
+        // You might want to show an error message to the user here
     }
 };
 
-export const handleDeleteCollection = async (userId, collectionName) => {
+export const handleDeleteCollection = async (userId, collectionName, onCollectionDeleted) => {
     try {
         await deleteCollection(userId, collectionName);
-        // Handle successful deletion (e.g., update state, show message)
-        setManageCollectionsModalOpen(false);
-        // Refresh collections list
-        fetchCollectionsByUserID(id)
-            .then(data => {
-                setCollections(data || []);
-            })
-            .catch(error => {
-                console.error('Error fetching collections:', error);
-            });
+        // Call the callback function to handle state updates
+        if (onCollectionDeleted) {
+            onCollectionDeleted();
+        }
     } catch (error) {
         console.error('Failed to delete collection:', error);
-        // Handle error (e.g., show error message)
+    }
+};
+
+// Helper function to refresh collections
+export const refreshCollections = async (userId, setCollections) => {
+    try {
+        const data = await fetchCollectionsByUserID(userId);
+        if (typeof setCollections === 'function') {
+            setCollections(data || []);
+        } else {
+            console.error('setCollections is not a function', setCollections);
+        }
+    } catch (error) {
+        console.error('Error fetching collections:', error);
     }
 };

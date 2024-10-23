@@ -42,6 +42,7 @@ func CreateCollectionByUserIDandCollectionName(w http.ResponseWriter, r *http.Re
 	}
 
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]bool{"success": true})
 }
 
 func DeleteCollectionByUserIDandCollectionName(w http.ResponseWriter, r *http.Request) {

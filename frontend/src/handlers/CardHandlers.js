@@ -57,11 +57,15 @@ export const handleDecrementQuantity = async (item, userId, cardsWithMarketPrice
     }
 };
 
-export const handleRemoveItemFromCollection = async (userId, collectionName, itemId, cards, setCards) => {
+export const handleRemoveItemFromCollection = async (userId, collectionName, itemId, setCards) => {
     try {
         await removeItemFromCollection(userId, collectionName, itemId);
-        // Remove item from cards
-        setCards(prevCards => prevCards.filter(item => item.id !== itemId));        
+        if (typeof setCards === 'function') {
+            setCards(prevCards => prevCards.filter(item => item.id !== itemId));
+            console.log(`Item ${itemId} removed successfully from ${collectionName}`);
+        } else {
+            console.error('setCards is not a function:', setCards);
+        }
     } catch (error) {
         console.error('Failed to remove item from collection:', error);
     }
