@@ -7,22 +7,31 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import '../styles/ManageCollectionsModal.css';
+import { handleAddCollection, handleDeleteCollection, refreshCollections } from '../handlers/CollectionHandlers';
 
 const ManageCollectionsModal = ({ 
     open, 
     onClose, 
-    onAddCollection, 
-    onDeleteCollection, 
     userId, 
-    collections  // This is now an array of strings
+    collections,
+    setCollections
 }) => {
     const [newCollectionName, setNewCollectionName] = useState('');
 
-    const handleAddCollection = () => {
+    const handleAddCollectionClick = async () => {
         if (newCollectionName.trim()) {
-            onAddCollection(userId, newCollectionName.trim());
+            await handleAddCollection(userId, newCollectionName.trim(), setCollections);
             setNewCollectionName('');
         }
+    };
+
+    const onCollectionDeleted = async () => {
+        // Refresh the collections after deletion
+        await refreshCollections(userId, setCollections);
+    };
+
+    const deleteCollection = (collectionName) => {
+        handleDeleteCollection(userId, collectionName, onCollectionDeleted);
     };
 
     return (
@@ -41,7 +50,7 @@ const ManageCollectionsModal = ({
                         variant="outlined"
                         size="small"
                     />
-                    <IconButton color="primary" onClick={handleAddCollection} disabled={!newCollectionName.trim()}>
+                    <IconButton color="primary" onClick={handleAddCollectionClick} disabled={!newCollectionName.trim()}>
                         <AddIcon />
                     </IconButton>
                 </div>
@@ -52,7 +61,7 @@ const ManageCollectionsModal = ({
                         <ListItem key={collectionName} className="collection-item">
                             <ListItemText primary={collectionName} className="collection-name" />
                             <ListItemSecondaryAction>
-                                <IconButton edge="end" aria-label="delete" onClick={() => onDeleteCollection(userId, collectionName)} className="delete-button">
+                                <IconButton edge="end" aria-label="delete" onClick={() => deleteCollection(collectionName)} className="delete-button">
                                     <DeleteIcon />
                                 </IconButton>
                             </ListItemSecondaryAction>

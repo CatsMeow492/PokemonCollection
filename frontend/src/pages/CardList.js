@@ -52,6 +52,7 @@ import {
     handleRemoveItemFromCollection,
     updateCardsWithMarketPrice
 } from '../handlers/CardHandlers';
+import { handleAddCollection, handleDeleteCollection } from '../handlers/CollectionHandlers';
 const verbose = config;
 
 
@@ -260,6 +261,9 @@ const CardList = () => {
             <ManageCollectionsModal
                 open={manageCollectionsModalOpen}
                 onClose={() => setManageCollectionsModalOpen(false)}
+                onCollectionDeleted={handleDeleteCollection}
+                onCollectionCreated={handleAddCollection}
+                setCollections={setCollections}
                 userId={id}
                 collections={collections.map(c => c.collection_name)}
             />

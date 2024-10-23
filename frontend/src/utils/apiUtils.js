@@ -303,24 +303,31 @@ export const updateUserProfile = async (newUsername, newProfilePicture) => {
 };
 
 export const createCollection = async (userId, collectionName) => {
-    const verbose = config.verbose;
-    if (verbose) console.log(`Creating collection '${collectionName}' for user ID: ${userId}`);
-
     try {
-        const response = await fetch(`/api/collections/${userId}/${collectionName}`, {
+        const response = await fetch(`${API_BASE_URL}/api/collections/${userId}/${encodeURIComponent(collectionName)}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+            // The body is no longer needed as we're passing the data in the URL
+            // body: JSON.stringify({ userId, collectionName }),
         });
 
         if (!response.ok) {
-            throw new Error('Failed to create collection');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        if (verbose) console.log('Collection created:', data);
-        return data;
+        const text = await response.text();
+        if (!text) {
+            return { success: true };
+        }
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('Failed to parse response as JSON:', text);
+            return { success: true };
+        }
     } catch (error) {
         console.error('Error creating collection:', error);
         throw error;
@@ -450,6 +457,9 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
+
+
 
 
 
