@@ -55,11 +55,10 @@ jobs:
           VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
           echo "Using version label: $VERSION_LABEL"
 
-          # Check for terminated environments and terminate them
+          # Check for terminated environments
           TERMINATED_ENV=$(aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --include-deleted --query 'Environments[?Status==`Terminated`].EnvironmentName' --output text)
           if [ "$TERMINATED_ENV" == "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" ]; then
-            echo "Terminating environment: $TERMINATED_ENV"
-            aws elasticbeanstalk terminate-environment --environment-name "$TERMINATED_ENV"
+            echo "Environment is terminated. Proceeding to create a new environment."
           fi
 
           # Check if the environment exists
