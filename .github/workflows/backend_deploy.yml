@@ -44,9 +44,27 @@ jobs:
 
       - name: Deploy to Elastic Beanstalk
         run: |
-          aws elasticbeanstalk create-application-version --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+          # Create application version
+          aws elasticbeanstalk create-application-version \
+            --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
             --version-label "${{ github.run_number }}" \
             --source-bundle S3Bucket="${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket",S3Key="application-${{ github.run_number }}.zip"
 
-          aws elasticbeanstalk update-environment --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
-            --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --version-label "${{ github.run_number }}"
+          # Check if the environment exists
+          if ! aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --no-include-deleted | grep -q "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}"; then
+            echo "Environment does not exist. Creating new environment..."
+            # Create a new environment
+            aws elasticbeanstalk create-environment \
+              --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+              --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
+              --solution-stack-name "64bit Amazon Linux 2 v3.5.9 running Go 1" \
+              --option-settings file://eb-options.json \
+              --version-label "${{ github.run_number }}"
+          else
+            echo "Environment exists. Updating environment..."
+            # Update existing environment
+            aws elasticbeanstalk update-environment \
+              --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+              --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
+              --version-label "${{ github.run_number }}"
+          fi
