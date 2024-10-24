@@ -45,6 +45,10 @@ jobs:
       - name: Get latest Go solution stack
         run: |
           SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks --output json | jq -r '.SolutionStacks[] | select(contains("running Go 1"))' | head -n 1)
+          if [ -z "$SOLUTION_STACK" ]; then
+            echo "Error: No suitable solution stack found for Go 1."
+            exit 1
+          fi
           echo "SOLUTION_STACK=$SOLUTION_STACK" >> $GITHUB_ENV
           echo "Selected solution stack: $SOLUTION_STACK"
 
@@ -55,11 +59,11 @@ jobs:
           VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
           echo "Using version label: $VERSION_LABEL"
 
-          # Check for terminated environments and delete them
+          # Check for terminated environments and terminate them
           TERMINATED_ENV=$(aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --include-deleted --query 'Environments[?Status==`Terminated`].EnvironmentName' --output text)
           if [ "$TERMINATED_ENV" == "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" ]; then
-            echo "Deleting terminated environment: $TERMINATED_ENV"
-            aws elasticbeanstalk delete-environment --environment-name "$TERMINATED_ENV"
+            echo "Terminating environment: $TERMINATED_ENV"
+            aws elasticbeanstalk terminate-environment --environment-name "$TERMINATED_ENV"
           fi
 
           # Check if the environment exists
