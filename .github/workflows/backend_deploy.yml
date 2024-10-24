@@ -55,11 +55,12 @@ jobs:
           VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
           echo "Using version label: $VERSION_LABEL"
 
-          # Create application version
-          aws elasticbeanstalk create-application-version \
-            --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
-            --version-label "$VERSION_LABEL" \
-            --source-bundle S3Bucket="${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket",S3Key="application-${{ github.run_number }}.zip"
+          # Check for terminated environments and delete them
+          TERMINATED_ENV=$(aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --include-deleted --query 'Environments[?Status==`Terminated`].EnvironmentName' --output text)
+          if [ "$TERMINATED_ENV" == "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" ]; then
+            echo "Deleting terminated environment: $TERMINATED_ENV"
+            aws elasticbeanstalk delete-environment --environment-name "$TERMINATED_ENV"
+          fi
 
           # Check if the environment exists
           if ! aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --no-include-deleted | grep -q "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}"; then
