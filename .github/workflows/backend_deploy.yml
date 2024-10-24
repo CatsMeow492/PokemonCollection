@@ -28,7 +28,7 @@ jobs:
           cd backend
           go build -o CardVault
           cd ..
-          zip -r application.zip backend/CardVault .ebextensions/
+          zip -r application.zip backend/CardVault .ebextensions/ eb-options.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -38,7 +38,7 @@ jobs:
 
   upload_to_s3:
     runs-on: ubuntu-latest
-    needs: build  # This ensures the upload starts only after build is done
+    needs: build
     steps:
       - name: Download application artifact
         uses: actions/download-artifact@v3
@@ -58,7 +58,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: upload_to_s3  # This ensures deployment starts only after upload is done
+    needs: upload_to_s3
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -103,6 +103,7 @@ jobs:
           if ! aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --no-include-deleted | grep -q "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}"; then
             echo "Environment does not exist. Creating new environment..."
             echo "Using solution stack: ${{ env.SOLUTION_STACK }}"
+            # Ensure the path to eb-options.json is correct
             aws elasticbeanstalk create-environment \
               --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
               --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
