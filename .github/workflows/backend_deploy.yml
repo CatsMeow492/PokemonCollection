@@ -84,6 +84,7 @@ jobs:
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
+          echo "VERSION_LABEL=$VERSION_LABEL" >> $GITHUB_ENV
           echo "Using version label: $VERSION_LABEL"
 
           aws elasticbeanstalk create-application-version \
@@ -97,7 +98,7 @@ jobs:
           for attempt in {1..10}; do
             STATUS=$(aws elasticbeanstalk describe-application-versions \
               --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
-              --version-label "$VERSION_LABEL" \
+              --version-label "${{ env.VERSION_LABEL }}" \
               --query 'ApplicationVersions[0].Status' \
               --output text)
             echo "Application version status: $STATUS"
@@ -115,8 +116,6 @@ jobs:
 
       - name: Deploy to Elastic Beanstalk
         run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
           echo "Using version label: $VERSION_LABEL"
 
           TERMINATED_ENV=$(aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --include-deleted --query 'Environments[?Status==`Terminated`].EnvironmentName' --output text)
@@ -132,10 +131,10 @@ jobs:
               --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
               --solution-stack-name "${{ env.SOLUTION_STACK }}" \
               --option-settings file://eb-options.json \
-              --version-label "$VERSION_LABEL"
+              --version-label "${{ env.VERSION_LABEL }}"
           else
             echo "Environment exists. Updating environment..."
             aws elasticbeanstalk update-environment \
               --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
               --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
-              --version-label "$VERSION_LABEL"
+              --version-label "${{ env.VERSION_LABEL }}"
