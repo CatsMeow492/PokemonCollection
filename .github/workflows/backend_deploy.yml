@@ -45,10 +45,6 @@ jobs:
       - name: Get latest Go solution stack
         run: |
           SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks --output json | jq -r '.SolutionStacks[] | select(contains("running Go 1"))' | head -n 1)
-          if [ -z "$SOLUTION_STACK" ]; then
-            echo "Error: No suitable solution stack found for Go 1."
-            exit 1
-          fi
           echo "SOLUTION_STACK=$SOLUTION_STACK" >> $GITHUB_ENV
           echo "Selected solution stack: $SOLUTION_STACK"
 
