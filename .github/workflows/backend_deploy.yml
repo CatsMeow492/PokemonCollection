@@ -48,6 +48,19 @@ jobs:
           echo "SOLUTION_STACK=$SOLUTION_STACK" >> $GITHUB_ENV
           echo "Selected solution stack: $SOLUTION_STACK"
 
+      - name: Create application version
+        run: |
+          # Create a unique version label using the GitHub run number, short SHA of the commit, and a timestamp
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
+          echo "Using version label: $VERSION_LABEL"
+          
+          # Create a new application version
+          aws elasticbeanstalk create-application-version \
+            --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+            --version-label "$VERSION_LABEL" \
+            --source-bundle S3Bucket="${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket",S3Key="application-${{ github.run_number }}.zip"
+
       - name: Deploy to Elastic Beanstalk
         run: |
           # Create a unique version label using the GitHub run number, short SHA of the commit, and a timestamp
