@@ -44,8 +44,9 @@ jobs:
 
       - name: Get latest Go solution stack
         run: |
-          SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks --output text --query 'SolutionStacks[?contains(@, `running Go 1`)] | [0]')
+          SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks --output json | jq -r '.SolutionStacks[] | select(contains("running Go 1"))' | head -n 1)
           echo "SOLUTION_STACK=$SOLUTION_STACK" >> $GITHUB_ENV
+          echo "Selected solution stack: $SOLUTION_STACK"
 
       - name: Deploy to Elastic Beanstalk
         run: |
@@ -58,6 +59,7 @@ jobs:
           # Check if the environment exists
           if ! aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --no-include-deleted | grep -q "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}"; then
             echo "Environment does not exist. Creating new environment..."
+            echo "Using solution stack: ${{ env.SOLUTION_STACK }}"
             # Create a new environment
             aws elasticbeanstalk create-environment \
               --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
