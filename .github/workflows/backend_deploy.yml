@@ -28,7 +28,9 @@ jobs:
           cd backend
           go build -o CardVault
           cd ..
+          echo "Zipping application files..."
           zip -r application.zip backend/CardVault .ebextensions/ eb-options.json
+          echo "Application files zipped successfully."
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -54,11 +56,15 @@ jobs:
 
       - name: Upload to S3
         run: |
+          echo "Uploading application.zip to S3..."
           aws s3 cp application.zip s3://${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket/application-${{ github.run_number }}.zip
+          echo "Upload to S3 completed."
 
       - name: Check if upload to S3 was successful
         run: |
+          echo "Verifying S3 upload..."
           aws s3 ls s3://${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket/ | grep application-${{ github.run_number }}.zip
+          echo "S3 upload verified."
 
   deploy:
     runs-on: ubuntu-latest
@@ -87,10 +93,12 @@ jobs:
           echo "VERSION_LABEL=$VERSION_LABEL" >> $GITHUB_ENV
           echo "Using version label: $VERSION_LABEL"
 
+          echo "Creating application version in Elastic Beanstalk..."
           aws elasticbeanstalk create-application-version \
             --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
             --version-label "$VERSION_LABEL" \
             --source-bundle S3Bucket="${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket",S3Key="application-${{ github.run_number }}.zip"
+          echo "Application version created."
 
       - name: Wait for application version to be available
         run: |
@@ -118,11 +126,13 @@ jobs:
         run: |
           echo "Using version label: $VERSION_LABEL"
 
+          echo "Checking for terminated environments..."
           TERMINATED_ENV=$(aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --include-deleted --query 'Environments[?Status==`Terminated`].EnvironmentName' --output text)
           if [ "$TERMINATED_ENV" == "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" ]; then
             echo "Environment is terminated. Proceeding to create a new environment."
           fi
 
+          echo "Checking if environment exists..."
           if ! aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --no-include-deleted | grep -q "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}"; then
             echo "Environment does not exist. Creating new environment..."
             echo "Using solution stack: ${{ env.SOLUTION_STACK }}"
@@ -132,9 +142,11 @@ jobs:
               --solution-stack-name "${{ env.SOLUTION_STACK }}" \
               --option-settings file://eb-options.json \
               --version-label "${{ env.VERSION_LABEL }}"
+            echo "New environment created."
           else
             echo "Environment exists. Updating environment..."
             aws elasticbeanstalk update-environment \
               --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
               --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
               --version-label "${{ env.VERSION_LABEL }}"
+            echo "Environment updated."
