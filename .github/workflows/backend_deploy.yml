@@ -50,7 +50,9 @@ jobs:
 
       - name: Deploy to Elastic Beanstalk
         run: |
-          VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}"
+          # Create a unique version label using the GitHub run number, short SHA of the commit, and a timestamp
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
           echo "Using version label: $VERSION_LABEL"
 
           # Create application version
