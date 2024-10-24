@@ -42,6 +42,11 @@ jobs:
         run: |
           aws s3 cp application.zip s3://${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket/application-${{ github.run_number }}.zip
 
+      - name: Get latest Go solution stack
+        run: |
+          SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks --output text --query 'SolutionStacks[?contains(@, `running Go 1`)] | [0]')
+          echo "SOLUTION_STACK=$SOLUTION_STACK" >> $GITHUB_ENV
+
       - name: Deploy to Elastic Beanstalk
         run: |
           # Create application version
@@ -57,7 +62,7 @@ jobs:
             aws elasticbeanstalk create-environment \
               --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
               --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
-              --"SolutionStackName": "64bit Amazon Linux 2023 v4.1.5 running Go 1" \
+              --solution-stack-name "${{ env.SOLUTION_STACK }}" \
               --option-settings file://eb-options.json \
               --version-label "${{ github.run_number }}"
           else
@@ -68,8 +73,3 @@ jobs:
               --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
               --version-label "${{ github.run_number }}"
           fi
-
-      - name: Get latest Go solution stack
-        run: |
-          SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks --output text --query 'SolutionStacks[?contains(@, `running Go`)] | [0]')
-          echo "SOLUTION_STACK=$SOLUTION_STACK" >> $GITHUB_ENV
