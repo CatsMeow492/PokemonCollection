@@ -56,84 +56,83 @@ jobs:
         run: |
           aws s3 cp application.zip s3://${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket/application-${{ github.run_number }}.zip
 
-          deploy:
-            runs-on: ubuntu-latest
-            needs: upload_to_s3
-            steps:
-              - name: Checkout code
-                uses: actions/checkout@v3
-        
-              - name: Configure AWS credentials
-                uses: aws-actions/configure-aws-credentials@v2
-                with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: ${{ secrets.AWS_REGION }}
-        
-              - name: Set solution stack
-                run: |
-                  SOLUTION_STACK="64bit Amazon Linux 2023 v4.1.5 running Go 1"
-                  echo "SOLUTION_STACK=$SOLUTION_STACK" >> $GITHUB_ENV
-                  echo "Selected solution stack: $SOLUTION_STACK"
-        
-              - name: Create application version
-                run: |
-                  TIMESTAMP=$(date +%Y%m%d%H%M%S)
-                  VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
-                  echo "Using version label: $VERSION_LABEL"
-        
-                  aws elasticbeanstalk create-application-version \
-                    --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
-                    --version-label "$VERSION_LABEL" \
-                    --source-bundle S3Bucket="${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket",S3Key="application-${{ github.run_number }}.zip"
-        
-              - name: Wait for application version to be available
-                run: |
-                  VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$(date +%Y%m%d%H%M%S)"
-                  echo "Waiting for application version $VERSION_LABEL to be available..."
-                  for attempt in {1..10}; do
-                    STATUS=$(aws elasticbeanstalk describe-application-versions \
-                      --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
-                      --version-label "$VERSION_LABEL" \
-                      --query 'ApplicationVersions[0].Status' \
-                      --output text)
-                    echo "Application version status: $STATUS"
-                    if [ "$STATUS" == "Processed" ]; then
-                      echo "Application version is ready."
-                      break
-                    fi
-                    if [ $attempt -eq 10 ]; then
-                      echo "Application version is still not ready after 10 attempts, exiting."
-                      exit 1
-                    fi
-                    echo "Waiting 30 seconds for the application version to be processed..."
-                    sleep 30
-                  done
-        
-              - name: Deploy to Elastic Beanstalk
-                run: |
-                  TIMESTAMP=$(date +%Y%m%d%H%M%S)
-                  VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
-                  echo "Using version label: $VERSION_LABEL"
-        
-                  TERMINATED_ENV=$(aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --include-deleted --query 'Environments[?Status==`Terminated`].EnvironmentName' --output text)
-                  if [ "$TERMINATED_ENV" == "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" ]; then
-                    echo "Environment is terminated. Proceeding to create a new environment."
-                  fi
-        
-                  if ! aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --no-include-deleted | grep -q "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}"; then
-                    echo "Environment does not exist. Creating new environment..."
-                    echo "Using solution stack: ${{ env.SOLUTION_STACK }}"
-                    aws elasticbeanstalk create-environment \
-                      --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
-                      --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
-                      --solution-stack-name "${{ env.SOLUTION_STACK }}" \
-                      --option-settings file://eb-options.json \
-                      --version-label "$VERSION_LABEL"
-                  else
-                    echo "Environment exists. Updating environment..."
-                    aws elasticbeanstalk update-environment \
-                      --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
-                      --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
-                      --version-label "$VERSION_LABEL"
+  deploy:
+    runs-on: ubuntu-latest
+    needs: upload_to_s3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set solution stack
+        run: |
+          SOLUTION_STACK="64bit Amazon Linux 2023 v4.1.5 running Go 1"
+          echo "SOLUTION_STACK=$SOLUTION_STACK" >> $GITHUB_ENV
+          echo "Selected solution stack: $SOLUTION_STACK"
+
+      - name: Create application version
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
+          echo "Using version label: $VERSION_LABEL"
+
+          aws elasticbeanstalk create-application-version \
+            --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+            --version-label "$VERSION_LABEL" \
+            --source-bundle S3Bucket="${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket",S3Key="application-${{ github.run_number }}.zip"
+
+      - name: Wait for application version to be available
+        run: |
+          VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$(date +%Y%m%d%H%M%S)"
+          echo "Waiting for application version $VERSION_LABEL to be available..."
+          for attempt in {1..10}; do
+            STATUS=$(aws elasticbeanstalk describe-application-versions \
+              --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+              --version-label "$VERSION_LABEL" \
+              --query 'ApplicationVersions[0].Status' \
+              --output text)
+            echo "Application version status: $STATUS"
+            if [ "$STATUS" == "Processed" ]; then
+              echo "Application version is ready."
+              break
+            fi
+            if [ $attempt -eq 10 ]; then
+              echo "Application version is still not ready after 10 attempts, exiting."
+              exit 1
+            fi
+            echo "Waiting 30 seconds for the application version to be processed..."
+            sleep 30
+          done
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          VERSION_LABEL="${{ github.run_number }}-${{ github.sha }}-$TIMESTAMP"
+          echo "Using version label: $VERSION_LABEL"
+
+          TERMINATED_ENV=$(aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --include-deleted --query 'Environments[?Status==`Terminated`].EnvironmentName' --output text)
+          if [ "$TERMINATED_ENV" == "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" ]; then
+            echo "Environment is terminated. Proceeding to create a new environment."
           fi
+
+          if ! aws elasticbeanstalk describe-environments --environment-names "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" --no-include-deleted | grep -q "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}"; then
+            echo "Environment does not exist. Creating new environment..."
+            echo "Using solution stack: ${{ env.SOLUTION_STACK }}"
+            aws elasticbeanstalk create-environment \
+              --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+              --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
+              --solution-stack-name "${{ env.SOLUTION_STACK }}" \
+              --option-settings file://eb-options.json \
+              --version-label "$VERSION_LABEL"
+          else
+            echo "Environment exists. Updating environment..."
+            aws elasticbeanstalk update-environment \
+              --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
+              --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
+              --version-label "$VERSION_LABEL"
