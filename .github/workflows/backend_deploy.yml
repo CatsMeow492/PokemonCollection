@@ -61,6 +61,14 @@ jobs:
             --version-label "$VERSION_LABEL" \
             --source-bundle S3Bucket="${{ secrets.AWS_EB_APPLICATION_NAME }}-deployment-bucket",S3Key="application-${{ github.run_number }}.zip"
 
+          # Log successful creation
+          echo "Application version $VERSION_LABEL created successfully."
+
+      - name: Wait for application version to be available
+        run: |
+          echo "Waiting for 30 seconds to allow the application version to be available..."
+          sleep 30
+
       - name: Deploy to Elastic Beanstalk
         run: |
           # Create a unique version label using the GitHub run number, short SHA of the commit, and a timestamp
