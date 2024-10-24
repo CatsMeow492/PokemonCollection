@@ -57,7 +57,7 @@ jobs:
             aws elasticbeanstalk create-environment \
               --application-name "${{ secrets.AWS_EB_APPLICATION_NAME }}" \
               --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
-              --solution-stack-name "64bit Amazon Linux 2 v3.5.9 running Go 1" \
+              --"SolutionStackName": "64bit Amazon Linux 2023 v4.1.5 running Go 1" \
               --option-settings file://eb-options.json \
               --version-label "${{ github.run_number }}"
           else
@@ -68,3 +68,8 @@ jobs:
               --environment-name "${{ secrets.AWS_EB_ENVIRONMENT_NAME }}" \
               --version-label "${{ github.run_number }}"
           fi
+
+      - name: Get latest Go solution stack
+        run: |
+          SOLUTION_STACK=$(aws elasticbeanstalk list-available-solution-stacks --output text --query 'SolutionStacks[?contains(@, `running Go`)] | [0]')
+          echo "SOLUTION_STACK=$SOLUTION_STACK" >> $GITHUB_ENV
