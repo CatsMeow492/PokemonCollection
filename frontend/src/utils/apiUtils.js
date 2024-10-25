@@ -1,7 +1,7 @@
 import config from '../config';
 const verbose = config;
 // Load base url from .env
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 export const fetchMarketPrice = async (name, id, edition, grade, type) => {
     const params = new URLSearchParams({
@@ -15,8 +15,7 @@ export const fetchMarketPrice = async (name, id, edition, grade, type) => {
     if (verbose) console.log(`Fetching market price for: ${params}`);
     
     try {
-        // Change this line to match your backend route
-        const response = await fetch(`/api/item-market-price?${params}`);
+        const response = await fetch(`${API_BASE_URL}/api/item-market-price?${params}`);
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Failed to fetch market value: ${response.status} ${response.statusText} - ${errorText}`);
@@ -24,10 +23,10 @@ export const fetchMarketPrice = async (name, id, edition, grade, type) => {
         const data = await response.json();
         if (verbose) console.log('Fetched market value:', data);
         if (verbose) console.log('Fetched market value:', data.market_price);
-        return data.market_price; // Change this to match your backend response structure
+        return data.market_price;
     } catch (error) {
         console.error('Error fetching market value:', error);
-        return null; // Return null instead of throwing, so we can continue processing other items
+        return null;
     }
 };
 
@@ -66,7 +65,7 @@ export const fetchCollectionsByUserID = async (userID) => {
     if (verbose) console.log(`Fetching collections for user ID: ${userID}`);
     
     try {
-        const response = await fetch(`/api/collections/${userID}`);
+        const response = await fetch(`${API_BASE_URL}/api/collections/${userID}`);
         if (!response.ok) {
             throw new Error('Failed to fetch collections');
         }
@@ -74,7 +73,6 @@ export const fetchCollectionsByUserID = async (userID) => {
         const data = await response.json();
         if (verbose) {
             console.log('Collections fetched:', data);
-            // Log the price of each card in each collection
             data.forEach((collection, index) => {
                 console.log(`Collection ${index + 1}:`);
                 collection.cards.forEach(card => {
@@ -90,7 +88,7 @@ export const fetchCollectionsByUserID = async (userID) => {
 };
 
 export const fetchCollectionByUserIDandCollectionName = async (userID, collectionName) => {
-    const response = await fetch(`/api/collections/${userID}/${collectionName}`);
+    const response = await fetch(`${API_BASE_URL}/api/collections/${userID}/${collectionName}`);
     if (!response.ok) {
         throw new Error('Failed to fetch collection');
     }
@@ -119,7 +117,7 @@ export const processFetchedCards = (data, verbose) => {
 // Function to add a card with just userId (uses default collection)
 export const addCardWithUserId = async (card, userId) => {
     if (verbose) console.log(`Adding card for user: ${userId}, ${JSON.stringify(card)}`);
-    const response = await fetch('/api/cards', {
+    const response = await fetch(`${API_BASE_URL}/api/cards`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -145,19 +143,18 @@ export const addCardWithCollection = async (card, userId, collectionName) => {
         collection_name: collectionName,
         card: {
             ...card,
-            purchase_price: card.price || card.purchase_price, // Use price if available, otherwise use purchase_price
-            grade: card.grade.toString() // Ensure grade is a string
+            purchase_price: card.price || card.purchase_price,
+            grade: card.grade.toString()
         }
     };
     
-    // Remove the 'price' field if it exists
     if (payload.card.price) {
         delete payload.card.price;
     }
     
     if (verbose) console.log('Payload being sent:', JSON.stringify(payload, null, 2));
     
-    const response = await fetch('/api/cards/collection', {
+    const response = await fetch(`${API_BASE_URL}/api/cards/collection`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -182,7 +179,7 @@ export const addCard = async (card, userId, collectionName) => {
 };
 
 export const fetchProducts = async () => {
-    const response = await fetch('/api/products');
+    const response = await fetch(`${API_BASE_URL}/api/products`);
     if (!response.ok) {
         throw new Error('Failed to fetch products');
     }
@@ -190,7 +187,7 @@ export const fetchProducts = async () => {
 };
 
 export const fetchProductByID = async (id) => {
-    const response = await fetch(`/api/product/${id}`);
+    const response = await fetch(`${API_BASE_URL}/api/product/${id}`);
     if (!response.ok) {
         throw new Error('Failed to fetch product');
     }
@@ -250,7 +247,7 @@ export const updateItemQuantity = async (itemId, newQuantity, collectionName, us
 
 
 export const fetchPokemonNames = async () => {
-    const response = await fetch('/api/pokemon-names');
+    const response = await fetch(`${API_BASE_URL}/api/pokemon-names`);
     if (!response.ok) {
         throw new Error('Failed to fetch pokemon names');
     }
@@ -259,7 +256,7 @@ export const fetchPokemonNames = async () => {
 
 export const registerUser = async (username, password, email) => {
     if (verbose) console.log(`Registering user: ${username}, ${password}, ${email}`);
-    const response = await fetch('/api/register', {
+    const response = await fetch(`${API_BASE_URL}/api/register`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -271,7 +268,6 @@ export const registerUser = async (username, password, email) => {
         throw new Error('Failed to register user');
     }
 
-    // Check if the response has a body
     const responseBody = await response.text();
     if (responseBody) {
         return JSON.parse(responseBody);
@@ -281,7 +277,7 @@ export const registerUser = async (username, password, email) => {
 };
 
 export const loginUser = async (username, password) => {
-    const response = await fetch('/api/login', {
+    const response = await fetch(`${API_BASE_URL}/api/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -294,13 +290,13 @@ export const loginUser = async (username, password) => {
     }
 
     const data = await response.json();
-    console.log('Login response data:', data); // Add logging here
+    console.log('Login response data:', data);
     if (verbose) console.log(`ID: ${data.id}`);
     return { token: data.token, username: data.username, profile_picture: data.profile_picture, id: data.id };
 };
 
 export const updateUserProfile = async (newUsername, newProfilePicture) => {
-    const response = await fetch('/api/update-profile', {
+    const response = await fetch(`${API_BASE_URL}/api/update-profile`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -353,7 +349,7 @@ export const deleteCollection = async (userId, collectionName) => {
     if (verbose) console.log(`Deleting collection '${collectionName}' for user ID: ${userId}`);
 
     try {
-        const response = await fetch(`/api/collections/${userId}/${collectionName}`, {
+        const response = await fetch(`${API_BASE_URL}/api/collections/${userId}/${collectionName}`, {
             method: 'DELETE',
         });
 
@@ -385,9 +381,9 @@ export const removeCardFromCollection = async (userId, collectionName, cardId) =
 export const addItemToCollection = async (userId, name, grade, edition, collectionName, purchasePrice, type, image, set) => {
   let url;
   if (type === 'Pokemon Card') {
-    url = `/api/cards/collection`; // Use the existing card endpoint
+    url = `${API_BASE_URL}/api/cards/collection`;
   } else {
-    url = `/api/items/${userId}/${encodeURIComponent(collectionName)}`;
+    url = `${API_BASE_URL}/api/items/${userId}/${encodeURIComponent(collectionName)}`;
   }
 
   const payload = {
@@ -471,6 +467,7 @@ export const fetchCardMarketData = async (cardId) => {
         return null;
     }
 };
+
 
 
 
