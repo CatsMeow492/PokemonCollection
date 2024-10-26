@@ -2,6 +2,7 @@ import config from '../config';
 const verbose = config;
 // Load base url from .env
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+console.log('API_BASE_URL in apiUtils:', process.env.REACT_APP_API_BASE_URL);
 
 export const fetchMarketPrice = async (name, id, edition, grade, type) => {
     const params = new URLSearchParams({
