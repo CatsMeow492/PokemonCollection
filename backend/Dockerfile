@@ -11,24 +11,23 @@ RUN go mod download
 # Copy the rest of the application code
 COPY . .
 
-# Copy the .env file
-COPY .env .
-
 # Build the Go application
-RUN go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
 
 # Use a minimal base image for the final build
-FROM gcr.io/distroless/base
+FROM gcr.io/distroless/static-debian11
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the binary and .env file from the builder stage
+# Copy the binary from the builder stage
 COPY --from=builder /app/main .
-COPY --from=builder /app/.env .
+
+# Copy the .env file
+COPY .env .
 
 # Expose the port that the application will run on
 EXPOSE 8000
 
 # Command to run the application
-CMD ["./main"]
+CMD ["/app/main"]

@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy the rest of the application code, including .env
 COPY . .
@@ -22,11 +22,11 @@ FROM nginx:alpine
 # Copy the build output to the Nginx HTML directory
 COPY --from=builder /app/build /usr/share/nginx/html
 
+# Copy a custom nginx configuration if needed
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Expose the port that the application will run on
 EXPOSE 80
 
-# Command to run the application
-CMD ["nginx", "-g", "daemon off;"]
-
-
-
+# Use shell form for CMD to ensure proper execution
+CMD nginx -g 'daemon off;'

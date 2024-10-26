@@ -2,3 +2,13 @@
 backend/.env
 backend/tests.txt
 backend/tests.txt
+backend-task-definition.json
+backend/Dockerfile
+frontend/Dockerfile
+frontend-task-definition.json
+frontend-service.json
+updated-frontend-task-definition.json
+updated-backend-task-definition.json
+frontend-task-definition.json
+frontend-task-definition.json
+backend-task-definition.json
